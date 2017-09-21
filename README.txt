@@ -52,17 +52,17 @@ Jackrabbit mailing lists as well as links to list archives, please see:
 Latest development
 ==================
 
-The latest FileVault source code is available via Subversion at
+The latest FileVault package plugin source code is available via Subversion at
 
-   https://svn.apache.org/repos/asf/commons/filevault/trunk
+   https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/trunk/
 
 or with ViewVC at
 
-   https://svn.apache.org/viewvc/commons/filevault/trunk
+   https://svn.apache.org/viewvc/jackrabbit/commons/filevault-package-maven-plugin/trunk/
 
-To checkout the main Jackrabbit source tree, run
+To checkout the main source tree, run
 
-   svn checkout https://svn.apache.org/repos/asf/commons/filevault/trunk filevault
+   svn checkout https://svn.apache.org/repos/asf/commons/filevault-package-maven-plugin/trunk filevault-package-maven-plugin
 
 Credits
 =======
