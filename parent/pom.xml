@@ -126,6 +126,26 @@
                     <artifactId>apache-rat-plugin</artifactId>
                     <version>0.12</version>
                 </plugin>
+                <!-- ====================================================================== -->
+                <!-- S I T E    P L U G I N                                                 -->
+                <!-- ====================================================================== -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-site-plugin</artifactId>
+                    <version>3.3</version>
+                    <configuration>
+                        <generateReports>false</generateReports>
+                        <skip>true</skip>
+                        <skipDeploy>true</skipDeploy>
+                    </configuration>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.maven.doxia</groupId>
+                            <artifactId>doxia-module-markdown</artifactId>
+                            <version>1.5</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
             </plugins>
         </pluginManagement>
     </build>
