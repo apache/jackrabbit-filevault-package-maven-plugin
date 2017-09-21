@@ -29,14 +29,14 @@ can be used to build and deploy a web site as follows:
 
 2. Review the site at `site/target/site`
 
-3. Deploy the site to `http://jackrabbit.apache.org/filevault/package-maven-plugin` using:
+3. Deploy the site to `http://jackrabbit.apache.org/filevault-package-maven-plugin` using:
 
    ````
    $ cd vault-doc
    $ mvn site-deploy
    ````
 
-4. Finally review the site at `http://jackrabbit.apache.org/filevault/package-maven-plugin/index.html`.
+4. Finally review the site at `http://jackrabbit.apache.org/filevault-package-maven-plugin/index.html`.
 
 
 Note: To skip the final commit use `-Dscmpublish.skipCheckin=true`. You can then
@@ -45,4 +45,4 @@ up with `svn commit` manually.
 
 Note: Every committer should be able to deploy the site. No fiddling with
 credentials needed since deployment is done via svn commit to
-`https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault/package-maven-plugin`.
+`https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault-package-maven-plugin`.
