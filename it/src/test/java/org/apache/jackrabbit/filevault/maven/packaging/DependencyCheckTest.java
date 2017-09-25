@@ -43,7 +43,9 @@ public class DependencyCheckTest {
                 {"fail-no-contains", true},
                 {"fail-no-cover", true},
                 {"no-errors", false},
-                {"repo-structure-pkg", false}
+                {"repo-structure-pkg", false},
+                {"no-error-cleanup", false},
+                {"no-error-cleanup-filter", false}
         });
     }
 

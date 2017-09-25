@@ -20,8 +20,6 @@
     <artifactId>package-plugin-test-pkg</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>content-package</packaging>
-    <name>Packaging test</name>
-
     <build>
         <plugins>
             <plugin>
@@ -30,10 +28,14 @@
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <failOnDependencyErrors>true</failOnDependencyErrors>
+                    <failOnDependencyErrors>false</failOnDependencyErrors>
                     <filters>
                         <filter>
-                            <root>/libs/foo</root>
+                            <root>/apps/test</root>
+                        </filter>
+                        <filter>
+                            <root>/etc/clientlibs/cleanup</root>
+                            <type>cleanup</type>
                         </filter>
                     </filters>
                 </configuration>

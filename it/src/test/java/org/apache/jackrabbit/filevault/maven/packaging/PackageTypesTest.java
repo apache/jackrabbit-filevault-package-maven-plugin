@@ -43,7 +43,14 @@ public class PackageTypesTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{{"application", false}, {"application-sourced", false}, {"content", false}, {"mixed", false}, {"container", false}, {"invalid", true}});
+        return Arrays.asList(new Object[][]{
+                {"application", false},
+                {"application-sourced", false},
+                {"application-cleanup", false},
+                {"content", false},
+                {"mixed", false},
+                {"container", false},
+                {"invalid", true}});
     }
 
     private final String type;

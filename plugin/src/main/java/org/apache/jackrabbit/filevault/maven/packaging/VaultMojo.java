@@ -834,6 +834,9 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
             boolean hasApps = false;
             boolean hasOther = false;
             for (PathFilterSet p: filters.getFilterSets()) {
+                if (p.isCleanUp()) {
+                    continue;
+                }
                 String root = p.getRoot();
                 if ("/apps".equals(root) || root.startsWith("/apps/") || "/libs".equals(root) || root.startsWith("/libs/")) {
                     hasApps = true;

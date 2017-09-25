@@ -31,11 +31,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <failOnDependencyErrors>true</failOnDependencyErrors>
-                    <filters>
-                        <filter>
-                            <root>/libs/foo</root>
-                        </filter>
-                    </filters>
+                    <filterSource>${project.basedir}/filter.xml</filterSource>
                 </configuration>
             </plugin>
         </plugins>

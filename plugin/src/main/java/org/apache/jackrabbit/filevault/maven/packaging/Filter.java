@@ -29,6 +29,7 @@ public class Filter {
      *
      * &lt;filter&gt;
      *      &lt;root&gt;/var&lt;/root&gt;
+     *      &lt;type&gt;cleanup&lt;/type&gt;
      *      &lt;mode&gt;merge&lt;/mode&gt;
      *      &lt;includes&gt;
      *          &lt;include&gt;dam/sharepoint(/.*)?&lt;/include&gt;
@@ -44,6 +45,8 @@ public class Filter {
 
     /** ImportMode defaulting to REPLACE */
     private ImportMode mode = ImportMode.REPLACE;
+
+    private boolean cleanupType;
 
     private final IncludeExcludeList includes = new IncludeExcludeList();
 
@@ -74,10 +77,19 @@ public class Filter {
         return mode;
     }
 
+    public boolean isCleanupType() {
+        return cleanupType;
+    }
+
+    public void setType(String type) {
+        cleanupType = "cleanup".equals(type);
+    }
+
     public PathFilterSet toPathFilterSet() {
         PathFilterSet set = new PathFilterSet();
         set.setRoot(root);
         set.setImportMode(mode);
+        set.setCleanUp(cleanupType);
         for (String pattern: includes) {
             set.addInclude(new DefaultPathFilter(pattern));
         }

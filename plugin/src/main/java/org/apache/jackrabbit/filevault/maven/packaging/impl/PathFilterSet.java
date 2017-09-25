@@ -48,6 +48,8 @@ public class PathFilterSet extends FilterSet<PathFilter> {
      */
     private boolean onlyRelativePatterns;
 
+    private boolean cleanUp;
+
     /**
      * Default constructor. initializes the root path to "/"
      */
@@ -61,6 +63,24 @@ public class PathFilterSet extends FilterSet<PathFilter> {
      */
     public PathFilterSet(String root) {
         super(root);
+    }
+
+    /**
+     * Specifies if this filter is a cleanup filter. A cleanup filter has weaker dependency constraints.
+     * @return {@code true} if this is a cleanup filter.
+     */
+    public boolean isCleanUp() {
+        return cleanUp;
+    }
+
+    /**
+     * Marks this filter as cleanup filter if set to {@code true}.
+     * @param cleanUp cleanup attribute.
+     * @return this.
+     */
+    public PathFilterSet setCleanUp(boolean cleanUp) {
+        this.cleanUp = cleanUp;
+        return this;
     }
 
     /**

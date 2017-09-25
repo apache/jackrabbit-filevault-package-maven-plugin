@@ -178,11 +178,11 @@ public class DefaultWorkspaceFilter  {
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document document = builder.parse(in);
             Element doc = document.getDocumentElement();
-            if (!doc.getNodeName().equals("workspaceFilter")) {
+            if (!"workspaceFilter".equals(doc.getNodeName())) {
                 throw new IOException("<workspaceFilter> expected.");
             }
             String v = doc.getAttribute(ATTR_VERSION);
-            if (v == null || v.equals("")) {
+            if (v == null || "".equals(v)) {
                 v = "1.0";
             }
             version = Double.parseDouble(v);
@@ -209,7 +209,7 @@ public class DefaultWorkspaceFilter  {
         for (int i=0; i<nl.getLength(); i++) {
             Node child = nl.item(i);
             if (child.getNodeType() == Node.ELEMENT_NODE) {
-                if (!child.getNodeName().equals("filter")) {
+                if (!"filter".equals(child.getNodeName())) {
                     throw new IOException("<filter> expected.");
                 }
                 PathFilterSet def = readDef((Element) child);
@@ -226,14 +226,17 @@ public class DefaultWorkspaceFilter  {
         if (mode != null && mode.length() > 0) {
             def.setImportMode(ImportMode.valueOf(mode.toUpperCase()));
         }
+        // check for type
+        def.setCleanUp("cleanup".equals(elem.getAttribute("type")));
+
         // check for filters
         NodeList n1 = elem.getChildNodes();
         for (int i=0; i<n1.getLength(); i++) {
             Node child = n1.item(i);
             if (child.getNodeType() == Node.ELEMENT_NODE) {
-                if (child.getNodeName().equals("include")) {
+                if ("include".equals(child.getNodeName())) {
                     def.addInclude(readFilter((Element) child));
-                } else if (child.getNodeName().equals("exclude")) {
+                } else if ("exclude".equals(child.getNodeName())) {
                     def.addExclude(readFilter((Element) child));
                 } else {
                     throw new IOException("either <include> or <exclude> expected.");
@@ -245,7 +248,7 @@ public class DefaultWorkspaceFilter  {
 
     private PathFilter readFilter(Element elem) throws IOException {
         String pattern = elem.getAttribute("pattern");
-        if (pattern == null || pattern.equals("")) {
+        if (pattern == null || "".equals(pattern)) {
             throw new IOException("Filter pattern must not be empty");
         }
         return new DefaultPathFilter(pattern);
@@ -269,6 +272,9 @@ public class DefaultWorkspaceFilter  {
                 //attrs = new AttributesImpl();
                 //attrs.addAttribute(null, null, "root", "CDATA", set.getRoot());
                 ser.attribute(null, "root", set.getRoot());
+                if (set.isCleanUp()) {
+                    ser.attribute(null, "type", "cleanup");
+                }
                 if (set.getImportMode() != ImportMode.REPLACE) {
                     //attrs.addAttribute(null, null, "mode", "CDATA", set.getImportMode().name().toLowerCase());
                     ser.attribute(null, "mode", set.getImportMode().name().toLowerCase());

@@ -83,6 +83,9 @@ public class DependencyValidator {
         // check that this filter is covered.
         Set<String> ancestors = new HashSet<String>();
         for (PathFilterSet set: filters.getFilterSets()) {
+            if (set.isCleanUp()) {
+                continue;
+            }
             String root = StringUtils.substringBeforeLast(set.getRoot(), "/");
             // ignore root node as ancestor
             if ("/".equals(root)) {
