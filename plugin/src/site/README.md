@@ -24,6 +24,7 @@ can be used to build and deploy a web site as follows:
 1. From the reactor build the site with javadoc:
 
    ````
+   $ cd plugin
    $ mvn site
    ````
 
@@ -32,7 +33,7 @@ can be used to build and deploy a web site as follows:
 3. Deploy the site to `http://jackrabbit.apache.org/filevault-package-maven-plugin` using:
 
    ````
-   $ cd vault-doc
+   $ cd plugin
    $ mvn site-deploy
    ````
 
