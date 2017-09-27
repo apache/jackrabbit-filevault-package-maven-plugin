@@ -31,13 +31,6 @@
                 <extensions>true</extensions>
                 <configuration>
                     <group>my/test/group</group>
-                    <importUnusedPackages>true</importUnusedPackages>
-                    <importPackage>
-                        -aQute*, <!-- example of removing a package -->
-                        -org.osgi.framework.*, <!-- should keep the org.osgi.framework but remove subpackages-->
-                        javax.jcr*;version="[1.0.0,3.0.0)", <!-- example of altering existing packages -->
-                        org.apache.foo  <!-- example of adding a new package -->
-                    </importPackage>
                     <failOnDependencyErrors>false</failOnDependencyErrors>
                     <filters>
                         <filter>
@@ -62,7 +55,6 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <!-- unused dependency -->
             <groupId>biz.aQute</groupId>
             <artifactId>bndlib</artifactId>
             <version>1.43.0</version>

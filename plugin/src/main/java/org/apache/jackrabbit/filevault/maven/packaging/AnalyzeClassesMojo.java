@@ -57,12 +57,19 @@ public class AnalyzeClassesMojo extends AbstractEmbeddedsMojo {
     @Parameter(property = "vault.generatedImportPackage", defaultValue = "${project.build.directory}/vault-generated-import.txt")
     private File generatedImportPackage;
 
+    /**
+     * Defines if unused packages should be included in the import-package entry if no classes exist in the project
+     */
+    @Parameter(property = "vault.importUnusedPackages")
+    private boolean importUnusedPackages;
+
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
             getLog().info("Analyzing java package dependencies.");
             ImportPackageBuilder builder = new ImportPackageBuilder()
                     .withDependenciesFromProject(project)
                     .withClassFileDirectory(sourceDirectory)
+                    .setIncludeUnused(importUnusedPackages)
                     .analyze();
 
             String report = builder.createExportPackageReport();

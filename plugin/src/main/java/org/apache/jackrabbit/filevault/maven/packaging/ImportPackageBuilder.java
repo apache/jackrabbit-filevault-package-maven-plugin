@@ -105,6 +105,11 @@ public class ImportPackageBuilder {
     private Map<String, Attrs> importParameters = Collections.emptyMap();
 
     /**
+     * specifies if unused packages should be included if there are not classes in the project
+     */
+    private boolean includeUnused;
+
+    /**
      * Sets the class files directory
      * @param classes the directory
      * @return this.
@@ -132,6 +137,17 @@ public class ImportPackageBuilder {
             }
             artifacts.add(a);
         }
+        return this;
+    }
+
+    /**
+     * defines if unused packages should be included if no classes exist in the project.
+     * @param includeUnused {@code true} to include unused.
+     * @return this
+     */
+    @Nonnull
+    public ImportPackageBuilder setIncludeUnused(boolean includeUnused) {
+        this.includeUnused = includeUnused;
         return this;
     }
 
@@ -384,6 +400,9 @@ public class ImportPackageBuilder {
         for (PackageInfo info : exported.values()) {
             if (!classFiles.isEmpty() && info.usedBy.isEmpty()) {
                 // skip if not used.
+                continue;
+            }
+            if (classFiles.isEmpty() && !includeUnused) {
                 continue;
             }
             if (info.bundles.isEmpty()) {

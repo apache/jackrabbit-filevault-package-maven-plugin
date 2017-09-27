@@ -37,7 +37,8 @@ public class ManifestGenerationTest extends PackageTestBase {
         return Arrays.asList(new Object[][]{
                 {"/manifest-generation/simple", true},
                 {"/manifest-generation/with-bundles", true},
-                {"/manifest-generation/with-code", true}
+                {"/manifest-generation/with-code", true},
+                {"/manifest-generation/with-unused-dependencies", true}
         });
     }
 
