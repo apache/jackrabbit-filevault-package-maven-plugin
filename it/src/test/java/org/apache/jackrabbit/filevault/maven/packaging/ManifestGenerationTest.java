@@ -35,9 +35,9 @@ public class ManifestGenerationTest extends PackageTestBase {
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                {"/manifest-generation", true},
-                {"/manifest-generation-with-bundles", true},
-                {"/manifest-generation-with-code", true}
+                {"/manifest-generation/simple", true},
+                {"/manifest-generation/with-bundles", true},
+                {"/manifest-generation/with-code", true}
         });
     }
 

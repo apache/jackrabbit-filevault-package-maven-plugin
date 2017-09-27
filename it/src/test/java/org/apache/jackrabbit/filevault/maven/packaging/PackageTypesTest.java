@@ -107,7 +107,7 @@ public class PackageTypesTest {
         // ignore invalid test
         Assume.assumeTrue(!expectToFail);
 
-        final File projectDir = new File("target/test-classes/test-projects/package-type-auto-" + projectName);
+        final File projectDir = new File("target/test-classes/test-projects/package-type-auto/" + projectName);
         verify(projectDir);
     }
 }
