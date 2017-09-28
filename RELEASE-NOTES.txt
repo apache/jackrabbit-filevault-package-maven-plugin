@@ -21,6 +21,10 @@ New features:
 
 Improvements:
 * [JCRVLT-202] Contribute Adobe's FileVault to ASF
+* [JCRVLT-204] Create documentation site for maven plugin
+* [JCRVLT-206] Auto import-statement too big in case no compiled classes found
+* [JCRVLT-205] Add support for cleanup filter entries
+
 
 Release Contents
 ----------------
