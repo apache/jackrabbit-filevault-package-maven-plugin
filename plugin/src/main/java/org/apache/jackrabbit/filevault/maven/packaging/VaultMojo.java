@@ -53,6 +53,8 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.archiver.ArchiveEntry;
 import org.codehaus.plexus.archiver.FileSet;
+import org.codehaus.plexus.util.AbstractScanner;
+import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
@@ -239,6 +241,17 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
 
 
     /**
+     * The file name patterns to exclude in addition to the ones listed in 
+     * {@link AbstractScanner#DEFAULTEXCLUDES}. The format of each pattern is described in {@link DirectoryScanner}.
+     * 
+     * @since 1.0.0
+     */
+    @Parameter(property = "vault.excludes",
+               defaultValue="**/.vlt,**/.vltignore",
+               required = true)
+    private String[] excludes;
+
+    /**
      * Defines the path under which the embedded bundles are placed. defaults to '/apps/bundles/install'
      * @since 0.0.6
      */
@@ -336,14 +349,14 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
     private final Properties properties = new Properties();
 
     /**
-     * Creates a fileset for the archiver
+     * Creates a {@link FileSet} for the archiver
      * @param directory the directory
      * @param prefix the prefix
      * @return the fileset
      */
     @Nonnull
     private FileSet createFileSet(@Nonnull File directory, @Nonnull String prefix) {
-        return fileSet(directory).prefixed(prefix).includeExclude(null, null).includeEmptyDirs(true);
+        return fileSet(directory).prefixed(prefix).includeExclude(null, excludes).includeEmptyDirs(true);
     }
 
     /**
@@ -430,7 +443,7 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
 
             ContentPackageArchiver contentPackageArchiver = new ContentPackageArchiver();
             contentPackageArchiver.setIncludeEmptyDirs(true);
-            contentPackageArchiver.addDirectory(workDirectory);
+            contentPackageArchiver.addFileSet(createFileSet(workDirectory, ""));
 
             // include content from build only if it exists
             if (builtContentDirectory.exists()) {
