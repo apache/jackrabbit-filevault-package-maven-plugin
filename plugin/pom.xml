@@ -41,7 +41,7 @@
     </prerequisites>
 
 	<properties>
-        <mavenVersion>3.2.5</mavenVersion>
+        <mavenVersion>3.3.9</mavenVersion> <!-- required for https://issues.apache.org/jira/browse/MNG-5440 -->
         <aether.version>1.0.2.v20150114</aether.version>
 	</properties>
 

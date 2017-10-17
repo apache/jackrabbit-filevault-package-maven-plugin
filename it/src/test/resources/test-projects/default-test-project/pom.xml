@@ -27,16 +27,6 @@
     <name>Packaging test</name>
 
     <build>
-        <resources>
-            <resource>
-                <directory>jcr_root</directory>
-                <excludes>
-                    <exclude>**/.vlt</exclude>
-                    <exclude>**/.vltignore</exclude>
-                    <exclude>**/.DS_Store</exclude>
-                </excludes>
-            </resource>
-        </resources>
         <plugins>
             <plugin>
                 <groupId>org.apache.jackrabbit</groupId>
@@ -44,6 +34,7 @@
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
+                    <builtContentDirectory>${project.basedir}/jcr_root</builtContentDirectory>
                     <filterSource>${project.basedir}/filter.xml</filterSource>
                     <filters>
                         <filter>
