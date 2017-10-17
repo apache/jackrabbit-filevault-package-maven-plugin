@@ -29,6 +29,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <!-- TODO: implement auto detection -->
+                    <failOnEmptyFilter>false</failOnEmptyFilter>
                     <packageType>container</packageType>
                 </configuration>
             </plugin>

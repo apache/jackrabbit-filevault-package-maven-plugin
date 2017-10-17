@@ -229,6 +229,16 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
     private boolean failOnDependencyErrors;
 
     /**
+     * Controls if empty workspace filter fails the build.
+     */
+    @Parameter(
+            property = "vault.failOnEmptyFilter",
+            defaultValue="true",
+            required = true)
+    private boolean failOnEmptyFilter;
+
+
+    /**
      * Defines the path under which the embedded bundles are placed. defaults to '/apps/bundles/install'
      * @since 0.0.6
      */
@@ -369,7 +379,12 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
                     if (filters.getSourceAsString().equals(oldFilter.getSourceAsString())) {
                         filterFile = null;
                     } else {
-                        filterFile = new File(vaultDir, "filter-plugin-generated.xml");
+                        if (filters.getFilterSets().isEmpty()) {
+                            filters.load(filterFile);
+                            filterFile = null;
+                        } else {
+                            filterFile = new File(vaultDir, "filter-plugin-generated.xml");
+                        }
                     }
                 } else {
                     if (filters.getFilterSets().isEmpty() && prefix.length() > 0) {
@@ -390,6 +405,11 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
 
             if (filterFile != null) {
                 FileUtils.fileWrite(filterFile.getAbsolutePath(), filters.getSourceAsString());
+            }
+            if (filters.getFilterSets().isEmpty() && failOnEmptyFilter) {
+                final String msg = "No workspace filter defined (failOnEmptyFilter=true)";
+                getLog().error(msg);
+                throw new MojoExecutionException(msg);
             }
 
             validatePackageType();

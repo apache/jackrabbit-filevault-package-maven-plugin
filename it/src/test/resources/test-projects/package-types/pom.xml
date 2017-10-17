@@ -29,6 +29,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <packageType>${test.packageType}</packageType>
+                    <failOnEmptyFilter>false</failOnEmptyFilter>
                 </configuration>
             </plugin>
         </plugins>

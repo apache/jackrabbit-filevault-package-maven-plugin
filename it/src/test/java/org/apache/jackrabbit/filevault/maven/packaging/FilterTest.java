@@ -21,32 +21,31 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
+import org.apache.maven.it.util.FileUtils;
+import org.apache.maven.it.util.IOUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
-public class DependencyCheckTest {
+public class FilterTest {
 
     @Parameterized.Parameters
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
-                {"fail-missing-deps", true},
-                {"fail-missing-deps-implicit", true},
-                {"fail-no-maven-deps", true},
-                {"fail-no-contains", true},
-                {"fail-no-cover", true},
-                {"no-errors", false},
-                {"repo-structure-pkg", false},
-                {"no-error-cleanup", false},
-                {"no-error-cleanup-filter", false}
+                {"no-filter-fails", true},
+                {"no-filter-with-prop-ok", false},
+                {"implicit-filter", false},
         });
     }
 
@@ -54,7 +53,7 @@ public class DependencyCheckTest {
 
     private final boolean expectToFail;
 
-    public DependencyCheckTest(String projectName, boolean expectToFail) {
+    public FilterTest(String projectName, boolean expectToFail) {
         this.projectName = projectName;
         this.expectToFail = expectToFail;
     }
@@ -62,7 +61,6 @@ public class DependencyCheckTest {
     private void verify(File projectDir) throws VerificationException, IOException {
         final Properties props = new Properties();
         props.put("plugin.version", System.getProperty("plugin.version"));
-        props.put("testcontent.directory", new File("target/test-classes/test-content").getAbsolutePath());
 
         Verifier verifier = new Verifier(projectDir.getAbsolutePath());
         verifier.setSystemProperties(props);
@@ -79,13 +77,23 @@ public class DependencyCheckTest {
         }
 
         final File packageFile = new File(projectDir, "target/package-plugin-test-pkg-1.0.0-SNAPSHOT.zip");
-        assertThat(packageFile.exists(), is(true));
+        assertTrue(packageFile.exists());
+
+        ZipFile zip = new ZipFile(packageFile);
+        ZipEntry entry = zip.getEntry("META-INF/vault/filter.xml");
+
+        // this is a bit a hack, but it is the only test that doesn't have a filter.xml
+        assertNotNull("package has a filter.xml", entry);
+
+        String result = IOUtil.toString(zip.getInputStream(entry), "utf-8");
+        String expected = FileUtils.fileRead(new File(projectDir.getAbsolutePath(), "expected-filter.xml"));
+        assertEquals("filter.xml is correct", expected, result);
     }
 
 
     @Test
-    public void test_dependency_checks() throws Exception {
-        final File projectDir = new File("target/test-classes/test-projects/validate-deps-projects/" + projectName);
+    public void test_filter_checks() throws Exception {
+        final File projectDir = new File("target/test-classes/test-projects/filter-tests/" + projectName);
         verify(projectDir);
     }
 }

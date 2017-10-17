@@ -35,6 +35,7 @@
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
+                    <failOnEmptyFilter>false</failOnEmptyFilter>
                     <properties>
                         <description>Description from plugin</description>
                         <empty></empty>

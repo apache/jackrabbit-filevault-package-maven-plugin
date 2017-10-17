@@ -78,6 +78,7 @@
                     <configuration>
                         <excludes>
                             <exclude>src/test/resources/test-projects/**/*.txt</exclude>
+                            <exclude>src/test/resources/test-projects/**/expected-filter.xml</exclude>
                         </excludes>
                     </configuration>
                 </plugin>
