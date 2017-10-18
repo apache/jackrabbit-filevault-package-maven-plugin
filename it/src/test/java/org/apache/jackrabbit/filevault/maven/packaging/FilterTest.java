@@ -28,6 +28,7 @@ import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
 import org.apache.maven.it.util.FileUtils;
 import org.apache.maven.it.util.IOUtil;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -37,28 +38,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-@RunWith(Parameterized.class)
+/**
+ * Tests the behaviour of package filters.
+ */
 public class FilterTest {
 
-    @Parameterized.Parameters
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {"no-filter-fails", true},
-                {"no-filter-with-prop-ok", false},
-                {"implicit-filter", false},
-        });
-    }
-
-    private final String projectName;
-
-    private final boolean expectToFail;
-
-    public FilterTest(String projectName, boolean expectToFail) {
-        this.projectName = projectName;
-        this.expectToFail = expectToFail;
-    }
-
-    private void verify(File projectDir) throws VerificationException, IOException {
+    private void verify(String projectName, boolean expectToFail) throws VerificationException, IOException {
+        final File projectDir = new File("target/test-classes/test-projects/filter-tests/" + projectName);
         final Properties props = new Properties();
         props.put("plugin.version", System.getProperty("plugin.version"));
 
@@ -81,19 +67,66 @@ public class FilterTest {
 
         ZipFile zip = new ZipFile(packageFile);
         ZipEntry entry = zip.getEntry("META-INF/vault/filter.xml");
-
-        // this is a bit a hack, but it is the only test that doesn't have a filter.xml
         assertNotNull("package has a filter.xml", entry);
-
         String result = IOUtil.toString(zip.getInputStream(entry), "utf-8");
         String expected = FileUtils.fileRead(new File(projectDir.getAbsolutePath(), "expected-filter.xml"));
         assertEquals("filter.xml is correct", expected, result);
     }
 
-
+    /**
+     * Tests if a pom with no filter definition at all fails.
+     */
     @Test
-    public void test_filter_checks() throws Exception {
-        final File projectDir = new File("target/test-classes/test-projects/filter-tests/" + projectName);
-        verify(projectDir);
+    public void test_no_filter_fails() throws Exception {
+        verify("no-filter-fails", true);
+    }
+
+    /**
+     * Tests if a pom with no filter definition but with a @{code failOnEmptyFilter} set to {@code false} works.
+     */
+    @Test
+    public void test_no_filter_with_prop_ok() throws Exception {
+        verify("no-filter-with-prop-ok", false);
+    }
+
+    /**
+     * Tests if a project with an implicit filter defined in META-INF/vault/filter.xml is correctly built
+     */
+    @Test
+    public void test_implicit_filter() throws Exception {
+        verify("implicit-filter", false);
+    }
+
+    /**
+     * Tests if a project with an inline filter properly generates the filter.xml
+     */
+    @Test
+    public void test_inline_filter() throws Exception {
+        verify("inline-filter", false);
+    }
+
+    /**
+     * Tests if a project with an inline filter and a filter source properly generates the merged filter.xml
+     */
+    @Test
+    public void test_merge_inline_filter() throws Exception {
+        verify("merge-inline-filter", false);
+    }
+
+    /**
+     * Tests if a project with no filter but a prefix creates the default root
+     */
+    @Test
+    public void test_no_filter_with_prefix() throws Exception {
+        verify("no-filter-with-prefix", false);
+    }
+
+    /**
+     * Tests if a project with an inline filter and an implicit filter correctly uses the inline filters.
+     */
+    @Test
+    @Ignore("JCRVLT-209")
+    public void test_inline_filter_wins() throws Exception {
+        verify("inline-filter-wins", false);
     }
 }
