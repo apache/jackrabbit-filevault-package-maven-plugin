@@ -43,15 +43,19 @@ import static org.junit.Assert.fail;
  */
 public class FilterTest {
 
-    private void verify(String projectName, boolean expectToFail) throws VerificationException, IOException {
+    private void verify(String projectName, boolean expectToFail, String ... goals) throws VerificationException, IOException {
         final File projectDir = new File("target/test-classes/test-projects/filter-tests/" + projectName);
         final Properties props = new Properties();
         props.put("plugin.version", System.getProperty("plugin.version"));
 
         Verifier verifier = new Verifier(projectDir.getAbsolutePath());
         verifier.setSystemProperties(props);
+        verifier.setAutoclean(false);
+        if (goals == null || goals.length == 0) {
+            goals = new String[]{"clean", "package"};
+        }
         try {
-            verifier.executeGoals(Arrays.asList("clean", "package"));
+            verifier.executeGoals(Arrays.asList(goals));
         } catch (VerificationException e) {
             if (expectToFail) {
                 return;
@@ -128,5 +132,28 @@ public class FilterTest {
     @Ignore("JCRVLT-209")
     public void test_inline_filter_wins() throws Exception {
         verify("inline-filter-wins", false);
+    }
+
+    /**
+     * Tests if a project with an inline filter executed twice works w/o clean
+     */
+    @Test
+    @Ignore("JCRVLT-209")
+    public void test_inline_filter_twice() throws Exception {
+        // first execute with default goals
+        final File projectDir = new File("target/test-classes/test-projects/filter-tests/inline-filter-twice");
+        FileUtils.copyFile(new File(projectDir, "pom1.xml"), new File(projectDir, "pom.xml"));
+        FileUtils.copyFile(new File(projectDir, "expected-filter1.xml"), new File(projectDir, "expected-filter.xml"));
+        verify("inline-filter-twice", false);
+
+        // copy marker to 'target' to ensure that clean is not executed
+        File marker = new File(projectDir, "target/marker.xml");
+        FileUtils.copyFile(new File(projectDir, "pom1.xml"), marker);
+
+        FileUtils.copyFile(new File(projectDir, "pom2.xml"), new File(projectDir, "pom.xml"));
+        FileUtils.copyFile(new File(projectDir, "expected-filter2.xml"), new File(projectDir, "expected-filter.xml"));
+        verify("inline-filter-twice", false, "package");
+
+        assertTrue("Marker file still exists.", marker.exists());
     }
 }

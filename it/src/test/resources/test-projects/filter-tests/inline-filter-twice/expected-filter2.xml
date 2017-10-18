@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<workspaceFilter version="1.0">
+    <filter root="/libs/bar" mode="merge">
+        <include pattern="/libs/bar/a" />
+        <include pattern="/libs/bar/b/.*" />
+        <exclude pattern="/libs/bar/foo(/.*)?" />
+        <exclude pattern="/libs/bar/foo2(/.*)?" />
+    </filter>
+</workspaceFilter>
