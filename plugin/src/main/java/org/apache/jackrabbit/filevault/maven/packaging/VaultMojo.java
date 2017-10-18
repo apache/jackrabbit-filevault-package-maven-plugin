@@ -366,6 +366,17 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
             Map<String, File> embeddedFiles = copyEmbeddeds();
             embeddedFiles.putAll(copySubPackages());
 
+            /*
+                - if last modified of vault-work/META-INF/vault/filter.xml == 0 -> delete it
+                - if filterSource exists, read the filters into sourceFilters
+                - if no filterSource exists, but filter.xml read the filters into sourceFilters
+                - if pom filters exist, merge into sourceFilters
+                - apply potential prefixes to sourceFilters
+                - generate xml and write to filter.xml
+                - (extra step: if sourceFilters and filters from original are the same, just copy back the original. this preserves potential comments in the xml)
+                - update the last modified time of filter.xml to 0
+             */
+
             File filterFile = new File(vaultDir, "filter.xml");
 
             if (filterSource == null || !filterSource.exists()) {
