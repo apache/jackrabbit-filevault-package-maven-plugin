@@ -78,7 +78,9 @@
                     <configuration>
                         <excludes>
                             <exclude>src/test/resources/test-projects/**/*.txt</exclude>
-                            <exclude>src/test/resources/test-projects/**/expected-filter.xml</exclude>
+                            <exclude>src/test/resources/test-projects/**/*.xml</exclude>
+                            <exclude>src/test/resources/test-projects/**/.vlt</exclude>
+                            <exclude>src/test/resources/test-projects/**/.vltignore</exclude>
                         </excludes>
                     </configuration>
                 </plugin>

@@ -59,7 +59,11 @@ public abstract class PackageTestBase {
     protected abstract File getProjectDirectory();
 
     File getTestPackageFile() {
-        return new File(testProjectDir, TEST_PACKAGE_DEFAULT_NAME);
+        return getTestPackageFile(testProjectDir);
+    }
+
+    File getTestPackageFile(File projectDir) {
+        return new File(projectDir, TEST_PACKAGE_DEFAULT_NAME);
     }
 
     Properties getDefaultProperties() {
@@ -70,13 +74,17 @@ public abstract class PackageTestBase {
     }
 
     File buildProject(Properties props) throws VerificationException {
-        Verifier verifier = new Verifier(testProjectDir.getAbsolutePath());
+        return buildProject(testProjectDir, props);
+    }
+
+    File buildProject(File projectDir, Properties props) throws VerificationException {
+        Verifier verifier = new Verifier(projectDir.getAbsolutePath());
         verifier.setSystemProperties(props);
         verifier.setDebug(true);
         verifier.setAutoclean(true);
         verifier.executeGoal("package");
 
-        File testPackageFile = getTestPackageFile();
+        File testPackageFile = getTestPackageFile(projectDir);
         assertThat(testPackageFile.exists(), is(true));
         return testPackageFile;
     }
