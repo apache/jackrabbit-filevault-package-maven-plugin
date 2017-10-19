@@ -382,63 +382,7 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
             Map<String, File> embeddedFiles = copyEmbeddeds();
             embeddedFiles.putAll(copySubPackages());
 
-            /*
-                - if last modified of vault-work/META-INF/vault/filter.xml == 0 -> delete it
-                - if filterSource exists, read the filters into sourceFilters
-                - if no filterSource exists, but filter.xml read the filters into sourceFilters
-                - if pom filters exist, merge into sourceFilters
-                - apply potential prefixes to sourceFilters
-                - generate xml and write to filter.xml
-                - (extra step: if sourceFilters and filters from original are the same, just copy back the original. this preserves potential comments in the xml)
-                - update the last modified time of filter.xml to 0
-             */
-
-            File filterFile = new File(vaultDir, "filter.xml");
-
-            if (filterSource == null || !filterSource.exists()) {
-                // ignore filtersource
-                DefaultWorkspaceFilter oldFilter;
-                if (filterFile.exists()) {
-                    oldFilter = new DefaultWorkspaceFilter();
-                    oldFilter.load(filterFile);
-
-                    // don't write filter if same
-                    if (filters.getSourceAsString().equals(oldFilter.getSourceAsString())) {
-                        filterFile = null;
-                    } else {
-                        if (filters.getFilterSets().isEmpty()) {
-                            filters.load(filterFile);
-                            filterFile = null;
-                        } else {
-                            filterFile = new File(vaultDir, "filter-plugin-generated.xml");
-                        }
-                    }
-                } else {
-                    if (filters.getFilterSets().isEmpty() && prefix.length() > 0) {
-                        addWorkspaceFilter(prefix);
-                    }
-                }
-            } else {
-                getLog().info("Merging " + filterSource.getPath() + " with inlined filter specifications.");
-                DefaultWorkspaceFilter oldFilter = new DefaultWorkspaceFilter();
-                oldFilter.load(filterSource);
-                oldFilter.merge(filters);
-                filters.getFilterSets().clear();
-                filters.getFilterSets().addAll(oldFilter.getFilterSets());
-                if (filters.getFilterSets().isEmpty() && prefix.length() > 0) {
-                    addWorkspaceFilter(prefix);
-                }
-            }
-
-            if (filterFile != null) {
-                FileUtils.fileWrite(filterFile.getAbsolutePath(), filters.getSourceAsString());
-            }
-            if (filters.getFilterSets().isEmpty() && failOnEmptyFilter) {
-                final String msg = "No workspace filter defined (failOnEmptyFilter=true)";
-                getLog().error(msg);
-                throw new MojoExecutionException(msg);
-            }
-
+            computePackageFilters(vaultDir);
             validatePackageType();
             computeImportPackage();
             computeDependencies();
@@ -544,6 +488,94 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
         }
     }
 
+    /**
+     * Computes the package filters.
+     *
+     * Requirements:
+     * - backward compatibility: if a filter.xml is copied to vault-work with the resource plugin, then it should still "work" correctly.
+     * - if there are any comments in the original filter source, they should not get lost, if possible
+     * - if there are filters specified in the pom and in a filter source, they should get merged.
+     * - if the prefix property is set, it should be used if no filter is set.
+     * - if both, a inline filter and a implicit filter is present, the build fails.
+     * - re-run the package goal w/o cleaning the target first must work
+     *
+     * @throws IOException if an I/O error occurs
+     * @throws MojoExecutionException if the build fails
+     */
+    private void computePackageFilters(File vaultMetaDir) throws IOException, MojoExecutionException {
+        // backward compatibility: if implicit filter exists, use it. but check for conflicts
+        File filterFile = new File(vaultMetaDir, "filter.xml");
+        if (filterFile.exists() && filterFile.lastModified() != 0) {
+            // if both, a inline filter and a implicit filter is present, the build fails.
+            if (!filters.getFilterSets().isEmpty()) {
+                getLog().error("Refuse to merge inline filters and non-sourced filter.xml. If this is intended, specify the filter.xml via the 'filterSource' property.");
+                throw new MojoExecutionException("conflicting filters.");
+            }
+            // load filters for further processing
+            filters.load(filterFile);
+
+            getLog().warn("The project is using a filter.xml provided via the resource plugin.");
+            getLog().warn("This is deprecated and might no longer be supported in future versions.");
+            getLog().warn("Use the 'filterSource' property to specify the filter or use inline filters.");
+            return;
+        }
+
+        // if last modified of vault-work/META-INF/vault/filter.xml == 0 -> delete it
+        if (filterFile.exists() && filterFile.lastModified() == 0) {
+            if (!filterFile.delete()) {
+                getLog().error("Unable to delete previously generated filter.xml. re-run the goals with a clean setup.");
+                throw new MojoExecutionException("Unable to delete file.");
+            }
+        }
+
+        // if filterSource exists, read the filters into sourceFilters
+        DefaultWorkspaceFilter sourceFilters = new DefaultWorkspaceFilter();
+        if (filterSource != null && filterSource.exists()) {
+            getLog().info("Loading filter from " + filterSource.getPath());
+            sourceFilters.load(filterSource);
+            if (!filters.getFilterSets().isEmpty()) {
+                getLog().info("Merging inline filters.");
+                sourceFilters.merge(filters);
+            }
+            filters.getFilterSets().clear();
+            filters.getFilterSets().addAll(sourceFilters.getFilterSets());
+
+            // reset source filters for later. this looks a bit complicated but is needed to keep the same
+            // filter order as in previous versions
+            sourceFilters = new DefaultWorkspaceFilter();
+            sourceFilters.load(filterSource);
+            sourceFilters.generateSource();
+        }
+
+        // if the prefix property is set, it should be used if no filter is set
+        if (filters.getFilterSets().isEmpty() && prefix.length() > 0) {
+            addWorkspaceFilter(prefix);
+        }
+
+        // if no filter is defined at all, fail
+        if (filters.getFilterSets().isEmpty()) {
+            if (failOnEmptyFilter) {
+                final String msg = "No workspace filter defined (failOnEmptyFilter=true)";
+                getLog().error(msg);
+                throw new MojoExecutionException(msg);
+            } else {
+                getLog().warn("No workspace filter defined. Package import might have unexpected results.");
+            }
+        }
+
+        // if the source filters and the generated filters are the same, copy the source file to retain the comments
+        if (filterSource != null && sourceFilters.getSourceAsString().equals(filters.getSourceAsString())) {
+            FileUtils.copyFile(filterSource, filterFile);
+        } else {
+            // generate xml and write to filter.xml
+            FileUtils.fileWrite(filterFile.getAbsolutePath(), filters.getSourceAsString());
+        }
+
+        // update the last modified time of filter.xml to for generated filters
+        if (!filterFile.setLastModified(0)) {
+            getLog().warn("Unable to set last modified of filters file. make sure to clean the project before next run.");
+        }
+    }
     /**
      * Computes the dependency string.
      */
