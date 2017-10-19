@@ -21,6 +21,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -522,9 +523,11 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
 
         // if last modified of vault-work/META-INF/vault/filter.xml == 0 -> delete it
         if (filterFile.exists() && filterFile.lastModified() == 0) {
-            if (!filterFile.delete()) {
+            try {
+                Files.delete(filterFile.toPath());
+            } catch (IOException e) {
                 getLog().error("Unable to delete previously generated filter.xml. re-run the goals with a clean setup.");
-                throw new MojoExecutionException("Unable to delete file.");
+                throw new MojoExecutionException("Unable to delete file.", e);
             }
         }
 
@@ -568,6 +571,7 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
             FileUtils.copyFile(filterSource, filterFile);
         } else {
             // generate xml and write to filter.xml
+            getLog().info("Generating filter.xml from plugin configuration");
             FileUtils.fileWrite(filterFile.getAbsolutePath(), filters.getSourceAsString());
         }
 
