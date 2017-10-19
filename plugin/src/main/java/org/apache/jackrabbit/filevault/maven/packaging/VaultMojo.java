@@ -119,7 +119,8 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
     private File builtContentDirectory;
 
     /**
-     * The directory that contains the jcr_root of the content. Can be specified as comma separated list of paths.
+     * The directory that contains the jcr_root of the content. Multiple directories can be specified as a comma separated list,
+     * which will act as a search path and cause the plugin to look for the first existing directory.
      *
      * @since 1.0.0
      */
