@@ -17,6 +17,7 @@
 package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.util.FileUtils;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -35,19 +37,22 @@ import static org.junit.Assert.assertThat;
 
 public class DefaultProjectTest extends PackageTestBase {
 
-    private static final String TEST_PROJECT_NAME = "/default-test-project";
+    private static final String TEST_PROJECT_NAME = "/default-test-projects";
 
     protected File getProjectDirectory() {
         return new File(TEST_PROJECTS_ROOT + TEST_PROJECT_NAME);
     }
 
-    @Test
-    public void package_contains_correct_files() throws Exception {
-        File testPackageFile = buildProject(getDefaultProperties());
+
+    private void verify(String projectName) throws VerificationException, IOException {
+        // this is a bit awkward. todo: make better testing framework
+        final File projectDir = new File(getProjectDirectory(), projectName);
+
+        File testPackageFile = buildProject(projectDir, getDefaultProperties());
         assertThat(testPackageFile.exists(), is(true));
 
-        List<String> expectedEntries = Files.readAllLines(new File(testProjectDir, "expected-files.txt").toPath(), StandardCharsets.UTF_8);
-        List<String> expectedEntriesInOrder= Files.readAllLines(new File(testProjectDir, "expected-file-order.txt").toPath(), StandardCharsets.UTF_8);
+        List<String> expectedEntries = Files.readAllLines(new File(projectDir, "expected-files.txt").toPath(), StandardCharsets.UTF_8);
+        List<String> expectedEntriesInOrder= Files.readAllLines(new File(projectDir, "expected-file-order.txt").toPath(), StandardCharsets.UTF_8);
 
         List<String> entries = new ArrayList<String>();
         try (JarFile jar = new JarFile(testPackageFile)) {
@@ -66,12 +71,22 @@ public class DefaultProjectTest extends PackageTestBase {
 
         // first check that only the expected entries are there in the package (regardless of the order)
         assertThat("Package contains the expected entry names", entries, Matchers.containsInAnyOrder(expectedEntries.toArray()));
-        
+
         // then check order of some of the entries
         assertThat("Order of entries within package", entries, Matchers.containsInRelativeOrder(expectedEntriesInOrder.toArray()));
 
-        String expectedManifest = FileUtils.fileRead(new File(testProjectDir, "expected-manifest.txt"));
+        String expectedManifest = FileUtils.fileRead(new File(projectDir, "expected-manifest.txt"));
         verifyManifest(testPackageFile, expectedManifest);
 
+    }
+
+    @Test
+    public void generic_project_package_contains_correct_files() throws Exception {
+        verify("generic");
+    }
+
+    @Test
+    public void resource_project_package_contains_correct_files() throws Exception {
+        verify("resource");
     }
 }
