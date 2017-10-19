@@ -34,6 +34,7 @@
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
+                    <builtContentDirectory>${project.basedir}/jcr_root</builtContentDirectory>
                     <filterSource>${project.basedir}/filter.xml</filterSource>
                     <filters>
                         <filter>

@@ -18,3 +18,4 @@ jcr_root/apps/wcm/core/.content.xml
 jcr_root/apps/wcm/core/content/
 jcr_root/apps/wcm/core/content/.content.xml
 jcr_root/apps/wcm/core/content/siteadmin.xml
+jcr_root/apps/wcm/core/empty_directory/

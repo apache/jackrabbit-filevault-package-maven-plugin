@@ -35,6 +35,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <filterSource>${project.basedir}/filter.xml</filterSource>
+                    <jcrRootSourceDirectory>${project.basedir}/foo_root</jcrRootSourceDirectory>
                     <filters>
                         <filter>
                             <root>/etc/designs/some-thirdparty-libs</root>

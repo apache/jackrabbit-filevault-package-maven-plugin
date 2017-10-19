@@ -51,8 +51,6 @@ public class DefaultProjectTest extends PackageTestBase {
         File testPackageFile = buildProject(projectDir, getDefaultProperties());
         assertThat(testPackageFile.exists(), is(true));
 
-        List<String> expectedEntries = Files.readAllLines(new File(projectDir, "expected-files.txt").toPath(), StandardCharsets.UTF_8);
-        List<String> expectedEntriesInOrder= Files.readAllLines(new File(projectDir, "expected-file-order.txt").toPath(), StandardCharsets.UTF_8);
 
         List<String> entries = new ArrayList<String>();
         try (JarFile jar = new JarFile(testPackageFile)) {
@@ -70,13 +68,24 @@ public class DefaultProjectTest extends PackageTestBase {
         assertEquals("MANIFEST.MF must be first entry", "META-INF/MANIFEST.MF", first);
 
         // first check that only the expected entries are there in the package (regardless of the order)
-        assertThat("Package contains the expected entry names", entries, Matchers.containsInAnyOrder(expectedEntries.toArray()));
+        final File expectedFilesFile = new File(projectDir, "expected-files.txt");
+        if (expectedFilesFile.exists()) {
+            List<String> expectedEntries = Files.readAllLines(expectedFilesFile.toPath(), StandardCharsets.UTF_8);
+            assertThat("Package contains the expected entry names", entries, Matchers.containsInAnyOrder(expectedEntries.toArray()));
+        }
 
         // then check order of some of the entries
-        assertThat("Order of entries within package", entries, Matchers.containsInRelativeOrder(expectedEntriesInOrder.toArray()));
+        final File expectedOrderFile = new File(projectDir, "expected-file-order.txt");
+        if (expectedOrderFile.exists()) {
+            List<String> expectedEntriesInOrder= Files.readAllLines(expectedOrderFile.toPath(), StandardCharsets.UTF_8);
+            assertThat("Order of entries within package", entries, Matchers.containsInRelativeOrder(expectedEntriesInOrder.toArray()));
+        }
 
-        String expectedManifest = FileUtils.fileRead(new File(projectDir, "expected-manifest.txt"));
-        verifyManifest(testPackageFile, expectedManifest);
+        final File expectedManifestFile = new File(projectDir, "expected-manifest.txt");
+        if (expectedManifestFile.exists()) {
+            String expectedManifest = FileUtils.fileRead(expectedManifestFile);
+            verifyManifest(testPackageFile, expectedManifest);
+        }
 
     }
 
@@ -86,7 +95,27 @@ public class DefaultProjectTest extends PackageTestBase {
     }
 
     @Test
+    public void generic_with_builtcd_project_package_contains_correct_files() throws Exception {
+        verify("generic-with-builtcd");
+    }
+
+    @Test
     public void resource_project_package_contains_correct_files() throws Exception {
         verify("resource");
+    }
+
+    @Test
+    public void unusual_jcr_root_package_contains_correct_files() throws Exception {
+        verify("generic-unusal-jcrroot");
+    }
+
+    @Test
+    public void generic_empty_directories() throws Exception {
+        verify("generic-empty-directories");
+    }
+
+    @Test
+    public void resource_empty_directories() throws Exception {
+        verify("resource-empty-directories");
     }
 }
