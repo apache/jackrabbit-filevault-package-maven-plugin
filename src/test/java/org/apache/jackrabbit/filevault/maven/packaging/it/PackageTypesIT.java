@@ -20,23 +20,13 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Properties;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.apache.maven.it.VerificationException;
-import org.apache.maven.it.Verifier;
 import org.apache.maven.it.util.StringUtils;
 import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
 public class PackageTypesIT {
@@ -66,34 +56,13 @@ public class PackageTypesIT {
     }
 
     private void verify(File projectDir) throws VerificationException, IOException {
-        final Properties props = new Properties();
-        props.put("plugin.version", System.getProperty("plugin.version"));
-        props.put("test.packageType", type);
-
-        Verifier verifier = new Verifier(projectDir.getAbsolutePath());
-        verifier.setSystemProperties(props);
-        try {
-            verifier.executeGoals(Arrays.asList("clean", "package"));
-        } catch (VerificationException e) {
-            if (expectToFail) {
-                return;
-            }
-            throw e;
-        }
-        if (expectToFail) {
-            fail("Invalid package type must fail.");
-        }
-
-        final File packageFile = new File(projectDir, "target/package-plugin-test-pkg-1.0.0-SNAPSHOT.zip");
-        assertThat(packageFile.exists(), is(true));
-
-        ZipFile zip = new ZipFile(packageFile);
-        ZipEntry propertiesFile = zip.getEntry("META-INF/vault/properties.xml");
-        assertThat(propertiesFile, notNullValue());
-
-        Properties properties = new Properties();
-        properties.loadFromXML(zip.getInputStream(propertiesFile));
-        assertThat(properties.getProperty("packageType"), equalTo(type));    }
+        new ProjectBuilder()
+                .setTestProjectDir(projectDir)
+                .setProperty("test.packageType", type)
+                .setBuildExpectedToFail(expectToFail)
+                .build()
+                .verifyPackageProperty("packageType", type);
+    }
 
 
     @Test

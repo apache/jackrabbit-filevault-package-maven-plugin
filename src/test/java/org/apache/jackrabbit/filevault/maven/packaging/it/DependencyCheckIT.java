@@ -17,20 +17,12 @@
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Properties;
 
-import org.apache.maven.it.VerificationException;
-import org.apache.maven.it.Verifier;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 @RunWith(Parameterized.class)
 public class DependencyCheckIT {
@@ -59,33 +51,12 @@ public class DependencyCheckIT {
         this.expectToFail = expectToFail;
     }
 
-    private void verify(File projectDir) throws VerificationException, IOException {
-        final Properties props = new Properties();
-        props.put("plugin.version", System.getProperty("plugin.version"));
-        props.put("testcontent.directory", new File("target/test-classes/test-content").getAbsolutePath());
-
-        Verifier verifier = new Verifier(projectDir.getAbsolutePath());
-        verifier.setSystemProperties(props);
-        try {
-            verifier.executeGoals(Arrays.asList("clean", "package"));
-        } catch (VerificationException e) {
-            if (expectToFail) {
-                return;
-            }
-            throw e;
-        }
-        if (expectToFail) {
-            fail("Invalid package type must fail.");
-        }
-
-        final File packageFile = new File(projectDir, "target/package-plugin-test-pkg-1.0.0-SNAPSHOT.zip");
-        assertThat(packageFile.exists(), is(true));
-    }
-
-
     @Test
     public void test_dependency_checks() throws Exception {
-        final File projectDir = new File("target/test-classes/test-projects/validate-deps-projects/" + projectName);
-        verify(projectDir);
+        new ProjectBuilder()
+                .setTestProjectsRoot(new File("target/test-classes/test-projects/validate-deps-projects"))
+                .setTestProjectDir(projectName)
+                .setBuildExpectedToFail(expectToFail)
+                .build();
     }
 }

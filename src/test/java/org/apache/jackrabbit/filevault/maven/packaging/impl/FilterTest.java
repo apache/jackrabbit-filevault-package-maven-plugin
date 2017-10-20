@@ -21,8 +21,6 @@ import junit.framework.TestCase;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.jackrabbit.filevault.maven.packaging.impl.StringFilterSet;
-
 /**
  * Test the string filter
  */

@@ -16,49 +16,37 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
+import java.io.IOException;
 
-import org.apache.maven.it.util.FileUtils;
+import org.apache.maven.it.VerificationException;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+public class ManifestGenerationIT {
 
-@RunWith(Parameterized.class)
-public class ManifestGenerationIT extends PackageTestBase {
-
-    @Parameterized.Parameters
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {"/manifest-generation/simple", true},
-                {"/manifest-generation/with-bundles", true},
-                {"/manifest-generation/with-code", true},
-                {"/manifest-generation/with-unused-dependencies", true}
-        });
-    }
-
-    private final String projectName;
-
-    private final boolean expectedToPass;
-
-    public ManifestGenerationIT(String projectName, boolean expectedToPass) {
-        this.projectName = projectName;
-        this.expectedToPass = expectedToPass;
-    }
-
-    protected File getProjectDirectory() {
-        return new File(TEST_PROJECTS_ROOT + projectName);
+    private void verify(String projectName) throws IOException, VerificationException {
+        new ProjectBuilder()
+                .setTestProjectDir("manifest-generation/" + projectName)
+                .build()
+                .verifyExpectedManifest();
     }
 
     @Test
-    public void manifest_generation_is_correct() throws Exception {
-        File testPackageFile = buildProject(getDefaultProperties());
-        String expected = FileUtils.fileRead(new File(testProjectDir, "expected-manifest.txt"));
-        verifyManifest(testPackageFile, expected);
+    public void simple_manifest_generation() throws Exception {
+        verify("simple");
+    }
+
+    @Test
+    public void bundle_manifest_generation() throws Exception {
+        verify("with-bundles");
+    }
+
+    @Test
+    public void code_manifest_generation() throws Exception {
+        verify("with-code");
+    }
+
+    @Test
+    public void unused_manifest_generation() throws Exception {
+        verify("with-unused-dependencies");
     }
 }

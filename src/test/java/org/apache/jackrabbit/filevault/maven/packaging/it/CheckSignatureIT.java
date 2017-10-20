@@ -16,25 +16,18 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
-import java.io.File;
-
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+public class CheckSignatureIT {
 
-public class CheckSignatureIT extends PackageTestBase {
-
-    private static final String TEST_PROJECT_NAME = "/check-signature";
-
-    protected File getProjectDirectory() {
-        return new File(TEST_PROJECTS_ROOT + TEST_PROJECT_NAME);
-    }
-
-    @Test // GRANITE-17632
+    /**
+     * The check-signature goal ends up in a NPE in the animal-sniffer SignatureChecker, when the animal-sniffer plugin
+     * version is 1.14 in the build, breaking the build:
+     */
+    @Test
     public void package_builds() throws Exception {
-        File testPackageFile = buildProject(getDefaultProperties());
-        assertThat(testPackageFile.exists(), is(true));
+        new ProjectBuilder()
+                .setTestProjectDir("/check-signature")
+                .build();
     }
 }

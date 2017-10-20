@@ -16,41 +16,19 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.junit.Assert.*;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.Properties;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
-
-import org.apache.maven.it.Verifier;
 import org.junit.Test;
 
 public class PropertyConfigurationIT {
 
+    /**
+     * Tests if the property.xml contains the description from the plugin config and not the project.
+     */
     @Test
     public void test_that_description_can_be_overridden_in_properties() throws Exception {
-        final File projectDir = new File("target/test-classes/test-projects/override-description");
+        new ProjectBuilder()
+                .setTestProjectDir("override-description")
+                .build()
+                .verifyPackageProperty("description", "Description from plugin");
 
-        final Properties props = new Properties();
-        props.put("plugin.version", System.getProperty("plugin.version"));
-
-        Verifier verifier = new Verifier(projectDir.getAbsolutePath());
-        verifier.setSystemProperties(props);
-        verifier.executeGoals(Arrays.asList("clean", "package"));
-
-        final File packageFile = new File(projectDir, "target/package-plugin-test-pkg-1.0.0-SNAPSHOT.zip");
-        assertThat(packageFile.exists(), is(true));
-
-        ZipFile zip = new ZipFile(packageFile);
-        ZipEntry propertiesFile = zip.getEntry("META-INF/vault/properties.xml");
-        assertThat(propertiesFile, notNullValue());
-
-        Properties properties = new Properties();
-        properties.loadFromXML(zip.getInputStream(propertiesFile));
-
-        assertThat(properties.getProperty("description"), equalTo("Description from plugin"));
     }
 }
