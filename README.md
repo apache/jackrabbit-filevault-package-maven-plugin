@@ -1,6 +1,5 @@
-=======================================================================
-Welcome to Apache Jackrabbit FileVault Package Maven Plugin <http://jackrabbit.apache.org/>
-=======================================================================
+Welcome to Apache Jackrabbit FileVault Package Maven Plugin
+===========================================================
 
 The Apache Jackrabbit FileVault package maven plugin is an Apache maven plugin that simplifies the creation of
 content package maven artifacts. The content packages can later be used to install content into a JCR repository
@@ -8,8 +7,14 @@ using the Apache Jackrabbit FileVault packaging runtime.
 
 Apache Jackrabbit FileVault is a project of the Apache Software Foundation.
 
+Documentation
+=============
+Please refer to the plugin documentation at 
+http://jackrabbit.apache.org/filevault-package-maven-plugin/index.html
+
+
 Building the FileVault Package Maven Plugin
-===================
+===========================================
 
 You can build the plugin like this:
 
@@ -20,9 +25,10 @@ For more instructions, please see the documentation at:
 
    http://jackrabbit.apache.org/building-jackrabbit.html
 
-License (see also LICENSE.txt)
+License (see also LICENSE)
 ==============================
 
+```
 Collective work: Copyright 2013 The Apache Software Foundation.
 
 Licensed to the Apache Software Foundation (ASF) under one or more
@@ -39,6 +45,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+```
 
 Mailing Lists
 =============

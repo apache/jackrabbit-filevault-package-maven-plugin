@@ -1,4 +1,22 @@
+<!--
+   Licensed to the Apache Software Foundation (ASF) under one or more
+   contributor license agreements.  See the NOTICE file distributed with
+   this work for additional information regarding copyright ownership.
+   The ASF licenses this file to You under the Apache License, Version 2.0
+   (the "License"); you may not use this file except in compliance with
+   the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+  -->
+
 Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.0.0
+==================================================================================
 
 Introduction
 ------------
@@ -9,28 +27,34 @@ using the Apache Jackrabbit FileVault packaging runtime.
 Changes in Jackrabbit FileVault Package Maven Plugin 1.0.0
 ----------------------------------------------------------
 
-New features:
+#### Notes
+Version 1.0.0 is the initial version of this contribution to the Apache
+Jackrabbit project.
 
-    Version 1.0.0 is the initial version of this contribution to the Apache
-    Jackrabbit project.
+For more detailed information about all the changes in this and other
+FileVault releases, please see the FileVault issue tracker at
+https://issues.apache.org/jira/browse/JCRVLT
 
-    For more detailed information about all the changes in this and other
-    FileVault releases, please see the FileVault issue tracker at
-
-        https://issues.apache.org/jira/browse/JCRVLT
-
-Improvements:
-* [JCRVLT-202] Contribute Adobe's FileVault to ASF
-* [JCRVLT-204] Create documentation site for maven plugin
+#### Bug Fixes
 * [JCRVLT-206] Auto import-statement too big in case no compiled classes found
+
+#### Improvements
+* [JCRVLT-202] Import Adobe's content package maven plugin
+* [JCRVLT-204] Create documentation site for maven plugin
+* [JCRVLT-207] Make auto-import package a analyzer work with htl scripts
+* [JCRVLT-209] Always write to the filter.xml inside the vaultDir but never to filter-plugin-generated.xml
+
+#### New Features
 * [JCRVLT-205] Add support for cleanup filter entries
+* [JCRVLT-210] Allow to define excludes for the ContentPackageArchiver to prevent copying of script files from src to target
+* __TODO__ [JCRVLT-214] - auto-import package analyzer needs option to exclude compiletime bundles
 
 
 Release Contents
 ----------------
 This release consists of a single source archive packaged as a zip file.
 The archive can be unpacked with the jar tool from your JDK installation.
-See the README.txt file for instructions on how to build this release.
+See the [README](./README.md) file for instructions on how to build this release.
 
 The source archive is accompanied by SHA1 and MD5 checksums and a PGP
 signature that you can use to verify the authenticity of your download.

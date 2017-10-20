@@ -209,13 +209,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
-                            <excludes>
-                                <exclude>src/test/resources/test-projects/**/*.txt</exclude>
-                                <exclude>src/test/resources/test-projects/**/*.xml</exclude>
-                                <exclude>src/test/resources/test-projects/**/.vlt</exclude>
-                                <exclude>src/test/resources/test-projects/**/.vltignore</exclude>
-                                <exclude>src/test/resources/test-projects/**/.dummy</exclude>
-                            </excludes>
+                            <excludesFile>${project.basedir}/.ratignore</excludesFile>
                         </configuration>
                     </execution>
                 </executions>
