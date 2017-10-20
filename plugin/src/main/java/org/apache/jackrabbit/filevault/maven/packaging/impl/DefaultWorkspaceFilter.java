@@ -254,7 +254,7 @@ public class DefaultWorkspaceFilter  {
         return new DefaultPathFilter(pattern);
     }
 
-    private void generateSource() {
+    public void generateSource() {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
 
