@@ -118,6 +118,14 @@ public class FilterTest {
     }
 
     /**
+     * Tests if a project with an filter source and no inline filters keeps the filter comments.
+     */
+    @Test
+    public void test_retain_filter_source() throws Exception {
+        verify("retain-filter-source", false);
+    }
+
+    /**
      * Tests if a project with no filter but a prefix creates the default root
      */
     @Test
@@ -129,16 +137,14 @@ public class FilterTest {
      * Tests if a project with an inline filter and an implicit filter correctly uses the inline filters.
      */
     @Test
-    @Ignore("JCRVLT-209")
-    public void test_inline_filter_wins() throws Exception {
-        verify("inline-filter-wins", false);
+    public void test_inline_and_implicit_filter_fails() throws Exception {
+        verify("inline-and-implicit-fails", true);
     }
 
     /**
      * Tests if a project with an inline filter executed twice works w/o clean
      */
     @Test
-    @Ignore("JCRVLT-209")
     public void test_inline_filter_twice() throws Exception {
         // first execute with default goals
         final File projectDir = new File("target/test-classes/test-projects/filter-tests/inline-filter-twice");
