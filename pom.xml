@@ -16,30 +16,39 @@
   limitations under the License.
   -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd ">
     <modelVersion>4.0.0</modelVersion>
     <!-- ====================================================================== -->
     <!-- P A R E N T  P R O J E C T  D E S C R I P T I O N                      -->
     <!-- ====================================================================== -->
     <parent>
-        <groupId>org.apache.jackrabbit</groupId>
-        <artifactId>filevault-package-maven-plugin-parent</artifactId>
-        <relativePath>parent/pom.xml</relativePath>
-        <version>1.0.0-SNAPSHOT</version>
+        <groupId>org.apache</groupId>
+        <artifactId>apache</artifactId>
+        <version>18</version>
+        <relativePath/>
     </parent>
 
     <!-- ====================================================================== -->
     <!-- P R O J E C T  D E S C R I P T I O N                                   -->
     <!-- ====================================================================== -->
-    <artifactId>filevault-package-maven-plugin-reactor</artifactId>
+    <groupId>org.apache.jackrabbit</groupId>
+    <artifactId>filevault-package-maven-plugin</artifactId>
     <version>1.0.0-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>maven-plugin</packaging>
 
-    <name>Apache Jackrabbit FileVault - Package Maven Plugin Reactor</name>
+    <name>Apache Jackrabbit FileVault - Package Maven Plugin</name>
+    <description>Maven Plugin supporting creation of content packages.</description>
 
-    <!-- ====================================================================== -->
-    <!-- S C M  D E F I N I T I O N                                             -->
-    <!-- ====================================================================== -->
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <mavenVersion>3.3.9</mavenVersion> <!-- required for https://issues.apache.org/jira/browse/MNG-5440 -->
+        <aether.version>1.0.2.v20150114</aether.version>
+    </properties>
+
+    <prerequisites>
+        <maven>3.2.5</maven>
+    </prerequisites>
+
     <scm>
         <connection>scm:svn:http://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/trunk</connection>
         <developerConnection>scm:svn:https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/trunk</developerConnection>
@@ -47,14 +56,49 @@
     </scm>
 
     <!-- ====================================================================== -->
+    <!-- P R O J E C T  I N F O                                                 -->
+    <!-- ====================================================================== -->
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <mailingLists>
+        <mailingList>
+            <name>Jackrabbit Developer List</name>
+            <subscribe>dev-subscribe@jackrabbit.apache.org</subscribe>
+            <unsubscribe>dev-unsubscribe@jackrabbit.apache.org</unsubscribe>
+            <post>mailto:dev@jackrabbit.apache.org</post>
+            <archive>http://mail-archives.apache.org/mod_mbox/jackrabbit-dev/</archive>
+        </mailingList>
+
+        <mailingList>
+            <name>Jackrabbit User List</name>
+            <subscribe>users-subscribe@jackrabbit.apache.org</subscribe>
+            <unsubscribe>users-unsubscribe@jackrabbit.apache.org</unsubscribe>
+            <post>mailto:users@jackrabbit.apache.org</post>
+            <archive>http://mail-archives.apache.org/mod_mbox/jackrabbit-users/</archive>
+        </mailingList>
+    </mailingLists>
+
+    <issueManagement>
+        <url>https://issues.apache.org/jira/browse/JCRVLT</url>
+    </issueManagement>
+
+    <!-- ====================================================================== -->
     <!-- B U I L D   D E F I N I T I O N                                        -->
     <!-- ====================================================================== -->
     <build>
         <plugins>
+            <!-- ====================================================================== -->
+            <!-- C O M P I L E R   P L U G I N                                          -->
+            <!-- ====================================================================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
                 <configuration>
                     <source>1.7</source>
                     <target>1.7</target>
@@ -64,17 +108,290 @@
                     <optimize>false</optimize>
                 </configuration>
             </plugin>
+            <!-- ====================================================================== -->
+            <!-- M A V E N   P L U G I N                                                -->
+            <!-- ====================================================================== -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>3.5</version>
+                <executions>
+                    <execution>
+                        <id>default-descriptor</id>
+                        <phase>process-classes</phase>
+                    </execution>
+                    <!-- if you want to generate help goal -->
+                    <execution>
+                        <id>help-goal</id>
+                        <goals>
+                            <goal>helpmojo</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- ====================================================================== -->
+            <!-- F A I L S A F E   P L U G I N                                          -->
+            <!-- ====================================================================== -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>2.20.1</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <configuration>
+                            <systemPropertyVariables>
+                                <plugin.version>${project.version}</plugin.version>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- ====================================================================== -->
+            <!-- S I T E   P L U G I N                                                  -->
+            <!-- ====================================================================== -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-site-plugin</artifactId>
+                <version>3.3</version>
+                <configuration>
+                    <generateReports>true</generateReports>
+                    <relativizeDecorationLinks>false</relativizeDecorationLinks>
+                    <skipDeploy>true</skipDeploy>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven.doxia</groupId>
+                        <artifactId>doxia-module-markdown</artifactId>
+                        <version>1.5</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <!-- ====================================================================== -->
+            <!-- S C M   P U B L I S H   P L U G I N                                    -->
+            <!-- ====================================================================== -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-publish-plugin</artifactId>
+                <version>1.1</version>
+                <executions>
+                    <execution>
+                        <id>scm-publish</id>
+                        <phase>site-deploy</phase>
+                        <goals>
+                            <goal>publish-scm</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <content>target/site</content>
+                    <checkinComment>@trivial: Site checkin for project ${project.name}-${project.version}
+                    </checkinComment>
+                    <ignorePathsToDelete>
+                        <ignorePathToDelete>apidocs</ignorePathToDelete>
+                    </ignorePathsToDelete>
+                </configuration>
+            </plugin>
+            <!-- ====================================================================== -->
+            <!-- R A T   P L U G I N                                                    -->
+            <!-- ====================================================================== -->
+            <plugin>
+                <groupId>org.apache.rat</groupId>
+                <artifactId>apache-rat-plugin</artifactId>
+                <version>0.12</version>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <excludes>
+                                <exclude>src/test/resources/test-projects/**/*.txt</exclude>
+                                <exclude>src/test/resources/test-projects/**/*.xml</exclude>
+                                <exclude>src/test/resources/test-projects/**/.vlt</exclude>
+                                <exclude>src/test/resources/test-projects/**/.vltignore</exclude>
+                                <exclude>src/test/resources/test-projects/**/.dummy</exclude>
+                            </excludes>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
     <!-- ====================================================================== -->
-    <!-- M O D U L E S                                                          -->
+    <!-- R E P O R T I N G                                                      -->
     <!-- ====================================================================== -->
-    <modules>
-        <module>parent</module>
-        <module>plugin</module>
-        <module>it</module>
-    </modules>
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>3.5</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
+                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                </configuration>
+            </plugin>
+        </plugins>
+    </reporting>
+
+    <!-- ====================================================================== -->
+    <!-- D I S T R I B U T I O N   M A N A G E M E N T                          -->
+    <!-- ====================================================================== -->
+    <distributionManagement>
+        <site>
+            <id>jackrabbit.filevault.site-deploy</id>
+            <url>scm:svn:https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault-package-maven-plugin</url>
+        </site>
+    </distributionManagement>
+
+    <!-- ====================================================================== -->
+    <!-- D E P E N D E N C I E S                                                -->
+    <!-- ====================================================================== -->
+    <dependencies>
+        <!-- Maven Plugin stuff -->
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-core</artifactId>
+            <version>${mavenVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-plugin-api</artifactId>
+            <version>${mavenVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugin-tools</groupId>
+            <artifactId>maven-plugin-annotations</artifactId>
+            <version>3.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-project</artifactId>
+            <version>3.0-alpha-2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-artifact</artifactId>
+            <version>${mavenVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-compat</artifactId>
+            <version>${mavenVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-model</artifactId>
+            <version>${mavenVersion}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-archiver</artifactId>
+            <version>3.0.0</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.codehaus.plexus</groupId>
+                    <artifactId>plexus-component-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-utils</artifactId>
+            <version>3.0.22</version>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>animal-sniffer-maven-plugin</artifactId>
+            <version>1.14</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>findbugs</artifactId>
+            <version>3.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jcl-over-slf4j</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+
+        <!-- bundle tools -->
+        <dependency>
+            <groupId>biz.aQute.bnd</groupId>
+            <artifactId>biz.aQute.bndlib</artifactId>
+            <version>3.3.0</version>
+        </dependency>
+
+        <!-- class analyzer -->
+        <dependency>
+            <groupId>io.github.lukehutch</groupId>
+            <artifactId>fast-classpath-scanner</artifactId>
+            <version>2.0.21</version>
+        </dependency>
+
+        <!-- oak:index definition checker -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.10.3</version>
+        </dependency>
+
+        <!-- testing -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.10</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugin-testing</groupId>
+            <artifactId>maven-plugin-testing-harness</artifactId>
+            <version>3.3.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.sling</groupId>
+            <artifactId>org.apache.sling.commons.json</artifactId>
+            <version>2.0.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.aether</groupId>
+            <artifactId>aether-api</artifactId>
+            <version>${aether.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-aether-provider</artifactId>
+            <version>${mavenVersion}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>java-hamcrest</artifactId>
+            <version>2.0.0.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-verifier</artifactId>
+            <version>1.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
     <!-- ====================================================================== -->
     <!-- P R O F I L E S                                                        -->
@@ -85,7 +402,7 @@
             <properties>
                 <username>${user.name}</username>
                 <keyfile>${user.home}/.ssh/id_rsa</keyfile>
-                <passphrase />
+                <passphrase/>
             </properties>
             <build>
                 <plugins>
@@ -111,7 +428,7 @@
                             </execution>
                         </executions>
                     </plugin>
-                    <!-- JCR-2455: Automatic staging of non-Maven release artifacts -->
+
                     <plugin>
                         <artifactId>maven-antrun-plugin</artifactId>
                         <executions>
@@ -122,30 +439,34 @@
                                 <phase>deploy</phase>
                                 <configuration>
                                     <tasks>
-                                        <mkdir dir="${basedir}/target/${project.version}" />
+                                        <mkdir dir="${basedir}/target/${project.version}"/>
                                         <copy todir="${basedir}/target/${project.version}" flatten="true">
                                             <fileset dir="${basedir}">
-                                                <include name="RELEASE-NOTES.txt" />
-                                                <include name="target/*-src.zip*" />
+                                                <include name="RELEASE-NOTES.txt"/>
+                                                <include name="target/*-src.zip*"/>
                                             </fileset>
                                         </copy>
                                         <checksum algorithm="MD5" fileext=".md5">
                                             <fileset dir="${basedir}/target/${project.version}">
-                                                <include name="*.zip" />
+                                                <include name="*.zip"/>
                                             </fileset>
                                         </checksum>
                                         <checksum algorithm="SHA1" fileext=".sha">
                                             <fileset dir="${basedir}/target/${project.version}">
-                                                <include name="*.zip" />
+                                                <include name="*.zip"/>
                                             </fileset>
                                         </checksum>
-                                        <checksum file="${basedir}/target/${project.version}/jackrabbit-filevault-${project.version}-src.zip" algorithm="SHA1" property="checksum" />
+                                        <checksum
+                                                file="${basedir}/target/${project.version}/jackrabbit-filevault-${project.version}-src.zip"
+                                                algorithm="SHA1" property="checksum"/>
                                         <echo file="${basedir}/target/vote.txt">
                                             From: ${username}@apache.org
                                             To: dev@jackrabbit.apache.org
-                                            Subject: [VOTE] Release Apache Jackrabbit Filevault Package Maven Plugin ${project.version}
+                                            Subject: [VOTE] Release Apache Jackrabbit Filevault Package Maven Plugin
+                                            ${project.version}
 
-                                            A candidate for the Jackrabbit Filevault Package Maven Plugin ${project.version} release is available at:
+                                            A candidate for the Jackrabbit Filevault Package Maven Plugin
+                                            ${project.version} release is available at:
 
                                             https://dist.apache.org/repos/dist/dev/jackrabbit/filevault-package-maven-plugin/${project.version}/
 
@@ -159,31 +480,35 @@
 
                                             https://repository.apache.org/
 
-                                            Please vote on releasing this package as Apache Jackrabbit Filevault Package Maven Plugin ${project.version}.
+                                            Please vote on releasing this package as Apache Jackrabbit Filevault Package
+                                            Maven Plugin ${project.version}.
                                             The vote is open for the next 72 hours and passes if a majority of at
                                             least three +1 Jackrabbit PMC votes are cast.
 
-                                            [ ] +1 Release this package as Apache Jackrabbit Filevault Package Maven Plugin ${project.version}
+                                            [ ] +1 Release this package as Apache Jackrabbit Filevault Package Maven
+                                            Plugin ${project.version}
                                             [ ] -1 Do not release this package because...${line.separator}
                                         </echo>
-                                        <echo />
+                                        <echo/>
                                         <echo>
                                             The release candidate has been prepared in:
 
                                             ${basedir}/target/${project.version}
 
-                                            Please deploy it to https://dist.apache.org/repos/dist/dev/jackrabbit/filevault-package-maven-plugin:
+                                            Please deploy it to
+                                            https://dist.apache.org/repos/dist/dev/jackrabbit/filevault-package-maven-plugin:
 
                                             cd /path/to/jackrabbit-dev/filevault-package-maven-plugin
                                             mv ${basedir}/target/${project.version} ${project.version}
                                             svn add ${project.version}
-                                            svn commit -m 'Apache Jackrabbit Filevault Package Maven Plugin ${project.version} release candidate' ${project.version}
+                                            svn commit -m 'Apache Jackrabbit Filevault Package Maven Plugin
+                                            ${project.version} release candidate' ${project.version}
 
                                             A release vote template has been generated for you:
 
                                             file://${basedir}/target/vote.txt
                                         </echo>
-                                        <echo />
+                                        <echo/>
                                     </tasks>
                                 </configuration>
                             </execution>
