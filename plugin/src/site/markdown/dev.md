@@ -19,7 +19,7 @@ Developing
 
 Latest development
 ------------------
-The latest FileVault source code is available via Subversion at
+The latest FileVault Package Maven Plugin source code is available via Subversion at
 
 * https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/trunk
 
@@ -41,9 +41,9 @@ or
     git clone https://github.com/apache/jackrabbit-filevault-package-maven-plugin.git
 
 
-Building FileVault
+Building FileVault Package Maven Plugin
 ------------------
-You can build FileVault using maven:
+You can build FileVault Package Maven Plugin using maven:
 
     cd filevault-package-maven-plugin
     mvn clean install

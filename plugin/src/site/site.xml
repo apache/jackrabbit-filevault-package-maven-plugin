@@ -25,7 +25,11 @@
         <menu name="Overview">
             <item name="Introduction" href="index.html"/>
             <item name="Goals" href="plugin-info.html"/>
+            <item name="Import Package" href="import_package.html"/>
             <item href="dev.html" name="Developing"/>
+        </menu>
+        <menu name="Documentation">
+            <item name="import-package generation" href="import_package.html"/>
         </menu>
         <menu name="Project Documentation">
             <item href="project-summary.html" name="Project Summary"/>
