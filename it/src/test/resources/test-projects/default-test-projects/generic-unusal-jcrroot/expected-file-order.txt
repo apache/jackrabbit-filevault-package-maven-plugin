@@ -1,0 +1,6 @@
+META-INF/MANIFEST.MF
+META-INF/vault/
+jcr_root/apps/wcm/core/content/
+jcr_root/_rep_policy.xml
+jcr_root/etc/designs/some-thirdparty-libs/
+jcr_root/etc/cloudservices/ooyala/

@@ -111,11 +111,30 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
     /**
      * The directory containing the content to be packaged up into the content
      * package.
+     *
+     * This property is deprecated; use jcrRootSourceDirectory instead.
+     */
+    @Deprecated
+    @Parameter
+    private File builtContentDirectory;
+
+    /**
+     * The directory that contains the jcr_root of the content. Multiple directories can be specified as a comma separated list,
+     * which will act as a search path and cause the plugin to look for the first existing directory.
+     *
+     * @since 1.0.0
      */
     @Parameter(
-            defaultValue = "${project.build.outputDirectory}",
-            required = true)
-    private File builtContentDirectory;
+            property = "vault.jcrRootSourceDirectory",
+            required = true,
+            defaultValue =
+                    "${project.basedir}/jcr_root," +
+                    "${project.basedir}/src/main/jcr_root," +
+                    "${project.basedir}/src/main/content/jcr_root," +
+                    "${project.basedir}/src/content/jcr_root," +
+                    "${project.build.outputDirectory}"
+    )
+    private File[] jcrRootSourceDirectory;
 
     /**
      * The directory containing the compiled classes to use to import analysis.
@@ -455,14 +474,32 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
             contentPackageArchiver.setIncludeEmptyDirs(true);
             contentPackageArchiver.addFileSet(createFileSet(workDirectory, ""));
 
+            // find the source directory
+            File jcrSourceDirectory = null;
+            if (builtContentDirectory != null) {
+                getLog().warn("The 'builtContentDirectory' is deprecated. Please use the new 'jcrRootSourceDirectory' instead.");
+                jcrSourceDirectory = builtContentDirectory;
+            } else {
+                for (File dir: jcrRootSourceDirectory) {
+                    if (dir.exists() && dir.isDirectory()) {
+                        jcrSourceDirectory = dir;
+                        break;
+                    }
+                }
+            }
+            if (jcrSourceDirectory != null) {
+                getLog().info("packaging content from " + jcrSourceDirectory.getPath());
+            }
+
+
             // include content from build only if it exists
-            if (builtContentDirectory.exists()) {
+            if (jcrSourceDirectory != null && jcrSourceDirectory.exists()) {
                 // See GRANITE-16348
                 // we want to build a list of all the root directories in the order they were specified in the filter
                 // but ignore the roots that don't point to a directory
                 List<PathFilterSet> filterSets = filters.getFilterSets();
                 if (filterSets.isEmpty()) {
-                    contentPackageArchiver.addFileSet(createFileSet(builtContentDirectory, FileUtils.normalize(JCR_ROOT + prefix)));
+                    contentPackageArchiver.addFileSet(createFileSet(jcrSourceDirectory, FileUtils.normalize(JCR_ROOT + prefix)));
                 } else {
                     for (PathFilterSet filterSet : filterSets) {
                         String relPath = PlatformNameFormat.getPlatformPath(filterSet.getRoot());
@@ -474,23 +511,23 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
                         }
 
                         // check for full coverage aggregate
-                        File fullCoverage = new File(builtContentDirectory, relPath + ".xml");
+                        File fullCoverage = new File(jcrSourceDirectory, relPath + ".xml");
                         if (fullCoverage.isFile()) {
                             rootPath = FileUtils.normalize(JCR_ROOT + prefix + relPath + ".xml");
                             contentPackageArchiver.addFile(fullCoverage, rootPath);
                             continue;
                         }
 
-                        File rootDirectory = new File(builtContentDirectory, relPath);
+                        File rootDirectory = new File(jcrSourceDirectory, relPath);
 
                         // traverse the ancestors until we find a existing directory (see CQ-4204625)
                         while ((!rootDirectory.exists() || !rootDirectory.isDirectory())
-                                && !builtContentDirectory.equals(rootDirectory)) {
+                                && !jcrSourceDirectory.equals(rootDirectory)) {
                             rootDirectory = rootDirectory.getParentFile();
                             relPath = StringUtils.chomp(relPath, "/");
                         }
 
-                        if (!builtContentDirectory.equals(rootDirectory)) {
+                        if (!jcrSourceDirectory.equals(rootDirectory)) {
                             rootPath = FileUtils.normalize(JCR_ROOT + prefix + relPath);
                             contentPackageArchiver.addFileSet(createFileSet(rootDirectory, rootPath + "/"));
                         }
