@@ -56,16 +56,6 @@
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
-            <!--<plugin>-->
-                <!--<groupId>org.apache.rat</groupId>-->
-                <!--<artifactId>apache-rat-plugin</artifactId>-->
-                <!--<configuration>-->
-                    <!--<excludes>-->
-                        <!--<exclude>src/test/resources/test-projects/**/*.txt</exclude>-->
-                    <!--</excludes>-->
-                <!--</configuration>-->
-            <!--</plugin>-->
-
         </plugins>
         <pluginManagement>
             <plugins>
@@ -81,6 +71,7 @@
                             <exclude>src/test/resources/test-projects/**/*.xml</exclude>
                             <exclude>src/test/resources/test-projects/**/.vlt</exclude>
                             <exclude>src/test/resources/test-projects/**/.vltignore</exclude>
+                            <exclude>src/test/resources/test-projects/**/.dummy</exclude>
                         </excludes>
                     </configuration>
                 </plugin>

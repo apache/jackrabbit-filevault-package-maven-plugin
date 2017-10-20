@@ -34,22 +34,13 @@
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <filterSource>${project.basedir}/filter.xml</filterSource>
+                    <failOnDependencyErrors>false</failOnDependencyErrors>
+                    <excludes>**/.dummy</excludes>
                     <filters>
                         <filter>
-                            <root>/etc/designs/some-thirdparty-libs</root>
-                        </filter>
-                        <filter>
-                            <root>/etc/cloudservices/ooyala</root>
-                        </filter>
-                        <filter>
-                            <root>/etc/packages/apache/consulting</root>
-                        </filter>
-                        <filter>
-                            <root>/apps/some-thirdparty-libs</root>
+                            <root>/apps/wcm/core</root>
                         </filter>
                     </filters>
-                    <embeddedTarget>/apps/some-thirdparty-libs/install</embeddedTarget>
                 </configuration>
             </plugin>
         </plugins>

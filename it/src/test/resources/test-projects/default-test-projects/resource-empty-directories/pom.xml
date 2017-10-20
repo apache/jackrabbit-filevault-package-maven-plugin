@@ -27,7 +27,7 @@
     <name>Packaging test</name>
 
     <build>
-        <resources>
+       <resources>
             <resource>
                 <directory>jcr_root</directory>
                 <excludes>
@@ -44,7 +44,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <configuration>
-                    <includeEmptyDirs>${test.includeEmptyDirs}</includeEmptyDirs>
+                    <includeEmptyDirs>true</includeEmptyDirs>
                 </configuration>
             </plugin>
             <plugin>
@@ -53,6 +53,7 @@
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
+                    <jcrRootSourceDirectory>${project.build.outputDirectory}</jcrRootSourceDirectory>
                     <failOnDependencyErrors>false</failOnDependencyErrors>
                     <filters>
                         <filter>
