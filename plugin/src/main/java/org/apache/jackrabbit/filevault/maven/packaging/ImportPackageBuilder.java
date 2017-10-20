@@ -230,7 +230,7 @@ public class ImportPackageBuilder {
             report.append(bundleId).append("\n");
         }
 
-        report.append("\nAuto generated import-package: \n");
+        report.append("\nPackages used in the analyzed classes: \n");
         report.append("------------------------------\n");
         for (Map.Entry<String, Attrs> e: importParameters.entrySet()) {
             report.append(e.getKey());

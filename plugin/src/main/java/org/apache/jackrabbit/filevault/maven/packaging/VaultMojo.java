@@ -287,7 +287,14 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
      * Defines additional bundle dependency via the osgi import-package entry in the manifest.
      * @since 0.5.12
      */
-    @Parameter(property = "vault.importPackage")
+    @Parameter(
+            property = "vault.importPackage",
+            defaultValue =
+                    // exclude HTL compiler packages as they are never real dependencies of the content
+                    "-org.apache.sling.scripting.sightly.compiler.expression.nodes," +
+                    "-org.apache.sling.scripting.sightly.java.compiler," +
+                    "-org.apache.sling.scripting.sightly.render"
+    )
     private String importPackage;
 
     /**
@@ -587,6 +594,7 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
 
         // override computed patterns
         if (importPackage != null) {
+            getLog().debug("merging analyzer-packages with:\n" + importPackage + "\n");
             for (Map.Entry<String, Attrs> entry : new Parameters(importPackage).entrySet()) {
                 boolean delete = false;
                 String pkg = entry.getKey();
@@ -626,8 +634,22 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
                 }
             }
         }
-
         importPackage = Processor.printClauses(importParams);
+
+        if (!importPackage.isEmpty()) {
+            getLog().info("Merged detected packages from analyzer with 'importPackage':");
+            for (Map.Entry<String, Attrs> e: importParams.entrySet()) {
+                StringBuilder report = new StringBuilder();
+                report.append("  ").append(e.getKey());
+                try {
+                    Processor.printClause(e.getValue(), report);
+                } catch (IOException e1) {
+                    throw new IllegalStateException("Internal error while generating report", e1);
+                }
+                getLog().info(report);
+            }
+            getLog().info("");
+        }
     }
 
     private MavenArchiveConfiguration getMavenArchiveConfiguration(Properties vaultProperties) throws IOException {
