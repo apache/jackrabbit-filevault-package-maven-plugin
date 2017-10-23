@@ -123,7 +123,7 @@ public class Dependency {
      * class to a Vault Packaging Dependency for easy string conversion.
      */
     private PackageDependency resolve(final MavenProject project, final Log log) throws IOException {
-        if (StringUtils.isEmpty(group) || StringUtils.isEmpty(name)) {
+        if (!StringUtils.isEmpty(group) || !StringUtils.isEmpty(name)) {
             log.warn("Using package id in dependencies is deprecated. use maven coordinates instead: " + group + ":" + name);
         }
         if (!StringUtils.isEmpty(groupId) && !StringUtils.isEmpty(artifactId)) {
