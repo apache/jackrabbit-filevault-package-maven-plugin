@@ -38,6 +38,7 @@ import javax.annotation.Nonnull;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.StringUtils;
@@ -110,6 +111,16 @@ public class ImportPackageBuilder {
     private boolean includeUnused;
 
     /**
+     * filter for project artifacts
+     */
+    private ArtifactFilter filter = new ArtifactFilter() {
+        @Override
+        public boolean include(Artifact artifact) {
+            return true;
+        }
+    };
+
+    /**
      * Sets the class files directory
      * @param classes the directory
      * @return this.
@@ -122,6 +133,7 @@ public class ImportPackageBuilder {
 
     /**
      * defines the project from which the artifacts should be loaded.
+     * The current implementation requires the filter to be set before calling this method.
      * @param project the maven project
      * @return this
      */
@@ -129,6 +141,9 @@ public class ImportPackageBuilder {
     public ImportPackageBuilder withDependenciesFromProject(@Nonnull MavenProject project) {
         artifacts = new ArrayList<Artifact>();
         for (Artifact a : project.getDependencyArtifacts()) {
+            if (!filter.include(a)) {
+                continue;
+            }
             if (!Artifact.SCOPE_PROVIDED.equals(a.getScope()) && !Artifact.SCOPE_RUNTIME.equals(a.getScope())) {
                 continue;
             }
@@ -146,8 +161,19 @@ public class ImportPackageBuilder {
      * @return this
      */
     @Nonnull
-    public ImportPackageBuilder setIncludeUnused(boolean includeUnused) {
+    public ImportPackageBuilder withIncludeUnused(boolean includeUnused) {
         this.includeUnused = includeUnused;
+        return this;
+    }
+
+    /**
+     * defines the filter for the project artifact
+     * @param filter the filter
+     * @return this
+     */
+    @Nonnull
+    public ImportPackageBuilder withFilter(@Nonnull ArtifactFilter filter) {
+        this.filter = filter;
         return this;
     }
 

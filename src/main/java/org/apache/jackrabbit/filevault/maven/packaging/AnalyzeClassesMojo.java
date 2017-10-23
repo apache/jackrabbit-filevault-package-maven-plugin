@@ -18,14 +18,18 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.shared.artifact.filter.PatternExcludesArtifactFilter;
 
 import aQute.bnd.osgi.Processor;
 
@@ -63,13 +67,25 @@ public class AnalyzeClassesMojo extends AbstractEmbeddedsMojo {
     @Parameter(property = "vault.importUnusedPackages")
     private boolean importUnusedPackages;
 
+    /**
+     * Defines a list of libraries in partial maven coordinates that are not used for analysis.
+     */
+    @Parameter(property = "vault.excludedLibraries")
+    private String[] excludedLibraries;
+
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
             getLog().info("Analyzing java package dependencies.");
+            List<String> excluded = new ArrayList<String>(excludedLibraries.length);
+            for (String lib: excludedLibraries) {
+                excluded.add(lib.trim());
+            }
+
             ImportPackageBuilder builder = new ImportPackageBuilder()
+                    .withFilter(new PatternExcludesArtifactFilter(excluded))
                     .withDependenciesFromProject(project)
                     .withClassFileDirectory(sourceDirectory)
-                    .setIncludeUnused(importUnusedPackages)
+                    .withIncludeUnused(importUnusedPackages)
                     .analyze();
 
             String report = builder.createExportPackageReport();

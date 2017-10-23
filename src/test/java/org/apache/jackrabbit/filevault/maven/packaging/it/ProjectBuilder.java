@@ -93,6 +93,8 @@ public class ProjectBuilder {
 
     private File expectedFilterFile;
 
+    private File logTxtFile;
+
     private boolean buildExpectedToFail;
 
     public ProjectBuilder() {
@@ -147,6 +149,7 @@ public class ProjectBuilder {
         this.expectedOrderFile = new File(testProjectDir, "expected-file-order.txt");
         this.expectedManifestFile = new File(testProjectDir, "expected-manifest.txt");
         this.expectedFilterFile = new File(testProjectDir, "expected-filter.xml");
+        this.logTxtFile = new File(testProjectDir, "log.txt");
         return this;
     }
 
@@ -282,4 +285,7 @@ public class ProjectBuilder {
         return this;
     }
 
+    public List<String> getBuildOutput() throws IOException {
+        return Files.readAllLines(logTxtFile.toPath(), StandardCharsets.UTF_8);
+    }
 }
