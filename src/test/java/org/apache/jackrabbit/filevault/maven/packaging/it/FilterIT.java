@@ -20,7 +20,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.maven.it.VerificationException;
-import org.apache.maven.it.util.FileUtils;
+import org.apache.maven.shared.utils.io.FileUtils;
 import org.junit.Test;
 
 import static org.junit.Assert.assertTrue;

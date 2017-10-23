@@ -22,7 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import org.apache.maven.it.VerificationException;
-import org.apache.maven.it.util.StringUtils;
+import org.apache.maven.shared.utils.StringUtils;
 import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -130,6 +130,25 @@
                 </executions>
             </plugin>
             <!-- ====================================================================== -->
+            <!-- I N S T A L L   P L U G I N                                            -->
+            <!-- ====================================================================== -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <!--
+                            make sure this plugin in installed in the local repository before the integration tests run
+                            maybe switching back to a reactor project might be better again
+                         -->
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>install</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- ====================================================================== -->
             <!-- F A I L S A F E   P L U G I N                                          -->
             <!-- ====================================================================== -->
             <plugin>
@@ -388,7 +407,19 @@
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-verifier</artifactId>
-            <version>1.2</version>
+            <version>1.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-shared-io</artifactId>
+            <version>3.0.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-shared-utils</artifactId>
+            <version>3.2.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -406,29 +437,6 @@
             </properties>
             <build>
                 <plugins>
-                    <plugin>
-                        <artifactId>maven-assembly-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>single</goal>
-                                </goals>
-                                <phase>package</phase>
-                                <configuration>
-                                    <descriptors>
-                                        <descriptor>assembly.xml</descriptor>
-                                    </descriptors>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>source-release-assembly</id>
-                                <configuration>
-                                    <skipAssembly>true</skipAssembly>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-
                     <plugin>
                         <artifactId>maven-antrun-plugin</artifactId>
                         <executions>

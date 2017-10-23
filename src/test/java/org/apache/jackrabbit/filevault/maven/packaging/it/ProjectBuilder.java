@@ -37,11 +37,11 @@ import java.util.zip.ZipFile;
 
 import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
-import org.apache.maven.it.util.FileUtils;
-import org.apache.maven.it.util.IOUtil;
-import org.apache.maven.it.util.StringUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.apache.maven.shared.utils.StringUtils;
+import org.apache.maven.shared.utils.io.FileUtils;
+import org.apache.maven.shared.utils.io.IOUtil;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.hamcrest.Matchers;
 import org.slf4j.Logger;
@@ -197,6 +197,8 @@ public class ProjectBuilder {
                 return this;
             }
             throw e;
+        } finally {
+            verifier.resetStreams();
         }
 
         assertTrue("Project generates package file", testPackageFile.exists());
