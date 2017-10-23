@@ -58,6 +58,8 @@ public class DependencyValidator {
     /**
      * Checks if the filter roots of this package are covered by the dependencies and also checks for colliding roots
      * in the dependencies.
+     *
+     * @return this validator
      */
     public DependencyValidator validate() {
         // check for overlapping dependency roots

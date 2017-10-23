@@ -43,7 +43,6 @@ abstract class AbstractEmbeddedsMojo extends AbstractMojo {
     /**
      * Defines whether to fail the build when an embedded artifact is not
      * found in the project's dependencies
-     * @since 0.0.12
      */
     @Parameter(property = "vault.failOnMissingEmbed", defaultValue = "false", required = true)
     protected boolean failOnMissingEmbed;

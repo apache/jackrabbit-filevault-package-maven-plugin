@@ -18,7 +18,6 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 
 /**
  * Implements a package version.
- * @since 2.0
  */
 public class Version implements Comparable<Version> {
 
@@ -49,8 +48,7 @@ public class Version implements Comparable<Version> {
     /**
      * Creates a new version from the given string.
      * @param str the version string.
-     * @return the new version or {@link Version#EMPTY} if <code>str</code> is an empty string.
-     * @since 2.2.4
+     * @return the new version or {@link Version#EMPTY} if {@code str} is an empty string.
      */
     public static Version create(String str) {
         if (str == null || str.length() == 0) {
@@ -63,8 +61,7 @@ public class Version implements Comparable<Version> {
     /**
      * Creates a new version from version segments
      * @param segments version segments
-     * @return the new version or {@link Version#EMPTY} if <code>segments</code> is empty.
-     * @since 2.2.4
+     * @return the new version or {@link Version#EMPTY} if {@code segments} is empty.
      */
     public static Version create(String[] segments) {
         if (segments == null || segments.length == 0) {
@@ -122,16 +119,18 @@ public class Version implements Comparable<Version> {
     /**
      * Compares this version to the given one, segment by segment with a special
      * "SNAPSHOT" handling.
-     *
+     * <p>
      * Examples:
-     * "1" < "2"
-     * "1.0" < "2"
-     * "2.0.1" < "2.1"
-     * "2.1" < "2.1.1"
-     * "2.9" < "2.11"
-     * "2.1" > "2.1-SNAPSHOT"
-     * "2.1" > "2.1-R1234556"
-     * "2.1-R12345" < "2.1-SNAPSHOT"
+     * <pre>
+     * "1" &lt; "2"
+     * "1.0" &lt; "2"
+     * "2.0.1" &lt; "2.1"
+     * "2.1" &lt; "2.1.1"
+     * "2.9" &lt; "2.11"
+     * "2.1" &gt; "2.1-SNAPSHOT"
+     * "2.1" &gt; "2.1-R1234556"
+     * "2.1-R12345" &lt; "2.1-SNAPSHOT"
+     * </pre>
      *
      * @param o the other version
      * @return  a negative integer, zero, or a positive integer as this version

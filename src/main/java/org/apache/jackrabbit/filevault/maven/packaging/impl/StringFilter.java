@@ -17,7 +17,7 @@
 package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 /**
- * <code>StringFilter</code>...
+ * {@code StringFilter}...
  */
 public class StringFilter extends DefaultPathFilter {
 

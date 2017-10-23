@@ -122,8 +122,6 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
     /**
      * The directory that contains the jcr_root of the content. Multiple directories can be specified as a comma separated list,
      * which will act as a search path and cause the plugin to look for the first existing directory.
-     *
-     * @since 1.0.0
      */
     @Parameter(
             property = "vault.jcrRootSourceDirectory",
@@ -223,7 +221,7 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
 
     /**
      * Defines whether the package requires root. This will become the
-     * <code>requiresRoot</code> property of the properties.xml file.
+     * {@code requiresRoot} property of the properties.xml file.
      */
     @Parameter(
             property = "vault.requiresRoot",
@@ -233,7 +231,7 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
 
     /**
      * Defines whether the package is allowed to contain index definitions. This will become the
-     * <code>allowIndexDefinitions</code> property of the properties.xml file.
+     * {@code allowIndexDefinitions} property of the properties.xml file.
      */
     @Parameter(
             property = "vault.allowIndexDefinitions",
@@ -263,8 +261,6 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
     /**
      * The file name patterns to exclude in addition to the ones listed in 
      * {@link AbstractScanner#DEFAULTEXCLUDES}. The format of each pattern is described in {@link DirectoryScanner}.
-     * 
-     * @since 1.0.0
      */
     @Parameter(property = "vault.excludes",
                defaultValue="**/.vlt,**/.vltignore,**/.DS_Store",
@@ -273,7 +269,6 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
 
     /**
      * Defines the path under which the embedded bundles are placed. defaults to '/apps/bundles/install'
-     * @since 0.0.6
      */
     @Parameter(property = "vault.embeddedTarget")
     private String embeddedTarget;
@@ -282,8 +277,6 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
      * Defines the content package type. this is either 'application', 'content', 'container' or 'mixed'.
      * If omitted, it is calculated automatically based on filter definitions. certain package types imply restrictions,
      * for example, 'application' and 'content' packages are not allowed to contain sub packages or embedded bundles.
-     *
-     * @since 0.5.12
      */
     @Parameter(property = "vault.packageType")
     private PackageType packageType;
@@ -305,7 +298,6 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
 
     /**
      * Defines additional bundle dependency via the osgi import-package entry in the manifest.
-     * @since 0.5.12
      */
     @Parameter(
             property = "vault.importPackage",

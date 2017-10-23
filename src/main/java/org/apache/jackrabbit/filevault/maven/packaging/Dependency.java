@@ -29,13 +29,11 @@ import org.codehaus.plexus.util.StringUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageInfo;
 
 /**
- * The <code>Dependency</code> class represents a dependency to another content
- * package. A dependency consists of a group name, a package name and a version
- * range.
+ * The {@code Dependency} class represents a dependency to another content package.
+ * A dependency consists of a group name, a package name and a version range.
  * <p>
- * A dependency is declared as a <code>&lt;dependency></code> element of a list
- * style <code>&lt;dependencies></code> element:
- * <p>
+ * A dependency is declared as a {@code <dependency>} element of a list
+ * style {@code <dependencies>} element:
  * <pre>
  * &lt;dependency&gt;
  * 	   &lt;group&gt;theGroup&lt;/group&gt;
@@ -46,7 +44,6 @@ import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageInfo;
  * <p>
  * The dependency can also reference a maven project dependency, this is preferred
  * as it yields to more robust builds.
- * <p>
  * <pre>
  * &lt;dependency&gt;
  * 	   &lt;groupId&gt;theGroup&lt;/groupId&gt;
@@ -54,12 +51,11 @@ import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageInfo;
  * &lt;/dependency&gt;
  * </pre>
  * <p>
- * <p>
- * The <code>versionRange</code> may be indicated as a single version, in which
+ * The {@code versionRange} may be indicated as a single version, in which
  * case the version range has no upper bound and defines the minimal version
  * accepted. Otherwise, the version range defines a lower and upper bound of
  * accepted versions, where the bounds are either included using parentheses
- * <code>()</code> or excluded using brackets <code>[]</code>.
+ * {@code ()} or excluded using brackets {@code []}
  */
 public class Dependency {
 

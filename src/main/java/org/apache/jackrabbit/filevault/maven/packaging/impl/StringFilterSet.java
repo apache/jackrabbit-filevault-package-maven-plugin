@@ -19,7 +19,7 @@ package org.apache.jackrabbit.filevault.maven.packaging.impl;
 import java.util.List;
 
 /**
- * <code>StringFilterSet</code>...
+ * {@code StringFilterSet}...
  */
 public class StringFilterSet extends FilterSet<StringFilter> {
 

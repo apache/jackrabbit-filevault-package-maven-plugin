@@ -35,7 +35,7 @@ Release management tasks
 1. Make sure that an appropriate version for the release is entered in [Jira][3] and that all the related issues have
    been resolved.
    
-2. Create or update a `RELEASE-NOTES.txt` file in the root folder of the project to be released. When done, commit the
+2. Create or update a `RELEASE-NOTES.md` file in the root folder of the project to be released. When done, commit the
    file. See previous release notes for examples of what to include. The release note report in [Jira][3] is a useful
    source of required information.
    

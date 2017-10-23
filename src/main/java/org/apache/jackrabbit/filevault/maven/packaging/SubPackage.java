@@ -22,67 +22,57 @@ import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import org.apache.jackrabbit.filevault.maven.packaging.impl.StringFilterSet;
 
 /**
- * The <code>Embedded</code> class represents an embedded artifact dependency
- * from the project descriptor. Such an embedding is declared in
- * <code>&lt;embedded></code> elements inside the list style
- * <code>&lt;embeddeds></code> element as follows:
- *
+ * The {@code SubPackage} class represents an subpackage artifact dependency
+ * from the project descriptor. Such a package is declared in
+ * {@code &lt;subPackages&gt;} elements inside the list style
+ * {@code &lt;subPackage&gt;} element as follows:
  * <pre>
- * &lt;embedded&gt;
- * 	   &lt;groupId&gt;artifact.groupId.pattern&lt;/groupId&gt;
- * 	   &lt;artifactId&gt;artifact.artifactId.pattern&lt;/artifactId&gt;
- * 	   &lt;scope&gt;compile&lt;/scope&gt;
+ * &lt;subPackage&gt;
+ *     &lt;groupId&gt;artifact.groupId.pattern&lt;/groupId&gt;
+ *     &lt;artifactId&gt;artifact.artifactId.pattern&lt;/artifactId&gt;
+ *     &lt;scope&gt;compile&lt;/scope&gt;
  *     &lt;type&gt;jar&lt;/type&gt;
  *     &lt;classifier&gt;sources&lt;/classifier&gt;
- * 	   &lt;filter&gt;true&lt;/filter&gt;
- * &lt;/embedded&gt;
+ *     &lt;filter&gt;true&lt;/filter&gt;
+ * &lt;/subPackage&gt;
  * </pre>
- *
- * @since 0.8
  */
 public class SubPackage {
 
     /**
      * A group filter string, consisted of one or several comma separated patterns.
-     * @parameter type="String"
      */
+    @Parameter
     private final StringFilterSet groupId = new StringFilterSet();
 
     /**
      * A artifact filter string, consisted of one or several comma separated patterns.
-     * @parameter type="String"
      */
+    @Parameter
     private final StringFilterSet artifactId = new StringFilterSet();
 
-    /**
-     * @parameter
-     */
+    @Parameter
     private ScopeArtifactFilter scope;
 
-    /**
-     * @parameter
-     */
+    @Parameter
     private String type;
 
-    /**
-     * @parameter
-     */
+    @Parameter
     private String classifier;
 
     /**
-     * If <code>true</code> a filter entry will be generated for all embedded artifacts.
-     * @parameter
+     * If {@code true} a filter entry will be generated for all embedded artifacts.
      */
+    @Parameter
     private boolean filter;
 
-    /**
-     * @parameter
-     */
+    @Parameter
     private boolean excludeTransitive;
 
     public void setGroupId(String groupId) {

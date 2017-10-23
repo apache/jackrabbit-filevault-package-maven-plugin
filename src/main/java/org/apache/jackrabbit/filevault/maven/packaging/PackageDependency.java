@@ -21,7 +21,6 @@ import java.util.ArrayList;
 
 /**
  * Implements a package dependency reference.
- * @since 2.0
  */
 public class PackageDependency {
 
@@ -128,7 +127,7 @@ public class PackageDependency {
     /**
      * Checks if the given package id matches this dependency specification.
      * @param id the package id
-     * @return <code>true</code> if matches
+     * @return {@code true} if matches
      */
     public boolean matches(PackageId id) {
         return groupId.equals(id.getGroup())
@@ -138,7 +137,7 @@ public class PackageDependency {
 
     /**
      * Returns a dependency from a string. if the given id is null or an
-     * empty string, <code>null</code> is returned.
+     * empty string, {@code null} is returned.
      * @param str the string
      * @return the dependency
      */

@@ -17,7 +17,7 @@
 package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 /**
- * <code>Filter</code>...
+ * {@code Filter}...
  */
 public interface Filter {
 }

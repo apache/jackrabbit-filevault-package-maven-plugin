@@ -17,7 +17,7 @@
 package org.apache.jackrabbit.filevault.maven.packaging;
 
 /**
- * <code>PackageId</code> provides the basic metrics for identifying a package.
+ * {@code PackageId} provides the basic metrics for identifying a package.
  * A package id consists of a group id, a name and a version.
  * the group is a relative path, eg: "day/cq5/hotfix", the name and the version
  * can be of any format.
@@ -201,7 +201,7 @@ public class PackageId implements Comparable<PackageId> {
 
     /**
      * Returns a package id from a id string. if the given id is null or an
-     * empty string, <code>null</code> is returned.
+     * empty string, {@code null} is returned.
      * @param str the string
      * @return the package id
      */
@@ -259,9 +259,7 @@ public class PackageId implements Comparable<PackageId> {
     /**
      * Checks if this definition was constructed from a path, rather from a
      * group and name.
-     * @return <code>true</code> if constructed from path.
-     *
-     * @since 2.2.26
+     * @return {@code true} if constructed from path.
      */
     public boolean isFromPath() {
         return fromPath;
@@ -272,7 +270,6 @@ public class PackageId implements Comparable<PackageId> {
      * includes the version, but never the extension (.zip).
      *
      * @return the path of this package
-     * @since 2.2
      */
     public String getInstallationPath() {
         StringBuilder b = new StringBuilder(ETC_PACKAGES_PREFIX);
@@ -299,7 +296,6 @@ public class PackageId implements Comparable<PackageId> {
     /**
      * Returns the group id of this package
      * @return the group id;
-     * @since 2.2
      */
     public String getGroup() {
         return group;
@@ -316,7 +312,6 @@ public class PackageId implements Comparable<PackageId> {
     /**
      * Returns the version of this package or and empty string if n/a.
      * @return the version of this package
-     * @since 2.0
      */
     public String getVersionString() {
         return version.toString();
@@ -324,9 +319,8 @@ public class PackageId implements Comparable<PackageId> {
 
     /**
      * Returns a download name in the form
-     * <code>name [ "-" version ] ".zip"</code>
+     * {@code name [ "-" version ] ".zip"}
      * @return the download name
-     * @since 2.0
      */
     public String getDownloadName() {
         StringBuilder str = new StringBuilder(name);
@@ -338,7 +332,7 @@ public class PackageId implements Comparable<PackageId> {
     }
 
     /**
-     * Returns the version of this package or <code>null</code> if n/a.
+     * Returns the version of this package or {@code null} if n/a.
      * @return the version of this package
      */
     public Version getVersion() {

@@ -17,7 +17,7 @@
 package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 /**
- * <code>ImportMode</code> is used to define how importing content is applied
+ * {@code ImportMode} is used to define how importing content is applied
  * to the existing content in the repository.
  */
 public enum ImportMode {
