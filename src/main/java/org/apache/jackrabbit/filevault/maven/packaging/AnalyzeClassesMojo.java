@@ -22,13 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
+import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.artifact.filter.PatternExcludesArtifactFilter;
 
 import aQute.bnd.osgi.Processor;
@@ -41,7 +42,13 @@ import aQute.bnd.osgi.Processor;
         defaultPhase = LifecyclePhase.PROCESS_CLASSES,
         requiresDependencyResolution = ResolutionScope.COMPILE
 )
-public class AnalyzeClassesMojo extends AbstractEmbeddedsMojo {
+public class AnalyzeClassesMojo extends AbstractMojo {
+
+    /**
+     * The Maven project.
+     */
+    @Parameter(property = "project", readonly = true, required = true)
+    private MavenProject project;
 
     /**
      * Location of class files

@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
+import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -52,6 +54,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.ArchiveEntry;
 import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.util.AbstractScanner;
@@ -78,7 +81,7 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
         defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.COMPILE
 )
-public class VaultMojo extends AbstractEmbeddedsMojo {
+public class VaultMojo extends AbstractMojo {
 
     private static final String JCR_ROOT = "jcr_root/";
 
@@ -108,6 +111,12 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
 
     @Component
     private ArtifactHandlerManager artifactHandlerManager;
+
+    /**
+     * The Maven project.
+     */
+    @Parameter(property = "project", readonly = true, required = true)
+    private MavenProject project;
 
     /**
      * The directory containing the content to be packaged up into the content
@@ -272,6 +281,19 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
      */
     @Parameter(property = "vault.embeddedTarget")
     private String embeddedTarget;
+
+    /**
+     * list of embedded bundles
+     */
+    @Parameter
+    private Embedded[] embeddeds = new Embedded[0];
+
+    /**
+     * Defines whether to fail the build when an embedded artifact is not
+     * found in the project's dependencies
+     */
+    @Parameter(property = "vault.failOnMissingEmbed", defaultValue = "false", required = true)
+    private boolean failOnMissingEmbed;
 
     /**
      * Defines the content package type. this is either 'application', 'content', 'container' or 'mixed'.
@@ -871,6 +893,9 @@ public class VaultMojo extends AbstractEmbeddedsMojo {
 
             targetPath = JCR_ROOT + targetPath;
             targetPath = FileUtils.normalize(targetPath);
+            if (!targetPath.endsWith("/")) {
+                targetPath += "/";
+            }
 
             getLog().info("Embedding --- " + emb + " ---");
             for (final Artifact artifact : artifacts) {

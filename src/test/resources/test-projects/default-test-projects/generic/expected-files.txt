@@ -7,6 +7,8 @@ META-INF/vault/properties.xml
 META-INF/vault/settings.xml
 jcr_root/
 jcr_root/apps/
+jcr_root/apps/install/
+jcr_root/apps/install/org.apache.jackrabbit.vault-3.1.40.jar
 jcr_root/apps/wcm/
 jcr_root/apps/wcm/core/
 jcr_root/apps/wcm/core/content/
@@ -27,6 +29,9 @@ jcr_root/etc/cloudservices/ooyala/.content.xml
 jcr_root/etc/cloudservices/.content.xml
 jcr_root/apps/wcm/.content.xml
 jcr_root/apps/wcm/core/.content.xml
+jcr_root/libs/
+jcr_root/libs/install/
+jcr_root/libs/install/jcr-2.0.jar
 META-INF/maven/
 META-INF/maven/org.apache.jackrabbit.filevault/
 META-INF/maven/org.apache.jackrabbit.filevault/package-plugin-test-pkg/

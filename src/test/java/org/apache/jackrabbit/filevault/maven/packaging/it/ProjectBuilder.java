@@ -264,7 +264,9 @@ public class ProjectBuilder {
     public ProjectBuilder verifyExpectedFiles() throws IOException {
         // first check that only the expected entries are there in the package (regardless of the order)
         List<String> expectedEntries = Files.readAllLines(expectedFilesFile.toPath(), StandardCharsets.UTF_8);
-        assertThat("Package contains the expected entry names", pkgZipEntries, Matchers.containsInAnyOrder(expectedEntries.toArray()));
+        assertEquals("Package contains the expected entry names",
+                toTidyString(expectedEntries),
+                toTidyString(pkgZipEntries));
         return this;
     }
 
@@ -289,5 +291,15 @@ public class ProjectBuilder {
 
     public List<String> getBuildOutput() throws IOException {
         return Files.readAllLines(logTxtFile.toPath(), StandardCharsets.UTF_8);
+    }
+
+    private String toTidyString(List<String> lines) {
+        String[] copy = lines.toArray(new String[lines.size()]);
+        Arrays.sort(copy);
+        StringBuilder buf = new StringBuilder();
+        for (String line: copy) {
+            buf.append(line).append("\n");
+        }
+        return buf.toString();
     }
 }

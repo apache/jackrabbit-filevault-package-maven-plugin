@@ -19,6 +19,7 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -30,6 +31,7 @@ import org.apache.maven.artifact.factory.ArtifactFactory;
 import org.apache.maven.artifact.repository.ArtifactRepository;
 import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
 import org.apache.maven.artifact.resolver.ArtifactResolver;
+import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -37,6 +39,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.mojo.animal_sniffer.ClassListBuilder;
 import org.codehaus.mojo.animal_sniffer.SignatureChecker;
 import org.codehaus.mojo.animal_sniffer.maven.MavenLogger;
@@ -51,7 +54,27 @@ import org.codehaus.mojo.animal_sniffer.maven.Signature;
         defaultPhase = LifecyclePhase.PROCESS_CLASSES,
         requiresDependencyResolution = ResolutionScope.COMPILE
 )
-public class CheckSignatureMojo extends AbstractEmbeddedsMojo {
+public class CheckSignatureMojo extends AbstractMojo {
+
+    /**
+     * The Maven project.
+     */
+    @Parameter(property = "project", readonly = true, required = true)
+    private MavenProject project;
+
+    /**
+     * list of embedded bundles
+     */
+    @Parameter
+    private Embedded[] embeddeds = new Embedded[0];
+
+    /**
+     * Defines whether to fail the build when an embedded artifact is not
+     * found in the project's dependencies
+     */
+    @Parameter(property = "vault.failOnMissingEmbed", defaultValue = "false", required = true)
+    private boolean failOnMissingEmbed;
+
 
     /**
      */
