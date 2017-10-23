@@ -47,7 +47,7 @@ https://issues.apache.org/jira/browse/JCRVLT
 #### New Features
 * [JCRVLT-205] Add support for cleanup filter entries
 * [JCRVLT-210] Allow to define excludes for the ContentPackageArchiver to prevent copying of script files from src to target
-* __TODO__ [JCRVLT-214] - auto-import package analyzer needs option to exclude compiletime bundles
+* [JCRVLT-214] auto-import package analyzer needs option to exclude compiletime bundles
 
 
 Release Contents
