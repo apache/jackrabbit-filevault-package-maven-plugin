@@ -450,7 +450,7 @@
                                         <mkdir dir="${basedir}/target/${project.version}"/>
                                         <copy todir="${basedir}/target/${project.version}" flatten="true">
                                             <fileset dir="${basedir}">
-                                                <include name="RELEASE-NOTES.txt"/>
+                                                <include name="RELEASE-NOTES.md"/>
                                                 <include name="target/*-src.zip*"/>
                                             </fileset>
                                         </copy>
@@ -465,7 +465,7 @@
                                             </fileset>
                                         </checksum>
                                         <checksum
-                                                file="${basedir}/target/${project.version}/jackrabbit-filevault-${project.version}-src.zip"
+                                                file="${basedir}/target/${project.version}/jackrabbit-filevault-package-maven-plugin-${project.version}-src.zip"
                                                 algorithm="SHA1" property="checksum"/>
                                         <echo file="${basedir}/target/vote.txt">
                                             From: ${username}@apache.org
