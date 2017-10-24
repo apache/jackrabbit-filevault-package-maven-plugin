@@ -158,22 +158,24 @@ Appendix B: Maven settings
           <username> <!-- YOUR APACHE SVN USERNAME --> </username>
           <password> <!-- YOUR APACHE SVN PASSWORD --> </password>
         </server>
+        
         <!-- To stage a Jackrabbit release -->
         <server>
           <id>apache.releases.https</id>
           <username> <!-- YOUR APACHE SVN USERNAME --> </username>
           <password> <!-- YOUR APACHE SVN PASSWORD --> </password>
         </server>
+        
+        <!-- used for gpg code signing key -->
+        <!-- see: https://maven.apache.org/plugins/maven-gpg-plugin/usage.html -->
+        <server>
+            <id> <!-- YOUR KEYNAME --> </id>
+            <passphrase> <!-- CLEAR OR ENCRYPTED TEXT --> </passphrase>
+        </server>
         ...
         <profiles>
             <profile>
                 <id>apache-release</id>
-                <servers>
-                    <server>
-                        <id> <!-- YOUR KEYNAME --> </id>
-                        <passphrase> <!-- CLEAR OR ENCRYPTED TEXT --> </passphrase>
-                    </server>
-                </servers>
                 <properties>
                     <gpg.keyname> <!-- YOUR KEYNAME --> </gpg.keyname>
                 </properties>
