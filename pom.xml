@@ -15,8 +15,7 @@
   See the License for the specific language governing permissions and
   limitations under the License.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd ">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd ">
     <modelVersion>4.0.0</modelVersion>
     <!-- ====================================================================== -->
     <!-- P A R E N T  P R O J E C T  D E S C R I P T I O N                      -->
@@ -25,7 +24,7 @@
         <groupId>org.apache</groupId>
         <artifactId>apache</artifactId>
         <version>18</version>
-        <relativePath/>
+        <relativePath />
     </parent>
 
     <!-- ====================================================================== -->
@@ -33,7 +32,7 @@
     <!-- ====================================================================== -->
     <groupId>org.apache.jackrabbit</groupId>
     <artifactId>filevault-package-maven-plugin</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>maven-plugin</packaging>
 
     <name>Apache Jackrabbit FileVault - Package Maven Plugin</name>
@@ -50,9 +49,9 @@
     </prerequisites>
 
     <scm>
-        <connection>scm:svn:http://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/trunk</connection>
-        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/trunk</developerConnection>
-        <url>http://svn.apache.org/viewvc/asf/jackrabbit/commons/filevault-package-maven-plugin/trunk</url>
+        <connection>scm:svn:http://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/tags/filevault-package-maven-plugin-1.0.0</connection>
+        <developerConnection>scm:svn:https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/tags/filevault-package-maven-plugin-1.0.0</developerConnection>
+        <url>http://svn.apache.org/viewvc/asf/jackrabbit/commons/filevault-package-maven-plugin/tags/filevault-package-maven-plugin-1.0.0</url>
     </scm>
 
     <!-- ====================================================================== -->
@@ -433,7 +432,7 @@
             <properties>
                 <username>${user.name}</username>
                 <keyfile>${user.home}/.ssh/id_rsa</keyfile>
-                <passphrase/>
+                <passphrase />
             </properties>
             <build>
                 <plugins>
@@ -447,26 +446,24 @@
                                 <phase>deploy</phase>
                                 <configuration>
                                     <tasks>
-                                        <mkdir dir="${basedir}/target/${project.version}"/>
+                                        <mkdir dir="${basedir}/target/${project.version}" />
                                         <copy todir="${basedir}/target/${project.version}" flatten="true">
                                             <fileset dir="${basedir}">
-                                                <include name="RELEASE-NOTES.md"/>
-                                                <include name="target/*-src.zip*"/>
+                                                <include name="RELEASE-NOTES.md" />
+                                                <include name="target/*-src.zip*" />
                                             </fileset>
                                         </copy>
                                         <checksum algorithm="MD5" fileext=".md5">
                                             <fileset dir="${basedir}/target/${project.version}">
-                                                <include name="*.zip"/>
+                                                <include name="*.zip" />
                                             </fileset>
                                         </checksum>
                                         <checksum algorithm="SHA1" fileext=".sha">
                                             <fileset dir="${basedir}/target/${project.version}">
-                                                <include name="*.zip"/>
+                                                <include name="*.zip" />
                                             </fileset>
                                         </checksum>
-                                        <checksum
-                                                file="${basedir}/target/${project.version}/jackrabbit-filevault-package-maven-plugin-${project.version}-src.zip"
-                                                algorithm="SHA1" property="checksum"/>
+                                        <checksum file="${basedir}/target/${project.version}/jackrabbit-filevault-package-maven-plugin-${project.version}-src.zip" algorithm="SHA1" property="checksum" />
                                         <echo file="${basedir}/target/vote.txt">
                                             From: ${username}@apache.org
                                             To: dev@jackrabbit.apache.org
@@ -497,7 +494,7 @@
                                             Plugin ${project.version}
                                             [ ] -1 Do not release this package because...${line.separator}
                                         </echo>
-                                        <echo/>
+                                        <echo />
                                         <echo>
                                             The release candidate has been prepared in:
 
@@ -516,7 +513,7 @@
 
                                             file://${basedir}/target/vote.txt
                                         </echo>
-                                        <echo/>
+                                        <echo />
                                     </tasks>
                                 </configuration>
                             </execution>
