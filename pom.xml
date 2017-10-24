@@ -495,7 +495,7 @@
 
                                             The release candidate is a zip archive of the sources in:
 
-                                            https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/tags/jackrabbit-filevault-${project.version}/
+                                            https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/tags/filevault-package-maven-plugin-${project.version}/
 
                                             The SHA1 checksum of the archive is ${checksum}.
 
