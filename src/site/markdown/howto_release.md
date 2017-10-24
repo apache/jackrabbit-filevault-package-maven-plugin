@@ -49,6 +49,7 @@ Release management tasks
     does not work.
     
     0. (optional, prepare your environment. e.g.: `$ export version=1.0.0`)
+    1. Execute `mvn clean deploy -Papache-release -Dmaven.deploy.skip=true`. This tests if the release would work.
     1. Execute `mvn release:prepare`. This will update the POM files and tag the release in svn (btw: specifying the 
         release version on the commandline doesn't update the module poms anymore lately).
     2. Execute `mvn release:perform -Papache-release`. This will build the tagged release and deploy the artifacts to
@@ -157,28 +158,28 @@ Appendix B: Maven settings
           <username> <!-- YOUR APACHE SVN USERNAME --> </username>
           <password> <!-- YOUR APACHE SVN PASSWORD --> </password>
         </server>
+        
         <!-- To stage a Jackrabbit release -->
         <server>
           <id>apache.releases.https</id>
           <username> <!-- YOUR APACHE SVN USERNAME --> </username>
           <password> <!-- YOUR APACHE SVN PASSWORD --> </password>
         </server>
+        
+        <!-- used for gpg code signing key -->
+        <!-- see: https://maven.apache.org/plugins/maven-gpg-plugin/usage.html -->
+        <server>
+            <id> <!-- YOUR KEYNAME --> </id>
+            <passphrase> <!-- CLEAR OR ENCRYPTED TEXT --> </passphrase>
+        </server>
         ...
         <profiles>
-          <profile>
-            <id>apache-release</id>
-            <properties>
-              <gpg.keyname><!-- enough of the key id to id it --></gpg.keyname>
-    
-              <!-- pick one of the following -->
-    
-              <!-- either you feel comfortable with the passphrase on disk -->
-              <gpg.passphrase><!-- your passphrase for your gpg key goes here--></gpg.passphrase>
-    
-              <!-- or you use an agent-->
-              <gpg.useagent>true</gpg.useagent>
-    
-            </properties>
+            <profile>
+                <id>apache-release</id>
+                <properties>
+                    <gpg.keyname> <!-- YOUR KEYNAME --> </gpg.keyname>
+                </properties>
+            </profile>
           </profile>
           ...
         </profiles>

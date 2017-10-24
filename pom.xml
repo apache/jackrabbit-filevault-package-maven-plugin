@@ -227,6 +227,7 @@
                             <goal>check</goal>
                         </goals>
                         <configuration>
+                            <basedir>${project.basedir}</basedir>
                             <excludesFile>${project.basedir}/.ratignore</excludesFile>
                         </configuration>
                     </execution>
@@ -437,6 +438,23 @@
             <build>
                 <plugins>
                     <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>sign-release-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                                <configuration>
+                                    <keyname>${gpg.keyname}</keyname>
+                                    <passphraseServerId>${gpg.keyname}</passphraseServerId>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
                         <artifactId>maven-antrun-plugin</artifactId>
                         <executions>
                             <execution>
@@ -450,7 +468,7 @@
                                         <copy todir="${basedir}/target/${project.version}" flatten="true">
                                             <fileset dir="${basedir}">
                                                 <include name="RELEASE-NOTES.md" />
-                                                <include name="target/*-src.zip*" />
+                                                <include name="target/*-source-release.zip*" />
                                             </fileset>
                                         </copy>
                                         <checksum algorithm="MD5" fileext=".md5">
@@ -463,7 +481,7 @@
                                                 <include name="*.zip" />
                                             </fileset>
                                         </checksum>
-                                        <checksum file="${basedir}/target/${project.version}/jackrabbit-filevault-package-maven-plugin-${project.version}-src.zip" algorithm="SHA1" property="checksum" />
+                                        <checksum file="${basedir}/target/${project.version}/filevault-package-maven-plugin-${project.version}-source-release.zip" algorithm="SHA1" property="checksum" />
                                         <echo file="${basedir}/target/vote.txt">
                                             From: ${username}@apache.org
                                             To: dev@jackrabbit.apache.org

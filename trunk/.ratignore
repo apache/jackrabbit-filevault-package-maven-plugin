@@ -1,6 +1,0 @@
-.ratignore
-src/test/resources/test-projects/**/*.txt
-src/test/resources/test-projects/**/*.xml
-src/test/resources/test-projects/**/.vlt
-src/test/resources/test-projects/**/.vltignore
-src/test/resources/test-projects/**/.dummy
