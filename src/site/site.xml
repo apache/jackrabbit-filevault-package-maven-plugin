@@ -25,10 +25,11 @@
         <menu name="Overview">
             <item name="Introduction" href="index.html"/>
             <item name="Goals" href="plugin-info.html"/>
-            <item href="dev.html" name="Developing"/>
+            <item name="Developing" href="dev.html"/>
         </menu>
         <menu name="Documentation">
-            <item name="import-package generation" href="import_package.html"/>
+            <item name="Import-package Generation" href="import_package.html"/>
+            <item name="Migration from Adobe" href="migrating.html"/>
         </menu>
         <menu name="Project Documentation">
             <item href="project-summary.html" name="Project Summary"/>

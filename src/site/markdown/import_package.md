@@ -65,7 +65,7 @@ org.apache.sling.scripting.sightly.java.compiler
 org.apache.sling.scripting.sightly.render
 ```
 
-_Note: The excludes are present in the default value of the `<importPackage>` property and are lost if it is definedin the project. In this cases they need to be added manually._
+_Note: The excludes are present in the default value of the `<importPackage>` property and are lost if it is defined in the project. In this cases they need to be added manually._
 
 ### Example configuration for HTL
 
