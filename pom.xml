@@ -476,7 +476,12 @@
                                                 <include name="*.zip" />
                                             </fileset>
                                         </checksum>
-                                        <checksum algorithm="SHA1" fileext=".sha">
+                                        <checksum algorithm="SHA-512" fileext=".sha512">
+                                            <fileset dir="${basedir}/target/${project.version}">
+                                                <include name="*.zip" />
+                                            </fileset>
+                                        </checksum>
+                                        <checksum algorithm="SHA" fileext=".sha1">
                                             <fileset dir="${basedir}/target/${project.version}">
                                                 <include name="*.zip" />
                                             </fileset>
@@ -495,7 +500,11 @@ https://dist.apache.org/repos/dist/dev/jackrabbit/filevault-package-maven-plugin
 The release candidate is a zip archive of the sources in:
 https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/tags/filevault-package-maven-plugin-${project.version}/
 
-The SHA1 checksum of the archive is ${checksum}.
+The SHA1 checksum of the archive is
+${checksum}
+
+The command for running automated checks against this release candidate is:
+$ sh check-release.sh filevault-plugin ${project.version} ${checksum}
 
 A staged Maven repository is available for review at:
 https://repository.apache.org/
