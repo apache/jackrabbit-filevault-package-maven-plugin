@@ -48,11 +48,11 @@ Release management tasks
     Releasing the maven artifact works best when operating on the subversion checkout of the project. Using _git svn_
     does not work.
     
-    0. (optional, prepare your environment. e.g.: `$ export version=1.0.0`)
-    1. Execute `mvn clean deploy -Papache-release -Dmaven.deploy.skip=true`. This tests if the release would work.
-    1. Execute `mvn release:prepare`. This will update the POM files and tag the release in svn (btw: specifying the 
+    1. (optional, prepare your environment. e.g.: `$ export version=1.0.0`)
+    2. Execute `mvn clean deploy -Papache-release -Dmaven.deploy.skip=true`. This tests if the release would work.
+    3. Execute `mvn release:prepare`. This will update the POM files and tag the release in svn (btw: specifying the 
         release version on the commandline doesn't update the module poms anymore lately).
-    2. Execute `mvn release:perform -Papache-release`. This will build the tagged release and deploy the artifacts to
+    4. Execute `mvn release:perform -Papache-release`. This will build the tagged release and deploy the artifacts to
         a new staging repository on _repository.apache.org_. 
         After the build, login to [https://repository.apache.org/][2] and you should see it there.
     
@@ -60,7 +60,7 @@ Release management tasks
 
 4. Close the [staged repository][2] on _repository.apache.org_.  
    Use `Apache Jackrabbit Filevault Package Maven Plugin ${version} RC` as comment.
-
+   
 5. Upload the artifacts to https://dist.apache.org/repos/dist/dev/jackrabbit/filevault via SVN
        
         svn co https://dist.apache.org/repos/dist/dev/jackrabbit/filevault-package-maven-plugin dist-dev-filevault-plugin
@@ -110,7 +110,9 @@ Release management tasks
 
 13. Update the Jackrabbit web site to point to the new release.
 
-14. Send the release announcement **once** the web site and download mirrors have been synced.
+14. Deploy the recent plugin site (see `src/site/readme.md`)
+
+15. Send the release [announcement](#C) **once** the web site and download mirrors have been synced.
 
 
 Related Links
@@ -186,6 +188,99 @@ Appendix B: Maven settings
         </profiles>
       </servers>
     </settings>
+
+<a name="C"></a>
+Appendix C: Announce Mail Template
+----------------------------------
+**Note**: Copy paste the current release notes; only include the changes of this release.
+
+```
+To: dev@jackrabbit.apache.org, users@jackrabbit.apache.org, announce@apache.org
+Reply-To: dev@jackrabbit.apache.org
+Subject: [ANNOUNCE] Apache Jackrabbit FileVault Package Maven Plugin $version released
+
+The Apache Jackrabbit community is pleased to announce the release of
+Apache Jackrabbit FileVault Package Maven Plugin $version. The release is available for download at:
+
+   http://jackrabbit.apache.org/jcr/downloads.html#vltplg
+
+See the full release notes below for details about this release:
+
+
+Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version $version
+==================================================================================
+
+Introduction
+------------
+The Apache Jackrabbit FileVault package maven plugin is an Apache maven plugin that simplifies the creation of
+content package maven artifacts. The content packages can later be used to install content into a JCR repository
+using the Apache Jackrabbit FileVault packaging runtime.
+
+Changes in Jackrabbit FileVault Package Maven Plugin $version
+----------------------------------------------------------
+
+#### Notes
+Version 1.0.0 is the initial version of this contribution to the Apache
+Jackrabbit project.
+
+For more detailed information about all the changes in this and other
+FileVault releases, please see the FileVault issue tracker at
+https://issues.apache.org/jira/browse/JCRVLT
+
+#### Bug Fixes
+* [JCRVLT-206] Auto import-statement too big in case no compiled classes found
+
+#### Improvements
+* [JCRVLT-202] Import Adobe's content package maven plugin
+* [JCRVLT-204] Create documentation site for maven plugin
+* [JCRVLT-207] Make auto-import package a analyzer work with htl scripts
+* [JCRVLT-209] Always write to the filter.xml inside the vaultDir but never to filter-plugin-generated.xml
+
+#### New Features
+* [JCRVLT-205] Add support for cleanup filter entries
+* [JCRVLT-210] Allow to define excludes for the ContentPackageArchiver to prevent copying of script files from src to target
+* [JCRVLT-214] auto-import package analyzer needs option to exclude compiletime bundles
+
+
+Release Contents
+----------------
+This release consists of a single source archive packaged as a zip file.
+The archive can be unpacked with the jar tool from your JDK installation.
+See the [README](./README.md) file for instructions on how to build this release.
+
+The source archive is accompanied by SHA1 and MD5 checksums and a PGP
+signature that you can use to verify the authenticity of your download.
+The public key used for the PGP signature can be found at
+https://www.apache.org/dist/jackrabbit/KEYS
+
+About Apache Jackrabbit
+-----------------------
+Apache Jackrabbit is a fully conforming implementation of the Content
+Repository for Java Technology API (JCR). A content repository is a
+hierarchical content store with support for structured and unstructured
+content, full text search, versioning, transactions, observation, and
+more.
+
+For more information, visit http://jackrabbit.apache.org/
+
+About The Apache Software Foundation
+------------------------------------
+Established in 1999, The Apache Software Foundation provides organizational,
+legal, and financial support for more than 100 freely-available,
+collaboratively-developed Open Source projects. The pragmatic Apache License
+enables individual and commercial users to easily deploy Apache software;
+the Foundation's intellectual property framework limits the legal exposure
+of its 2,500+ contributors.
+
+For more information, visit http://www.apache.org/
+
+Trademarks
+----------
+Apache Jackrabbit, Jackrabbit, Apache, the Apache feather logo, and the Apache
+Jackrabbit project logo are trademarks of The Apache Software Foundation.
+
+```
+
 
 <!-- references -->
 [0]: http://www.apache.org/dev/release-signing.html#generate
