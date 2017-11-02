@@ -23,7 +23,7 @@ Some of the functionality of former `com.day.jcr.vault:content-package-maven-plu
 when the code was migrated to the  `org.apache.jackrabbit:filevault-package-maven-plugin` (Jackrabbit's plugin).
 In particular, all the goals dealing with the Adobe CRX Package Manager interoperability were removed.
 
-Starting with the [1.0.0 release][0] of Adobe's plugin, all the content packaging functionality
+Starting with the [1.0.2 release][0] of Adobe's plugin, all the content packaging functionality
 was removed, so that both plugins can now be used in the same project (pom).
 
 Projects that want to migrate to Jackrabbit's plugin just need to replace the maven coordinates of the
