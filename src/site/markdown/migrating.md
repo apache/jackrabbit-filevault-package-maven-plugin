@@ -48,7 +48,7 @@ An example plugin section could look like this:
     <plugin>
         <groupId>com.day.jcr.vault</groupId>
         <artifactId>content-package-maven-plugin</artifactId>
-        <version>1.0.0</version>
+        <version>1.0.2</version>
     </plugin>
 
 ``` 
