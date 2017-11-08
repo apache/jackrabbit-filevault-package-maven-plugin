@@ -19,6 +19,7 @@
         <pluginExecution>
             <pluginExecutionFilter>
                 <goals>
+                    <goal>analyze-classes</goal>
                     <goal>check-signature</goal>
                 </goals>
             </pluginExecutionFilter>
