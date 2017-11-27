@@ -20,12 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.jackrabbit.filevault.maven.packaging.impl.StringFilterSet;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-
-import org.apache.jackrabbit.filevault.maven.packaging.impl.StringFilterSet;
 
 /**
  * The {@code Embedded} class represents an embedded artifact dependency
@@ -56,34 +54,27 @@ public class Embedded {
      */
     private final StringFilterSet artifactId = new StringFilterSet();
 
-    @Parameter
     private ScopeArtifactFilter scope;
 
-    @Parameter
     private String type;
 
-    @Parameter
     private String classifier;
 
     /**
      * If {@code true} a filter entry will be generated for all embedded artifacts.
      */
-    @Parameter
     private boolean filter;
 
     /**
      * Target location.
      */
-    @Parameter
     private String target;
 
     /**
      * Name to use for the artifact in the destination
      */
-    @Parameter
     private String destFileName;
 
-    @Parameter
     private boolean excludeTransitive;
 
     public void setGroupId(String groupId) {

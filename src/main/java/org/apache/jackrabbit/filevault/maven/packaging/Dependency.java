@@ -20,13 +20,11 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
+import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageInfo;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
-
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageInfo;
 
 /**
  * The {@code Dependency} class represents a dependency to another content package.
@@ -62,31 +60,26 @@ public class Dependency {
     /**
      * The group name, required for package-id references
      */
-    @Parameter
     private String group;
 
     /**
      * The group id, required for maven coordinate references
      */
-    @Parameter
     private String groupId;
 
     /**
      * The package name, required for package-id references.
      */
-    @Parameter
     private String name;
 
     /**
      * The artifact id, required for maven coordinate references
      */
-    @Parameter
     private String artifactId;
 
     /**
      * The version range (optional)
      */
-    @Parameter
     private String version;
 
     /**
