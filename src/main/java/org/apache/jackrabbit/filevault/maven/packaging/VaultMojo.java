@@ -24,7 +24,6 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,6 +40,10 @@ import java.util.zip.ZipFile;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.DefaultWorkspaceFilter;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageType;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.PathFilterSet;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.PlatformNameFormat;
 import org.apache.maven.archiver.ManifestConfiguration;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -66,10 +69,6 @@ import org.codehaus.plexus.util.StringUtils;
 import aQute.bnd.header.Attrs;
 import aQute.bnd.header.Parameters;
 import aQute.bnd.osgi.Processor;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.DefaultWorkspaceFilter;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageType;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PathFilterSet;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PlatformNameFormat;
 
 import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
@@ -655,7 +654,7 @@ public class VaultMojo extends AbstractMojo {
     private void validateDependencies() throws MojoExecutionException {
         List<String> errors = new DependencyValidator()
                 .addDependencies(dependencies)
-                .addDependencies(repositoryStructurePackages)
+                .addRepositoryStructure(repositoryStructurePackages)
                 .setFilters(filters)
                 .validate()
                 .getErrors();

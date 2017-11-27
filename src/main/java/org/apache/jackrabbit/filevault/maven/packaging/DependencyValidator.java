@@ -41,10 +41,26 @@ public class DependencyValidator {
 
     private List<String> errors = new LinkedList<String>();
 
-    private static Set<String> VALID_ROOTS = new HashSet<>(Arrays.asList("", "/", "/libs", "/apps", "/etc", "/var", "/tmp", "/content"));
+    private Set<String> validRoots = new HashSet<>(Arrays.asList("", "/", "/libs", "/apps", "/etc", "/var", "/tmp", "/content"));
 
     public DependencyValidator addDependencies(Dependency ... dependencies) {
         this.dependencies.addAll(Arrays.asList(dependencies));
+        return this;
+    }
+
+    public DependencyValidator addRepositoryStructure(Dependency ... structures) {
+        for (Dependency dep: structures) {
+            PackageInfo info = dep.getInfo();
+            if (info == null) {
+                String msg = String.format("Dependency '%s' is not using maven coordinates and cannot be used for analysis.", dep.getPackageDependency());
+                errors.add(msg);
+                continue;
+            }
+            for (PathFilterSet set : info.getFilter().getFilterSets()) {
+                String root = set.getRoot();
+                validRoots.add(root);
+            }
+        }
         return this;
     }
 
@@ -92,7 +108,7 @@ public class DependencyValidator {
             }
             String root = StringUtils.substringBeforeLast(set.getRoot(), "/");
             // ignore well known roots
-            if (VALID_ROOTS.contains(root)) {
+            if (validRoots.contains(root)) {
                 continue;
             }
 

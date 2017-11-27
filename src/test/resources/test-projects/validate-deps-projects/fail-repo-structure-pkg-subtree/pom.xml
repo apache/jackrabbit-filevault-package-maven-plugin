@@ -36,8 +36,9 @@
                         <filter>
                             <root>/var/foo/bar/components</root>
                         </filter>
+                        <!-- must fail, since repo structure only defines the ancestors, not the entire subtrees -->
                         <filter>
-                            <root>/tmp/foo</root>
+                            <root>/tmp/foo/fail</root>
                         </filter>
                     </filters>
                     <repositoryStructurePackages>
