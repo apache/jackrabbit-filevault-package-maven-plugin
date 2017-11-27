@@ -30,6 +30,7 @@
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
+                    <packageType>application</packageType>
                     <failOnDependencyErrors>true</failOnDependencyErrors>
                     <filters>
                         <filter>

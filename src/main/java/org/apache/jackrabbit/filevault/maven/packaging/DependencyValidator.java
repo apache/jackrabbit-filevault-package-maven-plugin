@@ -41,6 +41,8 @@ public class DependencyValidator {
 
     private List<String> errors = new LinkedList<String>();
 
+    private static Set<String> VALID_ROOTS = new HashSet<>(Arrays.asList("", "/", "/libs", "/apps", "/etc", "/var", "/tmp", "/content"));
+
     public DependencyValidator addDependencies(Dependency ... dependencies) {
         this.dependencies.addAll(Arrays.asList(dependencies));
         return this;
@@ -89,8 +91,13 @@ public class DependencyValidator {
                 continue;
             }
             String root = StringUtils.substringBeforeLast(set.getRoot(), "/");
-            // ignore root node as ancestor
-            if ("/".equals(root)) {
+            // ignore well known roots
+            if (VALID_ROOTS.contains(root)) {
+                continue;
+            }
+
+            // check if this package already contains the ancestor
+            if (filters.contains(root)) {
                 continue;
             }
             ancestors.add(root);

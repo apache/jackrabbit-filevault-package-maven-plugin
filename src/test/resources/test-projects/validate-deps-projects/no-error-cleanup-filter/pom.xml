@@ -30,6 +30,7 @@
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
+                    <packageType>application</packageType>
                     <failOnDependencyErrors>true</failOnDependencyErrors>
                     <filterSource>${project.basedir}/filter.xml</filterSource>
                 </configuration>

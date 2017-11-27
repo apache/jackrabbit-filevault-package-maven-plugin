@@ -30,19 +30,37 @@
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
+                    <packageType>application</packageType>
                     <failOnDependencyErrors>true</failOnDependencyErrors>
                     <filters>
+                        <!-- root should always be covered -->
+                        <filter><root>/var</root></filter>
+
+                        <!-- those are covered by test-package -->
+                        <filter><root>/var/foo/bar/components</root></filter>
+                        <filter><root>/tmp/foo</root></filter>
+
+                        <!-- /libs and /apps should always be covered -->
+                        <filter><root>/libs/foo</root></filter>
+                        <filter><root>/apps/foo</root></filter>
+
+                        <!-- test internal ancestors that are exclude by dependent package -->
                         <filter>
-                            <root>/var/foo/bar/components</root>
+                            <root>/libs/foo/bar</root>
+                            <includes>
+                                <include>/libs/foo/bar</include>
+                            </includes>
                         </filter>
-                        <filter>
-                            <root>/tmp/foo</root>
-                        </filter>
+                        <filter><root>/libs/foo/bar/sub</root></filter>
                     </filters>
                     <dependencies>
                         <dependency>
                             <groupId>com.apache.jackrabbit.filevault</groupId>
                             <artifactId>test.content.package</artifactId>
+                        </dependency>
+                        <dependency>
+                            <groupId>com.apache.jackrabbit.filevault</groupId>
+                            <artifactId>test.content.package.exclude</artifactId>
                         </dependency>
                     </dependencies>
                 </configuration>
@@ -51,11 +69,32 @@
     </build>
     <dependencies>
         <dependency>
+            <!--
+                <workspaceFilter version="1.0">
+                    <filter root="/tmp" />
+                    <filter root="/var/foo/bar"/>
+                </workspaceFilter>
+            -->
             <groupId>com.apache.jackrabbit.filevault</groupId>
             <artifactId>test.content.package</artifactId>
             <version>1.0.0</version>
             <scope>system</scope>
             <systemPath>${testcontent.directory}/test-package.zip</systemPath>
+            <type>zip</type>
+        </dependency>
+        <dependency>
+            <!--
+                <workspaceFilter version="1.0">
+                    <filter root="/libs/foo">
+                        <exclude pattern="/libs/foo/bar(/.*)?"/>
+                    </filter>
+                </workspaceFilter>
+            -->
+            <groupId>com.apache.jackrabbit.filevault</groupId>
+            <artifactId>test.content.package.exclude</artifactId>
+            <version>1.0.0</version>
+            <scope>system</scope>
+            <systemPath>${testcontent.directory}/test-package-exclude.zip</systemPath>
             <type>zip</type>
         </dependency>
     </dependencies>

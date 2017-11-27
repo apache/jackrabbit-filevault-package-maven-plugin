@@ -33,7 +33,7 @@
                     <failOnDependencyErrors>true</failOnDependencyErrors>
                     <filters>
                         <filter>
-                            <root>/libs/foo</root>
+                            <root>/libs/foo/bar</root>
                         </filter>
                     </filters>
                 </configuration>

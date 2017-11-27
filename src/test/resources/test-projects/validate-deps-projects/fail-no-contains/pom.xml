@@ -48,6 +48,14 @@
     </build>
     <dependencies>
         <dependency>
+            <!--
+            Test Package contains:
+
+            <workspaceFilter version="1.0">
+                <filter root="/tmp" />
+                <filter root="/var/foo/bar"/>
+            </workspaceFilter>
+            -->
             <groupId>com.apache.jackrabbit.filevault</groupId>
             <artifactId>test.content.package</artifactId>
             <version>1.0.0</version>
