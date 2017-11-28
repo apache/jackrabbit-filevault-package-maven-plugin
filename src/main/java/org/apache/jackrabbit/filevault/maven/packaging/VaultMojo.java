@@ -283,7 +283,23 @@ public class VaultMojo extends AbstractMojo {
     private String embeddedTarget;
 
     /**
-     * list of embedded bundles
+     * List of filters for artifacts to embed in the package.
+     * The {@code Embedded} class represents one or multiple embedded artifact dependencies
+     * from the project descriptor.
+     * Each {@code <embedded>} element may configure any of the following fields
+     *  <p>
+     * <table>
+     * <tr><td>groupId</td><td>String</td><td>Filter criterion against the group id of a project dependency. A pattern of format <code>&lt;filter&gt;{,&lt;filter&gt;}</code>. Each {@code filter} is a string which is either an exclude (if it starts with a {@code ~}) or an include otherwise. If the first {@code filter} is an include the pattern acts as whitelist, otherwise as blacklist. The last matching filter determines the outcome. Only matching group ids are being considered for being embedded.</td></tr>
+     * <tr><td>artifactId</td><td>String</td><td>Filter criterion against the artifact ids of a project dependency. A pattern of format <code>&lt;filter&gt;{,&lt;filter&gt;}</code>. Each {@code filter} is a string which is either an exclude (if it starts with a {@code ~}) or an include otherwise. If the first {@code filter} is an include the pattern acts as whitelist, otherwise as blacklist. The last matching filter determines the outcome. Only matching artifacts ids are being considered for being embedded.</td></tr>
+     * <tr><td>scope</td><td>ScopeArtifactFilter</td><td>Filter criterion against the <a href="https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Scope">scope of a project dependency</a>. Possible values are <ul><li>{@code test}, which allows every scope</li><li>{@code compile+runtime} which allows every scope except {@code test}</li><li>{@code runtime+system} which allows every scope except {@code test} and {@code provided}</li><li>{@code compile} which allows only scope {@code compile}, {@code provided} and {@code system}</li><li>{@code runtime} which only allows scope {@code runtime} and {@code compile}.</td></tr>
+     * <tr><td>type</td><td>String</td><td>Filter criterion against the type of a project dependency. The value given here must be equal to the project dependency's type.</td></tr>
+     * <tr><td>classifier</td><td>String</td><td>Filter criterion against the classifier of a project dependency. The value given here must be equal to the project dependency's classifier.</td></tr>
+     * <tr><td>filter</td><td>Boolean</td><td>If set to {@code true} adds the embedded artifact location to the package's filter.</td></tr>
+     * <tr><td>target</td><td>String</td><td>The parent folder location in the package where to place the embedded artifact. Falls back to {@link embeddedTarget} if not set.</td></tr>
+     * </table>
+     * </pre>
+     * All fields are optional. All filter criteria is concatenated with AND logic (i.e. every criterion must match for a specific dependency to be embedded).
+     * <i>The difference between {@link embeddeds} and {@link #subPackages} is that for the former an explicit target is given while for the latter the target is being computed from the artifact's vault property file.</i>
      */
     @Parameter
     private Embedded[] embeddeds = new Embedded[0];
@@ -339,12 +355,37 @@ public class VaultMojo extends AbstractMojo {
 
     /**
      * Defines the list of dependencies
+     * A dependency is declared as a {@code <dependency>} element of a list
+     * style {@code <dependencies>} element:
+     * <pre>
+     * &lt;dependency&gt;
+     *     &lt;group&gt;theGroup&lt;/group&gt;
+     *     &lt;name&gt;theName&lt;/name&gt;
+     *     &lt;version&gt;1.5&lt;/version&gt;
+     * &lt;/dependency&gt;
+     * </pre>
+     * <p>
+     * The dependency can also reference a maven project dependency, this is preferred
+     * as it yields to more robust builds.
+     * <pre>
+     * &lt;dependency&gt;
+     *     &lt;groupId&gt;theGroup&lt;/groupId&gt;
+     *     &lt;artifactId&gt;theName&lt;/artifactId&gt;
+     * &lt;/dependency&gt;
+     * </pre>
+     * <p>
+     * The {@code versionRange} may be indicated as a single version, in which
+     * case the version range has no upper bound and defines the minimal version
+     * accepted. Otherwise, the version range defines a lower and upper bound of
+     * accepted versions, where the bounds are either included using parentheses
+     * {@code ()} or excluded using brackets {@code []}
      */
     @Parameter
     private Dependency[] dependencies = new Dependency[0];
 
     /**
-     * Defines the packages that define the repository structure
+     * Defines the packages that define the repository structure.
+     * For the format description look at {@link #dependencies}.
      */
     @Parameter
     private Dependency[] repositoryStructurePackages = new Dependency[0];
@@ -356,7 +397,21 @@ public class VaultMojo extends AbstractMojo {
     private String dependenciesString;
 
     /**
-     * Defines the list of sub packages.
+     * Defines the list of sub packages to be embedded in this package.
+     * The {@code SubPackage} class represents one or multiple subpackage artifact dependencies
+     * from the project descriptor. Each {@code <subPackage>} element may configure any of the following fields
+     *  <p>
+     * <table>
+     * <tr><td>groupId</td><td>String</td><td>Filter criterion against the group id of a project dependency. A pattern of format <code>&lt;filter&gt;{,&lt;filter&gt;}</code>. Each {@code filter} is a string which is either an exclude (if it starts with a {@code ~}) or an include otherwise. If the first {@code filter} is an include the pattern acts as whitelist, otherwise as blacklist. The last matching filter determines the outcome. Only matching group ids are being considered for being embedded.</td></tr>
+     * <tr><td>artifactId</td><td>String</td><td>Filter criterion against the artifact ids of a project dependency. A pattern of format <code>&lt;filter&gt;{,&lt;filter&gt;}</code>. Each {@code filter} is a string which is either an exclude (if it starts with a {@code ~}) or an include otherwise. If the first {@code filter} is an include the pattern acts as whitelist, otherwise as blacklist. The last matching filter determines the outcome. Only matching artifacts ids are being considered for being embedded.</td></tr>
+     * <tr><td>scope</td><td>ScopeArtifactFilter</td><td>Filter criterion against the <a href="https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Scope">scope of a project dependency</a>. Possible values are <ul><li>{@code test}, which allows every scope</li><li>{@code compile+runtime} which allows every scope except {@code test}</li><li>{@code runtime+system} which allows every scope except {@code test} and {@code provided}</li><li>{@code compile} which allows only scope {@code compile}, {@code provided} and {@code system}</li><li>{@code runtime} which only allows scope {@code runtime} and {@code compile}.</td></tr>
+     * <tr><td>type</td><td>String</td><td>Filter criterion against the type of a project dependency. The value given here must be equal to the project dependency's type. In most cases should be "content-package" or "zip".</td></tr>
+     * <tr><td>classifier</td><td>String</td><td>Filter criterion against the classifier of a project dependency. The value given here must be equal to the project dependency's classifier.</td></tr>
+     * <tr><td>filter</td><td>Boolean</td><td>If set to {@code true} adds the embedded artifact location to the package's filter</td></tr>
+     * </table>
+     * </pre>
+     * All fields are optional. All filter criteria is concatenated with AND logic (i.e. every criterion must match for a specific dependency to be embedded).
+     * <i>The difference between {@link embeddeds} and {@link #subPackages} is that for the former an explicit target is given while for the latter the target is being computed from the artifact's vault property file.</i>
      */
     @Parameter
     private SubPackage[] subPackages = new SubPackage[0];
