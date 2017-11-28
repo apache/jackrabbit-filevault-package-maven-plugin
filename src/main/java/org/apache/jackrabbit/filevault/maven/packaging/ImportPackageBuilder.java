@@ -144,10 +144,12 @@ public class ImportPackageBuilder {
             if (!filter.include(a)) {
                 continue;
             }
-            if (!Artifact.SCOPE_PROVIDED.equals(a.getScope()) && !Artifact.SCOPE_RUNTIME.equals(a.getScope())) {
+            // skip all test dependencies (all other scopes are potentially relevant)
+            if (Artifact.SCOPE_TEST.equals(a.getScope())) {
                 continue;
             }
-            if (!"jar".equals(a.getType())) {
+            // type of the considered dependencies must be either "jar" or "bundle"
+            if (!"jar".equals(a.getType()) && (!"bundle".equals(a.getType()))) {
                 continue;
             }
             artifacts.add(a);
