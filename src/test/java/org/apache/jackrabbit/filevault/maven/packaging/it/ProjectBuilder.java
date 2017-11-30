@@ -232,7 +232,7 @@ public class ProjectBuilder {
         Properties properties = new Properties();
         properties.loadFromXML(zip.getInputStream(propertiesFile));
 
-        assertEquals("Property '" + key + "' has correct value", properties.getProperty(key), value);
+        assertEquals("Property '" + key + "' has correct value", value, properties.getProperty(key));
         return this;
     }
 
