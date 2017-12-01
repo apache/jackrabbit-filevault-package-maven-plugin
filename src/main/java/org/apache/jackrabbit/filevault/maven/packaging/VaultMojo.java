@@ -144,14 +144,6 @@ public class VaultMojo extends AbstractMojo {
     private File[] jcrRootSourceDirectory;
 
     /**
-     * The directory containing the compiled classes to use to import analysis.
-     */
-    @Parameter(
-            defaultValue = "${project.build.outputDirectory}",
-            required = true)
-    private File classesDirectory;
-
-    /**
      * The name of the generated package ZIP file without the ".zip" file
      * extension.
      */
