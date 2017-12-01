@@ -16,9 +16,9 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
-import org.apache.jackrabbit.filevault.maven.packaging.impl.DefaultPathFilter;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.ImportMode;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PathFilterSet;
+import org.apache.jackrabbit.vault.fs.api.ImportMode;
+import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
+import org.apache.jackrabbit.vault.fs.filter.DefaultPathFilter;
 
 public class Filter {
 
@@ -89,7 +89,9 @@ public class Filter {
         PathFilterSet set = new PathFilterSet();
         set.setRoot(root);
         set.setImportMode(mode);
-        set.setCleanUp(cleanupType);
+        if (cleanupType) {
+            set.setType("cleanup");
+        }
         for (String pattern: includes) {
             set.addInclude(new DefaultPathFilter(pattern));
         }

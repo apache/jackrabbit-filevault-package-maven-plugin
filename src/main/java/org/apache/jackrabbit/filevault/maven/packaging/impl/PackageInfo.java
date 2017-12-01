@@ -29,8 +29,12 @@ import javax.annotation.Nonnull;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.apache.jackrabbit.filevault.maven.packaging.PackageId;
 import org.apache.jackrabbit.filevault.maven.packaging.VaultMojo;
+import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
+import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
+import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
+import org.apache.jackrabbit.vault.packaging.PackageId;
+import org.apache.jackrabbit.vault.packaging.PackageType;
 
 /**
  * Very simple class that reads basic package info from a file.
@@ -102,7 +106,11 @@ public class PackageInfo {
                 }
             } else if (VaultMojo.FILTER_FILE.equalsIgnoreCase(e.getName())) {
                 filter = new DefaultWorkspaceFilter();
-                filter.load(zip.getInputStream(e));
+                try {
+                    filter.load(zip.getInputStream(e));
+                } catch (ConfigurationException e1) {
+                    throw new IOException(e1);
+                }
             }
         }
         zip.close();

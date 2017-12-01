@@ -14,10 +14,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging.impl;
+package org.apache.jackrabbit.filevault.maven.packaging;
 
-/**
- * {@code Filter}...
- */
-public interface Filter {
+import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
+
+public class Filters extends DefaultWorkspaceFilter {
+
+    public void addFilter(Filter filter) {
+        add(filter.toPathFilterSet());
+    }
+
+    // added for Maven 2.2.1 compatibility
+    public void setFilter(Filter filter) {
+        add(filter.toPathFilterSet());
+    }
+
 }

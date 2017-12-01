@@ -123,12 +123,9 @@ public class SubPackage {
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("Sub Packages: ");
-        if (groupId != null) {
-            builder.append("groupId=").append(groupId).append(",");
-        }
-        if (artifactId != null) {
-            builder.append("artifactId=").append(artifactId).append(",");
-        }
+        builder.append("groupId=").append(groupId).append(",");
+        builder.append("artifactId=").append(artifactId).append(",");
+
         if (scope != null) {
             builder.append("scope=").append(scope).append(",");
         }

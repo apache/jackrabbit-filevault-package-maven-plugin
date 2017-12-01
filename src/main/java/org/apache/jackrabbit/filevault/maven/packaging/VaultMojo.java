@@ -40,11 +40,13 @@ import java.util.zip.ZipFile;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.AccessControlHandling;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.DefaultWorkspaceFilter;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageType;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PathFilterSet;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PlatformNameFormat;
+import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
+import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
+import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
+import org.apache.jackrabbit.vault.fs.io.AccessControlHandling;
+import org.apache.jackrabbit.vault.packaging.PackageId;
+import org.apache.jackrabbit.vault.packaging.PackageType;
+import org.apache.jackrabbit.vault.util.PlatformNameFormat;
 import org.apache.maven.archiver.ManifestConfiguration;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -398,7 +400,7 @@ public class VaultMojo extends AbstractMojo {
      * Defines the content of the filter.xml file
      */
     @Parameter
-    private final DefaultWorkspaceFilter filters = new DefaultWorkspaceFilter();
+    private final Filters filters = new Filters();
 
     /**
      * Defines the list of dependencies
@@ -684,7 +686,11 @@ public class VaultMojo extends AbstractMojo {
                 throw new MojoExecutionException("conflicting filters.");
             }
             // load filters for further processing
-            filters.load(filterFile);
+            try {
+                filters.load(filterFile);
+            } catch (ConfigurationException e) {
+                throw new IOException(e);
+            }
 
             getLog().warn("The project is using a filter.xml provided via the resource plugin.");
             getLog().warn("This is deprecated and might no longer be supported in future versions.");
@@ -706,19 +712,29 @@ public class VaultMojo extends AbstractMojo {
         DefaultWorkspaceFilter sourceFilters = new DefaultWorkspaceFilter();
         if (filterSource != null && filterSource.exists()) {
             getLog().info("Loading filter from " + filterSource.getPath());
-            sourceFilters.load(filterSource);
+            try {
+                sourceFilters.load(filterSource);
+            } catch (ConfigurationException e) {
+                throw new IOException(e);
+            }
             if (!filters.getFilterSets().isEmpty()) {
                 getLog().info("Merging inline filters.");
-                sourceFilters.merge(filters);
+                mergeFilters(sourceFilters, filters);
             }
             filters.getFilterSets().clear();
             filters.getFilterSets().addAll(sourceFilters.getFilterSets());
+            filters.getPropertyFilterSets().clear();
+            filters.getPropertyFilterSets().addAll(sourceFilters.getPropertyFilterSets());
 
             // reset source filters for later. this looks a bit complicated but is needed to keep the same
             // filter order as in previous versions
             sourceFilters = new DefaultWorkspaceFilter();
-            sourceFilters.load(filterSource);
-            sourceFilters.generateSource();
+            try {
+                sourceFilters.load(filterSource);
+            } catch (ConfigurationException e) {
+                throw new IOException(e);
+            }
+            sourceFilters.resetSource();
         }
 
         // if the prefix property is set, it should be used if no filter is set
@@ -738,6 +754,8 @@ public class VaultMojo extends AbstractMojo {
         }
 
         // if the source filters and the generated filters are the same, copy the source file to retain the comments
+        System.out.printf("sourceFilter: \n%s", sourceFilters.getSourceAsString());
+        System.out.printf("filters: \n%s", filters.getSourceAsString());
         if (filterSource != null && sourceFilters.getSourceAsString().equals(filters.getSourceAsString())) {
             FileUtils.copyFile(filterSource, filterFile);
         } else {
@@ -751,6 +769,19 @@ public class VaultMojo extends AbstractMojo {
             getLog().warn("Unable to set last modified of filters file. make sure to clean the project before next run.");
         }
     }
+
+    private void mergeFilters(DefaultWorkspaceFilter dst, DefaultWorkspaceFilter src) {
+        for (PathFilterSet fs: src.getFilterSets()) {
+            // check for collision
+            for (PathFilterSet mfs: dst.getFilterSets()) {
+                if (mfs.getRoot().equals(fs.getRoot())) {
+                    throw new IllegalArgumentException("Merging of equal filter roots not allowed for: " + fs.getRoot());
+                }
+            }
+            dst.add(fs);
+        }
+    }
+
     /**
      * Computes the dependency string.
      */
@@ -1109,7 +1140,7 @@ public class VaultMojo extends AbstractMojo {
             boolean hasApps = false;
             boolean hasOther = false;
             for (PathFilterSet p: filters.getFilterSets()) {
-                if (p.isCleanUp()) {
+                if ("cleanup".equals(p.getType())) {
                     continue;
                 }
                 String root = p.getRoot();

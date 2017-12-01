@@ -26,9 +26,9 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.apache.jackrabbit.filevault.maven.packaging.impl.DefaultWorkspaceFilter;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageInfo;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PathFilterSet;
+import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
+import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
 
 /**
  * {@code DependencyValidator}...
@@ -43,7 +43,7 @@ public class DependencyValidator {
 
     private Set<String> validRoots = new HashSet<>(Arrays.asList("", "/", "/libs", "/apps", "/etc", "/var", "/tmp", "/content"));
 
-    public DependencyValidator addDependencies(Dependency ... dependencies) {
+    public DependencyValidator addDependencies(Dependency... dependencies) {
         this.dependencies.addAll(Arrays.asList(dependencies));
         return this;
     }
@@ -103,7 +103,7 @@ public class DependencyValidator {
         // check that this filter is covered.
         Set<String> ancestors = new HashSet<String>();
         for (PathFilterSet set: filters.getFilterSets()) {
-            if (set.isCleanUp()) {
+            if ("cleanup".equals(set.getType())) {
                 continue;
             }
             String root = StringUtils.substringBeforeLast(set.getRoot(), "/");

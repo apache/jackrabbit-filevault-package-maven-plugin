@@ -21,6 +21,8 @@ import java.io.IOException;
 import javax.annotation.Nullable;
 
 import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageInfo;
+import org.apache.jackrabbit.vault.packaging.PackageId;
+import org.apache.jackrabbit.vault.packaging.VersionRange;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;

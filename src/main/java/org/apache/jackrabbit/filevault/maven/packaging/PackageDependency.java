@@ -19,6 +19,9 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 import java.util.List;
 import java.util.ArrayList;
 
+import org.apache.jackrabbit.vault.packaging.PackageId;
+import org.apache.jackrabbit.vault.packaging.VersionRange;
+
 /**
  * Implements a package dependency reference.
  */

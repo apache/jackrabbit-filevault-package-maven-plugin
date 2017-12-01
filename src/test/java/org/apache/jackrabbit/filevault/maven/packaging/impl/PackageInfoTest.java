@@ -18,12 +18,10 @@ package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 import java.io.File;
 
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageInfo;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageType;
+import org.apache.jackrabbit.vault.packaging.PackageType;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;

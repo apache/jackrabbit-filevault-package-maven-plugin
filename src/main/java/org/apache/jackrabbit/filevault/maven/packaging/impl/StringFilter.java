@@ -16,6 +16,8 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
+import org.apache.jackrabbit.vault.fs.filter.DefaultPathFilter;
+
 /**
  * {@code StringFilter}...
  */

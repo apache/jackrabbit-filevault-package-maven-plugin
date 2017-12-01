@@ -18,6 +18,8 @@ package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 import java.util.List;
 
+import org.apache.jackrabbit.vault.fs.api.FilterSet;
+
 /**
  * {@code StringFilterSet}...
  */
