@@ -170,6 +170,12 @@ public class VaultMojo extends AbstractMojo {
     private File filterSource;
 
     /**
+     * Optional reference to PNG image that should be used as thumbnail for the content package.
+     */
+    @Parameter
+    private File thumbnailImage;
+
+    /**
      * The directory containing the content to be packaged up into the content
      * package.
      */
@@ -625,6 +631,16 @@ public class VaultMojo extends AbstractMojo {
                     getLog().error(fileValidator.getMessageWithPathsOfIndexDef());
                     throw new MojoExecutionException("Package should not contain index definitions, because 'allowIndexDefinitions=false'.");
                 }
+            }
+            
+            // add package thumbnail
+            if (thumbnailImage != null && thumbnailImage.exists()) {
+                File vaultDefinitionFolder = new File(vaultDir, "definition");
+                if (!vaultDefinitionFolder.exists()) {
+                    vaultDefinitionFolder.mkdir();
+                }
+                copyFile("/vault/definition/.content.xml", new File(vaultDefinitionFolder, ".content.xml"));
+                FileUtils.copyFile(thumbnailImage, new File(vaultDefinitionFolder, "thumbnail.png"));
             }
 
             MavenArchiver mavenArchiver = new MavenArchiver();

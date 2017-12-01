@@ -35,6 +35,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <filterSource>${project.basedir}/filter.xml</filterSource>
+                    <thumbnailImage>dummy-image.png</thumbnailImage>
                     <filters>
                         <filter>
                             <root>/etc/designs/some-thirdparty-libs</root>
