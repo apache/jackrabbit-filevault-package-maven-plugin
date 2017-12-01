@@ -40,6 +40,7 @@ import java.util.zip.ZipFile;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.AccessControlHandling;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.DefaultWorkspaceFilter;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageType;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.PathFilterSet;
@@ -239,6 +240,43 @@ public class VaultMojo extends AbstractMojo {
             required = true)
     private boolean allowIndexDefinitions;
 
+    /**
+     * Defines the Access control handling. This will become the
+     * {@code acHandling} property of the properties.xml file.<br/>
+     * Possible values:
+     * <ul>
+     * <li>{@code ignore}: Ignores the packaged access control and leaves the target unchanged.</li>
+     * <li>{@code overwrite}: Applies the access control provided with the package to the target. this also removes
+     * existing access control.</li>
+     * <li>{@code merge}: Merge access control provided with the package with the one in the content by replacing the
+     * access control entries of corresponding principals (i.e. package first). It never alters access control entries of
+     * principals not present in the package.</li>
+     * <li>{@code merge_preserve}: Merge access control in the content with the one provided with the package by
+     * adding the access control entries of principals not present in the content (i.e. content first). It never alters
+     * access control entries already existing in the content.</li>
+     * <li>{@code clear}: Clears all access control on the target system.</li>
+     * </ul>
+     */
+    @Parameter(
+            property = "vault.acHandling",
+            required = false)
+    private AccessControlHandling accessControlHandling;
+
+    /**
+     * Sets the access control handling.
+     * @param type the string representation of the ac handling
+     * @throws MojoFailureException if an error occurs
+     */
+    public void setAccessControlHandling(String type) throws MojoFailureException {
+        try {
+            accessControlHandling = AccessControlHandling.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new MojoFailureException("Invalid accessControlHandling specified: " + type +".\n" +
+                    "Must be empty or one of '" + StringUtils.join(AccessControlHandling.values(), "','") + "'.");
+        }
+
+    }
+    
     /**
      * Controls if errors during dependency validation should fail the build.
      */
@@ -442,6 +480,7 @@ public class VaultMojo extends AbstractMojo {
      * <tr><td>allowIndexDefinitions</td><td>Use <i>allowIndexDefinitions</i> parameter to set</td></tr>
      * <tr><td>packagePath</td><td>Automatically generated from the group and package name</td></tr>
      * <tr><td>packageType</td><td>Set via the package type parameter</td></tr>
+     * <tr><td>acHandling</td><td>Use <i>accessControlHandling</i> parameter to set</td></tr>
      * </table>
      */
     @Parameter
@@ -895,6 +934,9 @@ public class VaultMojo extends AbstractMojo {
         props.put("requiresRoot", String.valueOf(requiresRoot));
         props.put("allowIndexDefinitions", String.valueOf(allowIndexDefinitions));
         props.put("packageType", packageType.name().toLowerCase());
+        if (accessControlHandling != null) {
+            props.put("acHandling", accessControlHandling.name().toLowerCase());
+        }
         return props;
     }
 
