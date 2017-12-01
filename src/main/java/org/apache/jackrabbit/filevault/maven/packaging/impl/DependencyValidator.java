@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging;
+package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -26,7 +26,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageInfo;
+import org.apache.jackrabbit.filevault.maven.packaging.Dependency;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
 

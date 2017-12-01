@@ -14,13 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging;
+package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import java.io.InputStream;
 
-import org.apache.jackrabbit.filevault.maven.packaging.FileValidator;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.FileValidator;
 import org.junit.Test;
 
 public class FileValidatorTest {

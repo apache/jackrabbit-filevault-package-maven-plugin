@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import javax.annotation.Nullable;
 
+import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageDependency;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageInfo;
 import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.VersionRange;

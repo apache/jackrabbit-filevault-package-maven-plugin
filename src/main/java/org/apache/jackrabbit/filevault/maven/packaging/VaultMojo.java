@@ -40,6 +40,9 @@ import java.util.zip.ZipFile;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.DependencyValidator;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.FileValidator;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageDependency;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
