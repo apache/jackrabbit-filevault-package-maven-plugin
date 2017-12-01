@@ -57,6 +57,19 @@ public class PropertyConfigurationIT {
                 .verifyPackageProperty("requiresRoot", "true")
                 .verifyPackageProperty("allowIndexDefinitions", "true")
                 .verifyPackageProperty("acHandling", "merge");
+    }
+
+    /**
+     * Tests set properties set explicitly as plugin config param have higher precedence than those in the properties map.
+     */
+    @Test
+    public void test_that_properties_set_in_plugin_config_have_higher_precedence_with_alias() throws Exception {
+        new ProjectBuilder()
+                .setTestProjectDir("properties-from-plugin-config-aliased")
+                .build()
+                .verifyPackageProperty("requiresRoot", "true")
+                .verifyPackageProperty("allowIndexDefinitions", "true")
+                .verifyPackageProperty("acHandling", "merge");
 
     }
 

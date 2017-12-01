@@ -270,6 +270,7 @@ public class VaultMojo extends AbstractMojo {
      */
     @Parameter(
             property = "vault.acHandling",
+            alias = "acHandling",
             required = false)
     private AccessControlHandling accessControlHandling;
 
