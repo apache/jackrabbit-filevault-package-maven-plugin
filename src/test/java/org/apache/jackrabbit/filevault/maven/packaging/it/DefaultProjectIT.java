@@ -70,4 +70,15 @@ public class DefaultProjectIT {
                 .build()
                 .verifyExpectedFiles();
     }
+
+    @Test
+    public void htl_validation() throws Exception {
+        new ProjectBuilder()
+                .setTestProjectDir(TEST_PROJECT_NAME + "htl-validation")
+                .build()
+                .verifyExpectedFiles()
+                .verifyExpectedManifest();
+    }
+
+
 }
