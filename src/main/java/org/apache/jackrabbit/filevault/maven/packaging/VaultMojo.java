@@ -439,6 +439,14 @@ public class VaultMojo extends AbstractMojo {
     /**
      * Defines the packages that define the repository structure.
      * For the format description look at {@link #dependencies}.
+     * <p>
+     * The repository-init feature of sling-start can define initial content that will be available in the
+     * repository before the first package is installed. Packages that depend on those nodes have no way to reference
+     * any dependency package that provides these nodes. A "real" package that would creates those nodes cannot be
+     * installed in the repository, because it would void the repository init structure. On the other hand would filevault
+     * complain, if the package was listed as dependency but not installed in the repository. So therefor this
+     * repository-structure packages serve as indicator packages that helps satisfy the structural dependencies, but are
+     * not added as real dependencies to the package.
      */
     @Parameter
     private Dependency[] repositoryStructurePackages = new Dependency[0];
