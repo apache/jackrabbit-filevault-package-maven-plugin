@@ -67,7 +67,7 @@ public class ProjectBuilder {
      */
     private static final Logger log = LoggerFactory.getLogger(ProjectBuilder.class);
 
-    private static final Set<String> IGNORED_MANIFEST_ENTRIES = new HashSet<String>(Arrays.asList("Build-Jdk", "Built-By"));
+    private static final Set<String> IGNORED_MANIFEST_ENTRIES = new HashSet<>(Arrays.asList("Build-Jdk", "Built-By"));
 
     static final String TEST_PROJECTS_ROOT = "target/test-classes/test-projects";
 
@@ -204,7 +204,7 @@ public class ProjectBuilder {
         assertTrue("Project generates package file", testPackageFile.exists());
 
         // read zip
-        pkgZipEntries = new ArrayList<String>();
+        pkgZipEntries = new ArrayList<>();
         try (JarFile jar = new JarFile(testPackageFile)) {
             Enumeration<JarEntry> e = jar.entries();
             while (e.hasMoreElements()) {
@@ -225,12 +225,14 @@ public class ProjectBuilder {
         if (buildExpectedToFail) {
             return this;
         }
-        ZipFile zip = new ZipFile(testPackageFile);
-        ZipEntry propertiesFile = zip.getEntry("META-INF/vault/properties.xml");
-        assertThat(propertiesFile, notNullValue());
+        Properties properties;
+        try (ZipFile zip = new ZipFile(testPackageFile)) {
+            ZipEntry propertiesFile = zip.getEntry("META-INF/vault/properties.xml");
+            assertThat(propertiesFile, notNullValue());
 
-        Properties properties = new Properties();
-        properties.loadFromXML(zip.getInputStream(propertiesFile));
+            properties = new Properties();
+            properties.loadFromXML(zip.getInputStream(propertiesFile));
+        }
 
         assertEquals("Property '" + key + "' has correct value", value, properties.getProperty(key));
         return this;
@@ -238,25 +240,28 @@ public class ProjectBuilder {
 
     public ProjectBuilder verifyExpectedManifest() throws IOException {
         final String expected = FileUtils.fileRead(expectedManifestFile);
-        JarFile jar = new JarFile(testPackageFile);
-        List<String> entries = new ArrayList<String>();
-        for (Map.Entry<Object, Object> e: jar.getManifest().getMainAttributes().entrySet()) {
-            String key = e.getKey().toString();
-            if (IGNORED_MANIFEST_ENTRIES.contains(key)) {
-                continue;
-            }
-            if ("Import-Package".equals(key)) {
-                // split export package so that we have a sorted set
-                Parameters params = new Parameters(e.getValue().toString());
-                for (Map.Entry<String, Attrs> entry : params.entrySet()) {
-                    entries.add(key + ":" + entry.getKey() + ";" + entry.getValue());
+        List<String> entries;
+        String result;
+        try (JarFile jar = new JarFile(testPackageFile)) {
+            entries = new ArrayList<>();
+            for (Map.Entry<Object, Object> e : jar.getManifest().getMainAttributes().entrySet()) {
+                String key = e.getKey().toString();
+                if (IGNORED_MANIFEST_ENTRIES.contains(key)) {
+                    continue;
                 }
-                continue;
+                if ("Import-Package".equals(key)) {
+                    // split export package so that we have a sorted set
+                    Parameters params = new Parameters(e.getValue().toString());
+                    for (Map.Entry<String, Attrs> entry : params.entrySet()) {
+                        entries.add(key + ":" + entry.getKey() + ";" + entry.getValue());
+                    }
+                    continue;
+                }
+                entries.add(e.getKey() + ":" + e.getValue());
             }
-            entries.add(e.getKey() + ":" + e.getValue());
         }
         Collections.sort(entries);
-        String result = StringUtils.join(entries.iterator(),"\n");
+        result = StringUtils.join(entries.iterator(), "\n");
         assertEquals("Manifest", expected, result);
         return this;
     }
@@ -280,12 +285,13 @@ public class ProjectBuilder {
         if (buildExpectedToFail) {
             return this;
         }
-        ZipFile zip = new ZipFile(testPackageFile);
-        ZipEntry entry = zip.getEntry("META-INF/vault/filter.xml");
-        assertNotNull("package has a filter.xml", entry);
-        String result = IOUtil.toString(zip.getInputStream(entry), "utf-8");
-        String expected = FileUtils.fileRead(expectedFilterFile);
-        assertEquals("filter.xml is correct", expected, result);
+        try (ZipFile zip = new ZipFile(testPackageFile)) {
+            ZipEntry entry = zip.getEntry("META-INF/vault/filter.xml");
+            assertNotNull("package has a filter.xml", entry);
+            String result = IOUtil.toString(zip.getInputStream(entry), "utf-8");
+            String expected = FileUtils.fileRead(expectedFilterFile);
+            assertEquals("filter.xml is correct", expected, result);
+        }
         return this;
     }
 
