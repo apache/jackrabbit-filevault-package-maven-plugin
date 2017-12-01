@@ -69,8 +69,6 @@ _Note: The excludes are present in the default value of the `<importPackage>` pr
 
 ### Example configuration for HTL
 
-_note: at the time of writing, the HTL plugin wasn't released yet. version 1.0.15-SNAPSHOT or higher will be required._
-
 ```
 <build>
     <sourceDirectory>src/content/jcr_root</sourceDirectory>
@@ -78,7 +76,7 @@ _note: at the time of writing, the HTL plugin wasn't released yet. version 1.0.1
         <plugin>
             <groupId>org.apache.jackrabbit</groupId>
             <artifactId>filevault-package-maven-plugin</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.0</version>
             <extensions>true</extensions>
             <configuration>
                 <filterSource>${basedir}/src/content/META-INF/vault/filter.xml</filterSource>
@@ -87,7 +85,7 @@ _note: at the time of writing, the HTL plugin wasn't released yet. version 1.0.1
         <plugin>
             <groupId>org.apache.sling</groupId>
             <artifactId>htl-maven-plugin</artifactId>
-            <version>1.0.9-SNAPSHOT</version>
+            <version>1.1.0</version>
             <executions>
                 <execution>
                     <id>validate-scripts</id>
@@ -120,7 +118,7 @@ _note: at the time of writing, the HTL plugin wasn't released yet. version 1.0.1
     <dependency>
         <groupId>org.apache.sling</groupId>
         <artifactId>org.apache.sling.scripting.sightly.compiler.java</artifactId>
-        <version>1.0.15-SNAPSHOT</version>
+        <version>1.0.16</version>
         <scope>provided</scope>
     </dependency>
 </dependencies>
