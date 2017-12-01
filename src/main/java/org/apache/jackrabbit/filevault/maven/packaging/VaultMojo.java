@@ -297,7 +297,19 @@ public class VaultMojo extends AbstractMojo {
     /**
      * Defines the content package type. this is either 'application', 'content', 'container' or 'mixed'.
      * If omitted, it is calculated automatically based on filter definitions. certain package types imply restrictions,
-     * for example, 'application' and 'content' packages are not allowed to contain sub packages or embedded bundles.
+     * for example, 'application' and 'content' packages are not allowed to contain sub packages or embedded bundles.<br/>
+     * Possible values:
+     * <ul>
+     *   <li><code>application</code>: An application package consists purely of application content. It serializes
+     *       entire subtrees with no inclusion or exclusion filters. it does not contain any subpackages nor OSGi
+     *       configuration or bundles.</li> 
+     *   <li><code>content</code>: A content package consists only of content and user defined configuration.
+     *       It usually serializes entire subtrees but can contain inclusion or exclusion filters. it does not contain
+     *       any subpackages nor OSGi configuration or bundles.</li> 
+     *   <li><code>container</code>: A container package only contains sub packages and OSGi configuration and bundles.
+     *       The container package is only used as container for deployment.</li> 
+     *   <li><code>mixed</code>: Catch all type for a combination of the above.</li> 
+     * </ul>
      */
     @Parameter(property = "vault.packageType")
     private PackageType packageType;
