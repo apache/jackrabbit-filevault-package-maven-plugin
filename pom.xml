@@ -264,7 +264,7 @@
     <distributionManagement>
         <site>
             <id>jackrabbit.filevault.site-deploy</id>
-            <url>scm:svn:https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault-package-maven-plugin</url>
+            <url>scm:svn:https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault-package-maven-plugin-archives/${project.version}</url>
         </site>
     </distributionManagement>
 

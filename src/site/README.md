@@ -35,7 +35,7 @@ can be used to build and deploy a web site as follows:
    $ mvn site-deploy
    ````
 
-4. Finally review the site at `http://jackrabbit.apache.org/filevault-package-maven-plugin/index.html`.
+4. Finally review the site at `http://jackrabbit.apache.org/filevault-package-maven-plugin-archives/${project.version}/index.html`.
 
 
 Note: To skip the final commit use `-Dscmpublish.skipCheckin=true`. You can then
@@ -45,3 +45,18 @@ up with `svn commit` manually.
 Note: Every committer should be able to deploy the site. No fiddling with
 credentials needed since deployment is done via svn commit to
 `https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault-package-maven-plugin`.
+
+Update Documentation After Release
+==================================
+
+1. Deploy the site of the released version as described above
+
+2. copy the released version to the current one:
+
+  ```
+  $ svn rm https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault-package-maven-plugin
+  $ svn cp https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault-package-maven-plugin-archives/${project.version| \
+           https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault-package-maven-plugin
+  ```
+  
+3. deploy the snapshot site
