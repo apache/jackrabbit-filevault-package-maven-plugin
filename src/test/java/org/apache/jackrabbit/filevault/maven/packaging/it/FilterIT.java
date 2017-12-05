@@ -56,11 +56,19 @@ public class FilterIT {
     }
 
     /**
-     * Tests if a project with an implicit filter defined in META-INF/vault/filter.xml is correctly built
+     * Tests if a project with an implicit filter defined with a resource based META-INF/vault/filter.xml is correctly built
      */
     @Test
     public void test_implicit_filter() throws Exception {
         verify("implicit-filter", false);
+    }
+
+    /**
+     * Tests if a project with an implicit filter defined in META-INF/vault/filter.xml is correctly built
+     */
+    @Test
+    public void test_implicit_filter_via_metainf() throws Exception {
+        verify("implicit-filter-via-metainf", false);
     }
 
     /**
