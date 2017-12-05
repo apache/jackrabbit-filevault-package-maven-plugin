@@ -152,6 +152,11 @@ public class VaultMojo extends AbstractMojo {
     /**
      * The directory that contains the META-INF/vault. Multiple directories can be specified as a comma separated list,
      * which will act as a search path and cause the plugin to look for the first existing directory.
+     * <p>
+     * This directory is added as fileset to the package archiver before the the {@link #workDirectory}. This means that
+     * files specified in this directory have precedence over the one present in the {@link #workDirectory}. For example,
+     * if this directory contains a {@code properties.xml} it will not be overwritten by the generated one. A special
+     * case is the {@code filter.xml} which will be merged with inline filters if present.
      */
     @Parameter(
             property = "vault.metaInfVaultDirectory",
@@ -603,6 +608,11 @@ public class VaultMojo extends AbstractMojo {
             ContentPackageArchiver contentPackageArchiver = new ContentPackageArchiver();
             contentPackageArchiver.setIncludeEmptyDirs(true);
             if (metaInfDirectory != null) {
+                // ensure that generated filter.xml comes first
+                File filterXML = new File(vaultDir, "filter.xml");
+                if (filterXML.exists()) {
+                    contentPackageArchiver.addFile(filterXML, "META-INF/vault/filter.xml");
+                }
                 contentPackageArchiver.addFileSet(createFileSet(metaInfDirectory, "META-INF/vault/"));
             }
             contentPackageArchiver.addFileSet(createFileSet(workDirectory, ""));

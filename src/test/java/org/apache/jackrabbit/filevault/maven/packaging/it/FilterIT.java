@@ -88,6 +88,14 @@ public class FilterIT {
     }
 
     /**
+     * Tests if a project with an inline filter and a filter source properly generates the merged filter.xml
+     */
+    @Test
+    public void test_merge_inline_filter_with_metainf() throws Exception {
+        verify("merge-inline-filter-metainf", false);
+    }
+
+    /**
      * Tests if a project with an filter source and no inline filters keeps the filter comments.
      */
     @Test
