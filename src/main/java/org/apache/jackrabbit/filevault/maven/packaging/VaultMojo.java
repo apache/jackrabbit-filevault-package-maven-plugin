@@ -150,6 +150,21 @@ public class VaultMojo extends AbstractMojo {
     private File[] jcrRootSourceDirectory;
 
     /**
+     * The directory that contains the META-INF/vault. Multiple directories can be specified as a comma separated list,
+     * which will act as a search path and cause the plugin to look for the first existing directory.
+     */
+    @Parameter(
+            property = "vault.metaInfVaultDirectory",
+            required = true,
+            defaultValue =
+                    "${project.basedir}/META-INF/vault," +
+                    "${project.basedir}/src/main/META-INF/vault," +
+                    "${project.basedir}/src/main/content/META-INF/vault," +
+                    "${project.basedir}/src/content/META-INF/vault"
+    )
+    private File[] metaInfVaultDirectory;
+
+    /**
      * The name of the generated package ZIP file without the ".zip" file
      * extension.
      */
@@ -535,12 +550,40 @@ public class VaultMojo extends AbstractMojo {
         final File finalFile = new File(outputDirectory, finalName + PACKAGE_EXT);
 
         try {
+            // find the meta-inf source directory
+            File metaInfDirectory = null;
+            for (File dir: metaInfVaultDirectory) {
+                if (dir.exists() && dir.isDirectory()) {
+                    metaInfDirectory = dir;
+                    break;
+                }
+            }
+            if (metaInfDirectory != null) {
+                getLog().info("using meta-inf/vault from " + metaInfDirectory.getPath());
+            }
+            // find the source directory
+            File jcrSourceDirectory = null;
+            if (builtContentDirectory != null) {
+                getLog().warn("The 'builtContentDirectory' is deprecated. Please use the new 'jcrRootSourceDirectory' instead.");
+                jcrSourceDirectory = builtContentDirectory;
+            } else {
+                for (File dir: jcrRootSourceDirectory) {
+                    if (dir.exists() && dir.isDirectory()) {
+                        jcrSourceDirectory = dir;
+                        break;
+                    }
+                }
+            }
+            if (jcrSourceDirectory != null) {
+                getLog().info("packaging content from " + jcrSourceDirectory.getPath());
+            }
+
             vaultDir.mkdirs();
 
             Map<String, File> embeddedFiles = copyEmbeddeds();
             embeddedFiles.putAll(copySubPackages());
 
-            computePackageFilters(vaultDir);
+            computePackageFilters(vaultDir, metaInfDirectory);
             validatePackageType();
             computeImportPackage();
             computeDependencies();
@@ -559,25 +602,10 @@ public class VaultMojo extends AbstractMojo {
 
             ContentPackageArchiver contentPackageArchiver = new ContentPackageArchiver();
             contentPackageArchiver.setIncludeEmptyDirs(true);
+            if (metaInfDirectory != null) {
+                contentPackageArchiver.addFileSet(createFileSet(metaInfDirectory, "META-INF/vault/"));
+            }
             contentPackageArchiver.addFileSet(createFileSet(workDirectory, ""));
-
-            // find the source directory
-            File jcrSourceDirectory = null;
-            if (builtContentDirectory != null) {
-                getLog().warn("The 'builtContentDirectory' is deprecated. Please use the new 'jcrRootSourceDirectory' instead.");
-                jcrSourceDirectory = builtContentDirectory;
-            } else {
-                for (File dir: jcrRootSourceDirectory) {
-                    if (dir.exists() && dir.isDirectory()) {
-                        jcrSourceDirectory = dir;
-                        break;
-                    }
-                }
-            }
-            if (jcrSourceDirectory != null) {
-                getLog().info("packaging content from " + jcrSourceDirectory.getPath());
-            }
-
 
             // include content from build only if it exists
             if (jcrSourceDirectory != null && jcrSourceDirectory.exists()) {
@@ -688,9 +716,9 @@ public class VaultMojo extends AbstractMojo {
      * @throws IOException if an I/O error occurs
      * @throws MojoExecutionException if the build fails
      */
-    private void computePackageFilters(File vaultMetaDir) throws IOException, MojoExecutionException {
+    private void computePackageFilters(File vaultWorkDir, File vaultMetaDir) throws IOException, MojoExecutionException {
         // backward compatibility: if implicit filter exists, use it. but check for conflicts
-        File filterFile = new File(vaultMetaDir, "filter.xml");
+        File filterFile = new File(vaultWorkDir, "filter.xml");
         if (filterFile.exists() && filterFile.lastModified() != 0) {
             // if both, a inline filter and a implicit filter is present, the build fails.
             if (!filters.getFilterSets().isEmpty()) {
@@ -717,6 +745,18 @@ public class VaultMojo extends AbstractMojo {
             } catch (IOException e) {
                 getLog().error("Unable to delete previously generated filter.xml. re-run the goals with a clean setup.");
                 throw new MojoExecutionException("Unable to delete file.", e);
+            }
+        }
+
+        // check for filters file in vaultDir
+        if (vaultMetaDir != null) {
+            File metaFilterFile = new File(vaultMetaDir, "filter.xml");
+            if (metaFilterFile.exists()) {
+                if (filterSource != null && !filterSource.equals(metaFilterFile)) {
+                    getLog().error("Project contains filter.xml in META-INF/vault but also specifies a filter source.");
+                    throw new MojoExecutionException("conflicting filters.");
+                }
+                filterSource = metaFilterFile;
             }
         }
 
@@ -766,8 +806,6 @@ public class VaultMojo extends AbstractMojo {
         }
 
         // if the source filters and the generated filters are the same, copy the source file to retain the comments
-        System.out.printf("sourceFilter: \n%s", sourceFilters.getSourceAsString());
-        System.out.printf("filters: \n%s", filters.getSourceAsString());
         if (filterSource != null && sourceFilters.getSourceAsString().equals(filters.getSourceAsString())) {
             FileUtils.copyFile(filterSource, filterFile);
         } else {
