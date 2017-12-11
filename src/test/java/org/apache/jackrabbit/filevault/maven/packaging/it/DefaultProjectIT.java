@@ -41,6 +41,11 @@ public class DefaultProjectIT {
     }
 
     @Test
+    public void generic_project_package_with_metainf_contains_correct_files() throws Exception {
+        verify("generic-with-metainf");
+    }
+
+    @Test
     public void generic_with_builtcd_project_package_contains_correct_files() throws Exception {
         verify("generic-with-builtcd");
     }
