@@ -112,7 +112,7 @@ Release management tasks
 
 14. Deploy the recent plugin site (see `src/site/readme.md`)
 
-15. Send the release [announcement](#C) **once** the web site and download mirrors have been synced.
+15. Send the release [announcement](#C) **once** the web site have been synced.
 
 
 Related Links
@@ -219,28 +219,31 @@ using the Apache Jackrabbit FileVault packaging runtime.
 Changes in Jackrabbit FileVault Package Maven Plugin $version
 ----------------------------------------------------------
 
-#### Notes
-Version 1.0.0 is the initial version of this contribution to the Apache
-Jackrabbit project.
-
-For more detailed information about all the changes in this and other
-FileVault releases, please see the FileVault issue tracker at
-https://issues.apache.org/jira/browse/JCRVLT
-
 #### Bug Fixes
-* [JCRVLT-206] Auto import-statement too big in case no compiled classes found
+* [JCRVLT-218] Repository structure package satisfies too aggressively
+* [JCRVLT-219] Internal ancestors not used for dependency validation
+* [JCRVLT-222] analyze-classes goal should be marked as ignored for m2e
+* [JCRVLT-237] Fix description on how import-package manifests are generated
+* [JCRVLT-241] Goal analyze-classes: Dependencies with type "bundle" not correctly considered
+* [JCRVLT-242] Link for the web access of Jackrabbit's FileVault Package source repository is wrong
+* [JCRVLT-244] Package Maven Plugin: Fix resource leaks in integration tests
+* [JCRVLT-245] Package Maven Plugin: ProjectBuilder.verifyPackageProperty swaps expected/actual value
+* [JCRVLT-253] Problems with Configuration inside an Execution with Filters
 
 #### Improvements
-* [JCRVLT-202] Import Adobe's content package maven plugin
-* [JCRVLT-204] Create documentation site for maven plugin
-* [JCRVLT-207] Make auto-import package a analyzer work with htl scripts
-* [JCRVLT-209] Always write to the filter.xml inside the vaultDir but never to filter-plugin-generated.xml
+* [JCRVLT-217] Create tests for JCRVLT-207 (HTL) as soon as plugin is released
+* [JCRVLT-224] Use filevault-core instead of copy-pasting code
+* [JCRVLT-231] Clarify repositoryStructurePackages parameter
+* [JCRVLT-234] Remove irrelevant @Parameter annotations on field in classes which are not mojos
+* [JCRVLT-236] Package Maven Plugin: Improve packageType param documentation
+* [JCRVLT-238] Remove classesDirectory parameter
+* [JCRVLT-243] VaultMojo: extend javadoc for all complex type parameters
+* [JCRVLT-252] Package Maven Plugin: Update to htl-maven-plugin 1.1.2
 
 #### New Features
-* [JCRVLT-205] Add support for cleanup filter entries
-* [JCRVLT-210] Allow to define excludes for the ContentPackageArchiver to prevent copying of script files from src to target
-* [JCRVLT-214] auto-import package analyzer needs option to exclude compiletime bundles
-
+* [JCRVLT-230] Allow to give an explicit directory as source for META-INF/vault
+* [JCRVLT-239] Package Maven Plugin: Add "accessControlHandling" property
+* [JCRVLT-240] Package Maven Plugin: Support for package thumbnails
 
 Release Contents
 ----------------
