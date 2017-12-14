@@ -47,8 +47,9 @@
             <item href="http://jackrabbit.apache.org/" name="Apache Jackrabbit"/>
         </menu>
         <menu name="Site Versions">
-            <item href="http://jackrabbit.apache.org/filevault-package-maven-plugin-archives/1.0.1-SNAPSHOT" name="1.0.1-SNAPSHOT"/>
-            <item href="http://jackrabbit.apache.org/filevault-package-maven-plugin" name="1.0.0"/>
+            <item href="http://jackrabbit.apache.org/filevault-package-maven-plugin-archives/1.0.2-SNAPSHOT" name="1.0.2-SNAPSHOT"/>
+            <item href="http://jackrabbit.apache.org/filevault-package-maven-plugin" name="1.0.1"/>
+            <item href="http://jackrabbit.apache.org/filevault-package-maven-plugin-archives/1.0.0" name="1.0.0"/>
         </menu>
     </body>
 
