@@ -120,6 +120,23 @@ public class FilterIT {
     }
 
     /**
+     * Tests if a project with no filter file or inline filters and only a single embedded and sub package marked as filter entry
+     * is creating a filter
+     */
+    @Test
+    public void test_no_filter_container() throws Exception {
+        verify("no-filter-container", false);
+    }
+
+    /**
+     * Tests if a project with no filter file or inline filters and only a single embedded and sub package marked as filter entry
+     * is creating a filter but inside an execution's configuration
+     */
+    @Test
+    public void test_no_filter_container_in_execution() throws Exception {
+        verify("no-filter-container-in-execution", false);
+    }
+    /**
      * Tests if a project with an inline filter executed twice works w/o clean
      */
     @Test
