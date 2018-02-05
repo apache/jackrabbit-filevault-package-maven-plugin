@@ -43,6 +43,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.DependencyValidator;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.FileValidator;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageDependency;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.URLResource;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
@@ -66,6 +67,8 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.ArchiveEntry;
 import org.codehaus.plexus.archiver.FileSet;
+import org.codehaus.plexus.components.io.resources.PlexusIoResource;
+import org.codehaus.plexus.components.io.resources.ResourceFactory;
 import org.codehaus.plexus.util.AbstractScanner;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
@@ -496,6 +499,17 @@ public class VaultMojo extends AbstractMojo {
      */
     @Parameter
     private SubPackage[] subPackages = new SubPackage[0];
+    
+    
+    /**
+     * If {@code false} uses simple file aggregates for sub packages otherwise uses extended file aggregates.
+     * Extended file aggregates work around <a href="https://issues.apache.org/jira/browse/JCRVLT-177"> and are only necessary
+     * if you target systems leveraging Jackrabbit Filevault in a version older than 3.1.40.
+     * 
+     * @see <a href="http://jackrabbit.apache.org/filevault/vaultfs.html#Extended_File_aggregates">Extended File Aggregates</a>
+     */
+    @Parameter
+    private boolean useExtendedFileAggregateForSubPackages;
 
     /**
      * File to store the generated manifest snippet.
@@ -585,7 +599,7 @@ public class VaultMojo extends AbstractMojo {
 
             vaultDir.mkdirs();
 
-            Map<String, File> embeddedFiles = copyEmbeddeds();
+            Map<String, PlexusIoResource> embeddedFiles = copyEmbeddeds();
             embeddedFiles.putAll(copySubPackages());
 
             computePackageFilters(vaultDir, metaInfDirectory);
@@ -660,8 +674,8 @@ public class VaultMojo extends AbstractMojo {
                 }
             }
 
-            for (Map.Entry<String, File> entry : embeddedFiles.entrySet()) {
-                contentPackageArchiver.addFile(entry.getValue(), entry.getKey());
+            for (Map.Entry<String, PlexusIoResource> entry : embeddedFiles.entrySet()) {
+                contentPackageArchiver.addResource(entry.getValue(), entry.getKey(), contentPackageArchiver.getOverrideFileMode());
             }
 
             //NPR-14102 - Automated check for index definition
@@ -1069,8 +1083,8 @@ public class VaultMojo extends AbstractMojo {
         }
     }
 
-    private Map<String, File> copyEmbeddeds() throws IOException, MojoFailureException {
-        Map<String, File> fileMap = new HashMap<String, File>();
+    private Map<String, PlexusIoResource> copyEmbeddeds() throws IOException, MojoFailureException {
+        Map<String, PlexusIoResource> fileMap = new HashMap<>();
         for (Embedded emb : embeddeds) {
             final List<Artifact> artifacts = emb.getMatchingArtifacts(project);
             if (artifacts.isEmpty()) {
@@ -1116,7 +1130,7 @@ public class VaultMojo extends AbstractMojo {
                 final String targetPathName = targetPath + destFileName;
                 final String targetNodePathName = targetPathName.substring(JCR_ROOT.length() - 1);
 
-                fileMap.put(targetPathName, source);
+                fileMap.put(targetPathName, ResourceFactory.createResource(source));
                 getLog().info(String.format("Embedding %s (from %s) -> %s", artifact.getId(), source.getAbsolutePath(), targetPathName));
 
                 if (emb.isFilter()) {
@@ -1127,8 +1141,18 @@ public class VaultMojo extends AbstractMojo {
         return fileMap;
     }
 
-    private Map<String, File> copySubPackages() throws IOException {
-        Map<String, File> fileMap = new HashMap<String, File>();
+    private Map<String, PlexusIoResource> copySubPackages() throws IOException {
+        Map<String, PlexusIoResource> fileMap = new HashMap<>();
+        final URLResource emptyFileResource;
+        
+        // this is used to work around the bug listed in https://issues.apache.org/jira/browse/JCRVLT-177
+        if (useExtendedFileAggregateForSubPackages) {
+            getLog().info("Using extended file aggregate for sub packages");
+            emptyFileResource = new URLResource(".content.xml", this.getClass().getClassLoader().getResource("vault/file/.content.xml"));
+        } else {
+            emptyFileResource = null;
+        }
+        
         for (SubPackage pack : subPackages) {
             final List<Artifact> artifacts = pack.getMatchingArtifacts(project);
             if (artifacts.isEmpty()) {
@@ -1168,10 +1192,15 @@ public class VaultMojo extends AbstractMojo {
                 final String targetNodePathName = pid.getInstallationPath() + ".zip";
                 final String targetPathName = "jcr_root" + targetNodePathName;
 
-                fileMap.put(targetPathName, source);
+                fileMap.put(targetPathName, ResourceFactory.createResource(source));
                 getLog().info("Embedding " + artifact.getId() + " -> " + targetPathName);
                 if (pack.isFilter()) {
                     addWorkspaceFilter(targetNodePathName);
+                }
+                // this is used to work around the bug listed in https://issues.apache.org/jira/browse/JCRVLT-177
+                if (useExtendedFileAggregateForSubPackages) {
+                    File subPackageFolder = new File(targetPathName + ".dir");
+                    fileMap.put(new File(subPackageFolder, ".content.xml").getPath(), emptyFileResource);
                 }
             }
         }
