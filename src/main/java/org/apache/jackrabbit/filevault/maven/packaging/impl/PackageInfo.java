@@ -28,7 +28,7 @@ import java.util.zip.ZipFile;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.lang.StringUtils;
-
+import org.apache.jackrabbit.filevault.maven.packaging.GenerateMetadataMojo;
 import org.apache.jackrabbit.filevault.maven.packaging.VaultMojo;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
@@ -70,18 +70,18 @@ public class PackageInfo {
             ZipEntry e = entries.nextElement();
             if (JarFile.MANIFEST_NAME.equalsIgnoreCase(e.getName())) {
                 Manifest mf = new Manifest(zip.getInputStream(e));
-                String idStr = mf.getMainAttributes().getValue(VaultMojo.MF_KEY_PACKAGE_ID);
+                String idStr = mf.getMainAttributes().getValue(GenerateMetadataMojo.MF_KEY_PACKAGE_ID);
                 if (idStr != null) {
                     id = PackageId.fromString(idStr);
                 }
-                String roots = mf.getMainAttributes().getValue(VaultMojo.MF_KEY_PACKAGE_ROOTS);
+                String roots = mf.getMainAttributes().getValue(GenerateMetadataMojo.MF_KEY_PACKAGE_ROOTS);
                 filter = new DefaultWorkspaceFilter();
                 if (roots != null) {
                     for (String root: StringUtils.split(roots, ',')) {
                         filter.add(new PathFilterSet(root));
                     }
                 }
-                String type = mf.getMainAttributes().getValue(VaultMojo.MF_KEY_PACKAGE_TYPE);
+                String type = mf.getMainAttributes().getValue(GenerateMetadataMojo.MF_KEY_PACKAGE_TYPE);
                 if (type != null) {
                     packageType = PackageType.valueOf(type.toUpperCase());
                 }
