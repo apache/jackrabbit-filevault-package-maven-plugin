@@ -195,7 +195,7 @@ public class VaultMojo extends AbstractPackageMojo {
                 }
                 contentPackageArchiver.addFileSet(createFileSet(metaInfDirectory, "META-INF/vault/", null));
             }
-            contentPackageArchiver.addFileSet(createFileSet(workDirectory, "", Collections.singletonList("META-INF/vault/MANIFEST.MF")));
+            contentPackageArchiver.addFileSet(createFileSet(workDirectory, "", Collections.singletonList("META-INF/MANIFEST.MF")));
 
             // include content from build only if it exists
             if (jcrSourceDirectory != null && jcrSourceDirectory.exists()) {

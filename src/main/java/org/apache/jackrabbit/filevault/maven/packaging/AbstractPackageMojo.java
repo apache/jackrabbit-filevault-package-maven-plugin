@@ -139,7 +139,7 @@ public abstract class AbstractPackageMojo extends AbstractMojo {
     }
     
     protected File getManifestFile() {
-        return new File(getVaultDir(), "MANIFEST.MF");
+        return new File(workDirectory, "META-INF/MANIFEST.MF");
     }
     
     File getFilterFile() {
