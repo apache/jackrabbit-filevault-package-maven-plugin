@@ -54,6 +54,7 @@ import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -62,6 +63,7 @@ import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
+import org.sonatype.plexus.build.incremental.BuildContext;
 
 import aQute.bnd.header.Attrs;
 import aQute.bnd.header.Parameters;
@@ -91,6 +93,12 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
     public static final String MF_KEY_PACKAGE_DESC = "Content-Package-Description";
 
     public static final String MF_KEY_IMPORT_PACKAGE = "Import-Package";
+
+    /**
+     * For m2e incremental build support
+     */
+    @Component
+    private BuildContext buildContext;
 
     /**
      * The Maven session.
@@ -350,6 +358,22 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (buildContext.isIncremental()) {
+            getLog().debug("Incremental build");
+            // only execute in case of changes towards the filter.xml as the generated one contains a merge
+            if (filterSource != null) {
+                if (buildContext.hasDelta(filterSource)) {
+                    getLog().debug("Detecting a change on '" + filterSource + "' therefore not cancelling build");
+                } else {
+                    getLog().debug("'" + filterSource + "' unchanged therefore cancelling build");
+                    return;
+                }
+            } else {
+                getLog().debug("No file change would be relevant therefore cancelling build");
+                return;
+            }
+        }
+
         final File vaultDir = getVaultDir();
         vaultDir.mkdirs();
 
@@ -358,8 +382,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
             Map<String, File> embeddedFiles = getEmbeddeds();
             embeddedFiles.putAll(getSubPackages());
             setEmbeddedFilesMap(embeddedFiles);
-     
-            getLog().warn("Found the following embedded files " + embeddedFiles.toString());
+
             // find the meta-inf source directory
             File metaInfDirectory = getMetaInfDir();
             
