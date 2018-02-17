@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -1072,7 +1073,7 @@ public class VaultMojo extends AbstractMojo {
     private Map<String, File> copyEmbeddeds() throws IOException, MojoFailureException {
         Map<String, File> fileMap = new HashMap<String, File>();
         for (Embedded emb : embeddeds) {
-            final List<Artifact> artifacts = emb.getMatchingArtifacts(project);
+            final Collection<Artifact> artifacts = emb.getMatchingArtifacts(project);
             if (artifacts.isEmpty()) {
                 if (failOnMissingEmbed) {
                     throw new MojoFailureException("Embedded artifact specified " + emb + ", but no matching dependency artifact found. Add the missing dependency or fix the embed definition.");

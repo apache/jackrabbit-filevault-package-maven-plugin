@@ -17,6 +17,7 @@
 package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -35,8 +36,8 @@ import org.apache.maven.project.MavenProject;
  *     &lt;groupId&gt;artifact.groupId.pattern&lt;/groupId&gt;
  *     &lt;artifactId&gt;artifact.artifactId.pattern&lt;/artifactId&gt;
  *     &lt;scope&gt;compile&lt;/scope&gt;
- *     &lt;type&gt;jar&lt;/type&gt;
- *     &lt;classifier&gt;sources&lt;/classifier&gt;
+ *     &lt;type&gt;artifact.type.pattern&lt;/type&gt;
+ *     &lt;classifier&gt;artifact.classifier.pattern&lt;/classifier&gt;
  *     &lt;filter&gt;true&lt;/filter&gt;
  *     &lt;target&gt;/libs/sling/install&lt;/target&gt;
  * &lt;/embedded&gt;
@@ -45,20 +46,26 @@ import org.apache.maven.project.MavenProject;
 public class Embedded {
 
     /**
-     * A group filter string, consisted of one or several comma separated patterns.
+     * A group filter string, consists of one or several comma separated patterns.
      */
     private final StringFilterSet groupId = new StringFilterSet();
 
     /**
-     * A artifact filter string, consisted of one or several comma separated patterns.
+     * A artifact filter string, consists of one or several comma separated patterns.
      */
     private final StringFilterSet artifactId = new StringFilterSet();
 
     private ScopeArtifactFilter scope;
 
-    private String type;
+    /**
+     * A type filter string, consists of one or several comma separated patterns.
+     */
+    private StringFilterSet type = new StringFilterSet();
 
-    private String classifier;
+    /**
+     * A classifier filter string, consists of one or several comma separated patterns.
+     */
+    private StringFilterSet classifier = new StringFilterSet();
 
     /**
      * If {@code true} a filter entry will be generated for all embedded artifacts.
@@ -87,6 +94,14 @@ public class Embedded {
 
     public void setScope(String scope) {
         this.scope = new ScopeArtifactFilter(scope);
+    }
+
+    public void setType(String type) {
+        this.type.addEntries(type);
+    }
+
+    public void setClassifier(String classifier) {
+        this.classifier.addEntries(classifier);
     }
 
     public void setAddFilter(boolean filter) {
@@ -126,7 +141,7 @@ public class Embedded {
         return excludeTransitive;
     }
 
-    public List<Artifact> getMatchingArtifacts(final MavenProject project) {
+    public Collection<Artifact> getMatchingArtifacts(final MavenProject project) {
 
         // get artifacts depending on whether we exclude transitives or not
         final Set<Artifact> deps;
@@ -137,14 +152,17 @@ public class Embedded {
             // all dependencies, transitives included
             deps = project.getArtifacts();
         }
+        return getMatchingArtifacts(deps);
+    }
 
+    public Collection<Artifact> getMatchingArtifacts(final Collection<Artifact> deps) {
         final List<Artifact> matches = new ArrayList<Artifact>();
         for (Artifact artifact : deps) {
             if (groupId.contains(artifact.getGroupId())
                     && artifactId.contains(artifact.getArtifactId())
                     && (scope == null || scope.include(artifact))
-                    && (type == null || type.equals(artifact.getType()))
-                    && (classifier == null || classifier.equals(artifact.getClassifier()))) {
+                    && (type == null || type.contains(artifact.getType()))
+                    && (classifier == null || classifier.contains(artifact.getClassifier()))) {
                 matches.add(artifact);
             }
         }
@@ -170,4 +188,5 @@ public class Embedded {
         }
         return builder.toString();
     }
+
 }

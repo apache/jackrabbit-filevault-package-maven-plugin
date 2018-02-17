@@ -179,7 +179,7 @@ public class CheckSignatureMojo extends AbstractMojo {
     private Collection<File> getEmbeddeds() throws MojoFailureException {
         Set<File> files = new HashSet<File>();
         for (Embedded emb : embeddeds) {
-            final List<Artifact> artifacts = emb.getMatchingArtifacts(project);
+            final Collection<Artifact> artifacts = emb.getMatchingArtifacts(project);
             if (artifacts.isEmpty()) {
                 if (failOnMissingEmbed) {
                     throw new MojoFailureException(
