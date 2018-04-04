@@ -56,6 +56,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Helper class to build and verify a maven project.
@@ -92,10 +93,13 @@ public class ProjectBuilder {
     private File expectedManifestFile;
 
     private File expectedFilterFile;
+    
+    private File expectedFilesWithChecksumsFile;
 
     private File logTxtFile;
 
     private boolean buildExpectedToFail;
+
 
     public ProjectBuilder() {
         testProjectsRoot = new File(TEST_PROJECTS_ROOT);
@@ -149,6 +153,7 @@ public class ProjectBuilder {
         this.expectedOrderFile = new File(testProjectDir, "expected-file-order.txt");
         this.expectedManifestFile = new File(testProjectDir, "expected-manifest.txt");
         this.expectedFilterFile = new File(testProjectDir, "expected-filter.xml");
+        this.expectedFilesWithChecksumsFile = new File(testProjectDir, "expected-files-with-checksums.txt");
         this.logTxtFile = new File(testProjectDir, "log.txt");
         return this;
     }
@@ -275,6 +280,26 @@ public class ProjectBuilder {
         return this;
     }
 
+    public ProjectBuilder verifyExpectedFilesChecksum() throws IOException {
+        List<String> expectedEntriesWithChecksums = Files.readAllLines(expectedFilesWithChecksumsFile.toPath(), StandardCharsets.UTF_8);
+        for (String expectedEntryWithChecksum : expectedEntriesWithChecksums) {
+            // split name and checksum
+            String[] parts = expectedEntryWithChecksum.split(" ", 2);
+            final String name = parts[0];
+            // the second part must be a hexadecimal CRC32 checksum
+            final long expectedChecksum = Long.parseLong(parts[1], 16);
+            try (JarFile jar = new JarFile(testPackageFile)) {
+                JarEntry entry = jar.getJarEntry(name);
+                if (entry == null) {
+                    fail("Could not find entry with name " + name + " in package " + testPackageFile);
+                }
+                long actualChecksum = entry.getCrc();
+                assertEquals("Checksum of entry with name " + name + " is not equal to the expected value", expectedChecksum, actualChecksum);
+            }
+        }
+        return this;
+    }
+    
     public ProjectBuilder verifyExpectedFilesOrder() throws IOException {
         List<String> expectedEntriesInOrder= Files.readAllLines(expectedOrderFile.toPath(), StandardCharsets.UTF_8);
         assertThat("Order of entries within package", pkgZipEntries, Matchers.containsInRelativeOrder(expectedEntriesInOrder.toArray()));
