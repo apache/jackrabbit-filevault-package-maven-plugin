@@ -80,7 +80,12 @@ import aQute.bnd.osgi.Processor;
 )
 public class GenerateMetadataMojo extends AbstractPackageMojo {
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    /**
+     *  A date format which is compliant with {@code org.apache.jackrabbit.util.ISO8601.parse(...)}
+     *  @see <a href="https://www.w3.org/TR/NOTE-datetime">Restricted profile for ISO8601</a>
+     *  @see <a href="https://issues.apache.org/jira/browse/JCR-4267">JCR-4267</a>
+     */
+    private final DateFormat iso8601DateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     public static final String MF_KEY_PACKAGE_TYPE = "Content-Package-Type";
 
@@ -774,7 +779,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
         if (!props.containsKey("createdBy")) {
             props.put("createdBy", System.getProperty("user.name"));
         }
-        props.put("created", DATE_FORMAT.format(new Date()));
+        props.put("created", iso8601DateFormat.format(new Date()));
 
         // configurable properties
         props.put("requiresRoot", String.valueOf(requiresRoot));

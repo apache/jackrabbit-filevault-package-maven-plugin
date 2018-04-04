@@ -16,8 +16,13 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
-import java.io.IOException;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+import java.util.Calendar;
+
+import org.apache.jackrabbit.util.ISO8601;
 import org.apache.maven.it.VerificationException;
 import org.junit.Test;
 
@@ -25,8 +30,8 @@ public class DefaultProjectIT {
 
     private static final String TEST_PROJECT_NAME = "/default-test-projects/";
 
-    private void verify(String projectName) throws VerificationException, IOException {
-        new ProjectBuilder()
+    private ProjectBuilder verify(String projectName) throws VerificationException, IOException {
+        return new ProjectBuilder()
                 .setTestProjectDir(TEST_PROJECT_NAME + projectName)
                 .build()
                 .verifyExpectedFiles()
@@ -37,7 +42,13 @@ public class DefaultProjectIT {
 
     @Test
     public void generic_project_package_contains_correct_files() throws Exception {
-        verify("generic");
+        Calendar currentDate = Calendar.getInstance();
+        String createdDate = verify("generic").getPackageProperty("created");
+        Calendar date = ISO8601.parse(createdDate);
+        assertNotNull("The created date must be in  https://www.w3.org/TR/NOTE-datetime compliant format", date);
+        // check actual value
+        assertTrue("The created date is far away from the current date", 
+                Math.abs(currentDate.getTimeInMillis() - date.getTimeInMillis()) < 1000);
     }
 
     @Test
