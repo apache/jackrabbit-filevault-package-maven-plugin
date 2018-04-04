@@ -27,5 +27,19 @@
                 <ignore/>
             </action>
         </pluginExecution>
+        <pluginExecution>
+            <pluginExecutionFilter>
+                <goals>
+                    <goal>generate-metadata</goal>
+                </goals>
+            </pluginExecutionFilter>
+            <action>
+                <execute>
+                    <!-- e.g. a change on the filter.xml file would be relevant  -->
+                    <runOnIncremental>true</runOnIncremental>
+                    <runOnConfiguration>true</runOnConfiguration>
+                </execute>
+            </action>
+        </pluginExecution>
     </pluginExecutions>
 </lifecycleMappingMetadata>

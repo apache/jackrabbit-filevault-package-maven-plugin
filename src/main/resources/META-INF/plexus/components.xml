@@ -31,7 +31,8 @@
                             <compile>org.apache.maven.plugins:maven-compiler-plugin:compile</compile>
                             <process-classes>
                                 org.apache.jackrabbit:filevault-package-maven-plugin:check-signature,
-                                org.apache.jackrabbit:filevault-package-maven-plugin:analyze-classes
+                                org.apache.jackrabbit:filevault-package-maven-plugin:analyze-classes,
+                                org.apache.jackrabbit:filevault-package-maven-plugin:generate-metadata
                             </process-classes>
                             <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources
                             </process-test-resources>
