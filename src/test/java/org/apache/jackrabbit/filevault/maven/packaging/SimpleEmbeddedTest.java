@@ -21,21 +21,20 @@ import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class EmbeddedTest {
+public class SimpleEmbeddedTest {
     
-    private Embedded embedded;
+    private SimpleEmbedded embedded;
     
     private List<Artifact> artifacts;
     
     @Before
     public void setUp() {
-        embedded = new Embedded();
+        embedded = new SimpleEmbedded();
         artifacts = new ArrayList<>();
         // the order is important here!
         artifacts.add(new SimpleArtifact("mygroupid", "artifact1", "compile"));

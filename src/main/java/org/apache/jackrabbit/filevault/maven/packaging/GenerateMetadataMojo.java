@@ -859,7 +859,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
     private Map<String, File> getSubPackages() throws IOException {
         Map<String, File> fileMap = new HashMap<>();
         for (SubPackage pack : subPackages) {
-            final List<Artifact> artifacts = pack.getMatchingArtifacts(project);
+            final Collection<Artifact> artifacts = pack.getMatchingArtifacts(project);
             if (artifacts.isEmpty()) {
                 getLog().warn("No matching artifacts for " + pack);
                 continue;

@@ -16,15 +16,6 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.jackrabbit.filevault.maven.packaging.impl.StringFilterSet;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
-import org.apache.maven.project.MavenProject;
-
 /**
  * The {@code SubPackage} class represents an subpackage artifact dependency
  * from the project descriptor. Such a package is declared in
@@ -41,108 +32,12 @@ import org.apache.maven.project.MavenProject;
  * &lt;/subPackage&gt;
  * </pre>
  */
-public class SubPackage {
-
-    /**
-     * A group filter string, consisted of one or several comma separated patterns.
-     */
-    private final StringFilterSet groupId = new StringFilterSet();
-
-    /**
-     * A artifact filter string, consisted of one or several comma separated patterns.
-     */
-    private final StringFilterSet artifactId = new StringFilterSet();
-
-    private ScopeArtifactFilter scope;
-
-    /**
-     * A type filter string, consists of one or several comma separated patterns.
-     */
-    private StringFilterSet type = new StringFilterSet();
-
-    /**
-     * A classifier filter string, consists of one or several comma separated patterns.
-     */
-    private StringFilterSet classifier = new StringFilterSet();
-
-    /**
-     * If {@code true} a filter entry will be generated for all embedded artifacts.
-     */
-    private boolean filter;
-
-    private boolean excludeTransitive;
-
-    public void setGroupId(String groupId) {
-        this.groupId.addEntries(groupId);
-    }
-
-    public void setArtifactId(String artifactId) {
-        this.artifactId.addEntries(artifactId);
-    }
-
-    public void setScope(String scope) {
-        this.scope = new ScopeArtifactFilter(scope);
-    }
-
-    public void setAddFilter(boolean filter) {
-        this.filter = filter;
-    }
-
-    public boolean isFilter() {
-        return filter;
-    }
-
-    public void setExcludeTransitive(boolean excludeTransitive) {
-        this.excludeTransitive = excludeTransitive;
-    }
-
-    public boolean isExcludeTransitive() {
-        return excludeTransitive;
-    }
-
-    public List<Artifact> getMatchingArtifacts(final MavenProject project) {
-
-        // get artifacts depending on whether we exclude transitives or not
-        final Set deps;
-        if (excludeTransitive) {
-            // only direct dependencies, transitives excluded
-            deps = project.getDependencyArtifacts();
-        } else {
-            // all dependencies, transitives included
-            deps = project.getArtifacts();
-        }
-
-        final List<Artifact> matches = new ArrayList<Artifact>();
-        for (Object dep : deps) {
-            final Artifact artifact = (Artifact) dep;
-            if (groupId.contains(artifact.getGroupId())
-                    && artifactId.contains(artifact.getArtifactId())
-                    && (scope == null || scope.include(artifact))
-                    && (type == null || type.contains(artifact.getType()))
-                    && (classifier == null || classifier.contains(artifact.getClassifier()))) {
-                matches.add(artifact);
-            }
-        }
-        return matches;
-    }
+public class SubPackage extends SimpleEmbedded {
 
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("Sub Packages: ");
-        builder.append("groupId=").append(groupId).append(",");
-        builder.append("artifactId=").append(artifactId).append(",");
-
-        if (scope != null) {
-            builder.append("scope=").append(scope).append(",");
-        }
-        if (type != null) {
-            builder.append("type=").append(type).append(",");
-        }
-        if (classifier != null) {
-            builder.append("classifier=").append(classifier).append(",");
-        }
-        builder.append("filter=").append(filter);
-        builder.append(",excludeTransitive=").append(excludeTransitive);
+        builder.append(super.toString());
         return builder.toString();
     }
 }

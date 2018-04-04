@@ -16,16 +16,6 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.jackrabbit.filevault.maven.packaging.impl.StringFilterSet;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
-import org.apache.maven.project.MavenProject;
-
 /**
  * The {@code Embedded} class represents an embedded artifact dependency
  * from the project descriptor. Such an embedding is declared in
@@ -43,34 +33,7 @@ import org.apache.maven.project.MavenProject;
  * &lt;/embedded&gt;
  * </pre>
  */
-public class Embedded {
-
-    /**
-     * A group filter string, consists of one or several comma separated patterns.
-     */
-    private final StringFilterSet groupId = new StringFilterSet();
-
-    /**
-     * A artifact filter string, consists of one or several comma separated patterns.
-     */
-    private final StringFilterSet artifactId = new StringFilterSet();
-
-    private ScopeArtifactFilter scope;
-
-    /**
-     * A type filter string, consists of one or several comma separated patterns.
-     */
-    private StringFilterSet type = new StringFilterSet();
-
-    /**
-     * A classifier filter string, consists of one or several comma separated patterns.
-     */
-    private StringFilterSet classifier = new StringFilterSet();
-
-    /**
-     * If {@code true} a filter entry will be generated for all embedded artifacts.
-     */
-    private boolean filter;
+public class Embedded extends SimpleEmbedded{
 
     /**
      * Target location.
@@ -81,36 +44,6 @@ public class Embedded {
      * Name to use for the artifact in the destination
      */
     private String destFileName;
-
-    private boolean excludeTransitive;
-
-    public void setGroupId(String groupId) {
-        this.groupId.addEntries(groupId);
-    }
-
-    public void setArtifactId(String artifactId) {
-        this.artifactId.addEntries(artifactId);
-    }
-
-    public void setScope(String scope) {
-        this.scope = new ScopeArtifactFilter(scope);
-    }
-
-    public void setType(String type) {
-        this.type.addEntries(type);
-    }
-
-    public void setClassifier(String classifier) {
-        this.classifier.addEntries(classifier);
-    }
-
-    public void setAddFilter(boolean filter) {
-        this.filter = filter;
-    }
-
-    public boolean isFilter() {
-        return filter;
-    }
 
     public String getDestFileName() {
         return destFileName;
@@ -133,59 +66,10 @@ public class Embedded {
         return target;
     }
 
-    public void setExcludeTransitive(boolean excludeTransitive) {
-        this.excludeTransitive = excludeTransitive;
-    }
-
-    public boolean isExcludeTransitive() {
-        return excludeTransitive;
-    }
-
-    public Collection<Artifact> getMatchingArtifacts(final MavenProject project) {
-
-        // get artifacts depending on whether we exclude transitives or not
-        final Set<Artifact> deps;
-        if (excludeTransitive) {
-            // only direct dependencies, transitives excluded
-            deps = project.getDependencyArtifacts();
-        } else {
-            // all dependencies, transitives included
-            deps = project.getArtifacts();
-        }
-        return getMatchingArtifacts(deps);
-    }
-
-    public Collection<Artifact> getMatchingArtifacts(final Collection<Artifact> deps) {
-        final List<Artifact> matches = new ArrayList<Artifact>();
-        for (Artifact artifact : deps) {
-            if (groupId.contains(artifact.getGroupId())
-                    && artifactId.contains(artifact.getArtifactId())
-                    && (scope == null || scope.include(artifact))
-                    && (type == null || type.contains(artifact.getType()))
-                    && (classifier == null || classifier.contains(artifact.getClassifier()))) {
-                matches.add(artifact);
-            }
-        }
-        return matches;
-    }
-
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("Embedded: ");
-        builder.append("groupId=").append(groupId).append(",");
-        builder.append("artifactId=").append(artifactId).append(",");
-
-        if (scope != null) {
-            builder.append("scope=").append(scope).append(",");
-        }
-        if (type != null) {
-            builder.append("type=").append(type).append(",");
-        }
-        if (classifier != null) {
-            builder.append("classifier=").append(classifier).append(",");
-        }
-        builder.append("filter=").append(filter);
-        builder.append(",excludeTransitive=").append(excludeTransitive);
+        builder.append(super.toString());
         if (target != null) {
             builder.append(",target=").append(target);
         }
