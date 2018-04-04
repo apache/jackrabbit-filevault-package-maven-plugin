@@ -35,8 +35,8 @@ import org.apache.maven.project.MavenProject;
  *     &lt;groupId&gt;artifact.groupId.pattern&lt;/groupId&gt;
  *     &lt;artifactId&gt;artifact.artifactId.pattern&lt;/artifactId&gt;
  *     &lt;scope&gt;compile&lt;/scope&gt;
- *     &lt;type&gt;jar&lt;/type&gt;
- *     &lt;classifier&gt;sources&lt;/classifier&gt;
+ *     &lt;type&gt;artifact.type.pattern&lt;/type&gt;
+ *     &lt;classifier&gt;artifact.classifier.pattern&lt;/classifier&gt;
  *     &lt;filter&gt;true&lt;/filter&gt;
  * &lt;/subPackage&gt;
  * </pre>
@@ -55,9 +55,15 @@ public class SubPackage {
 
     private ScopeArtifactFilter scope;
 
-    private String type;
+    /**
+     * A type filter string, consists of one or several comma separated patterns.
+     */
+    private StringFilterSet type = new StringFilterSet();
 
-    private String classifier;
+    /**
+     * A classifier filter string, consists of one or several comma separated patterns.
+     */
+    private StringFilterSet classifier = new StringFilterSet();
 
     /**
      * If {@code true} a filter entry will be generated for all embedded artifacts.
@@ -112,8 +118,8 @@ public class SubPackage {
             if (groupId.contains(artifact.getGroupId())
                     && artifactId.contains(artifact.getArtifactId())
                     && (scope == null || scope.include(artifact))
-                    && (type == null || type.equals(artifact.getType()))
-                    && (classifier == null || classifier.equals(artifact.getClassifier()))) {
+                    && (type == null || type.contains(artifact.getType()))
+                    && (classifier == null || classifier.contains(artifact.getClassifier()))) {
                 matches.add(artifact);
             }
         }
@@ -128,6 +134,12 @@ public class SubPackage {
 
         if (scope != null) {
             builder.append("scope=").append(scope).append(",");
+        }
+        if (type != null) {
+            builder.append("type=").append(type).append(",");
+        }
+        if (classifier != null) {
+            builder.append("classifier=").append(classifier).append(",");
         }
         builder.append("filter=").append(filter);
         builder.append(",excludeTransitive=").append(excludeTransitive);

@@ -40,9 +40,9 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <id>default-package</id>
+                        <id>default-generate-metadata</id>
                         <goals>
-                            <goal>package</goal>
+                            <goal>generate-metadata</goal>
                         </goals>
                         <configuration>
                             <embeddeds>

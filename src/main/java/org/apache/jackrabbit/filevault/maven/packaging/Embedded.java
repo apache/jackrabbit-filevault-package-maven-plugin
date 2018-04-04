@@ -178,6 +178,12 @@ public class Embedded {
         if (scope != null) {
             builder.append("scope=").append(scope).append(",");
         }
+        if (type != null) {
+            builder.append("type=").append(type).append(",");
+        }
+        if (classifier != null) {
+            builder.append("classifier=").append(classifier).append(",");
+        }
         builder.append("filter=").append(filter);
         builder.append(",excludeTransitive=").append(excludeTransitive);
         if (target != null) {
