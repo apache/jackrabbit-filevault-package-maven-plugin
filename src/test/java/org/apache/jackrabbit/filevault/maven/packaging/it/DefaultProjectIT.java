@@ -17,13 +17,14 @@
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.util.Calendar;
 
 import org.apache.jackrabbit.util.ISO8601;
 import org.apache.maven.it.VerificationException;
+import org.hamcrest.number.OrderingComparison;
 import org.junit.Test;
 
 public class DefaultProjectIT {
@@ -42,13 +43,14 @@ public class DefaultProjectIT {
 
     @Test
     public void generic_project_package_contains_correct_files() throws Exception {
-        Calendar currentDate = Calendar.getInstance();
+        Calendar dateBeforeRun = Calendar.getInstance();
         String createdDate = verify("generic").getPackageProperty("created");
+        Calendar dateAfterRun = Calendar.getInstance();
         Calendar date = ISO8601.parse(createdDate);
-        assertNotNull("The created date must be in  https://www.w3.org/TR/NOTE-datetime compliant format", date);
+        assertNotNull("The created date is not compliant to the ISO8601 profile defined in https://www.w3.org/TR/NOTE-datetime", date);
         // check actual value
-        assertTrue("The created date is far away from the current date", 
-                Math.abs(currentDate.getTimeInMillis() - date.getTimeInMillis()) < 1000);
+        assertThat(date, OrderingComparison.greaterThan(dateBeforeRun));
+        assertThat(date, OrderingComparison.lessThan(dateAfterRun));
     }
 
     @Test
