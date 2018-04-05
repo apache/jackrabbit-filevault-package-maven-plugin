@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import org.apache.maven.it.VerificationException;
@@ -225,6 +226,11 @@ public class ProjectBuilder {
         if (buildExpectedToFail) {
             return this;
         }
+        assertEquals("Property '" + key + "' has correct value", value, getPackageProperty(key));
+        return this;
+    }
+
+    public String getPackageProperty(String key) throws ZipException, IOException {
         Properties properties;
         try (ZipFile zip = new ZipFile(testPackageFile)) {
             ZipEntry propertiesFile = zip.getEntry("META-INF/vault/properties.xml");
@@ -233,9 +239,7 @@ public class ProjectBuilder {
             properties = new Properties();
             properties.loadFromXML(zip.getInputStream(propertiesFile));
         }
-
-        assertEquals("Property '" + key + "' has correct value", value, properties.getProperty(key));
-        return this;
+        return properties.getProperty(key);
     }
 
     public ProjectBuilder verifyExpectedManifest() throws IOException {
