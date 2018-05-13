@@ -36,7 +36,8 @@ import org.codehaus.plexus.util.Scanner;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
- * Maven goal which analyzes the generated class files and generates a usage report
+ * Maven goal which either checks only the formatting of the Docview XML files to comply with the 
+ * formatting rules from FileVault or also reformats those files.
  */
 @Mojo(
         name = "format-xml",
@@ -60,7 +61,7 @@ public class FormatDocviewXmlMojo extends AbstractMojo {
      * Include patterns for files to include. If not set defaults to [**\/*.xml].
      * <p>
      * Note: includes have precedences over excludes.
-     * Each pattern can either be a <a href="https://ant.apache.org/manual/dirtasks.html#patterns">Ant-like pattern</a> or
+     * Each pattern can either be an <a href="https://ant.apache.org/manual/dirtasks.html#patterns">Ant-like pattern</a> or
      * a regular expression if it is starting with {@code %regex[} and ending with {@code ]}.
      */
     @Parameter
@@ -70,7 +71,7 @@ public class FormatDocviewXmlMojo extends AbstractMojo {
      * Exclude patterns for files to exclude. If not set defaults to [].
      * <p>
      * Note: includes have precedences over excludes.
-     * Each pattern can either be a <a href="https://ant.apache.org/manual/dirtasks.html#patterns">Ant-like pattern</a> or
+     * Each pattern can either be an <a href="https://ant.apache.org/manual/dirtasks.html#patterns">Ant-like pattern</a> or
      * a regular expression if it is starting with {@code %regex[} and ending with {@code ]}.
      */
     @Parameter
