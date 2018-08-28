@@ -803,7 +803,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
     }
     
 
-    private Map<String, File> getEmbeddeds() throws IOException, MojoFailureException {
+    private Map<String, File> getEmbeddeds() throws MojoFailureException {
         Map<String, File> fileMap = new HashMap<>();
         for (Embedded emb : embeddeds) {
             final Collection<Artifact> artifacts = emb.getMatchingArtifacts(project);
@@ -850,8 +850,8 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
                 final String targetPathName = targetPath + destFileName;
                 final String targetNodePathName = targetPathName.substring(JCR_ROOT.length() - 1);
 
-                fileMap.put(targetPathName, source);
                 getLog().info(String.format("Embedding %s (from %s) -> %s", artifact.getId(), source.getAbsolutePath(), targetPathName));
+                fileMap.put(targetPathName, source);
 
                 if (emb.isFilter()) {
                     addWorkspaceFilter(targetNodePathName);
@@ -861,12 +861,12 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
         return fileMap;
     }
 
-    private Map<String, File> getSubPackages() throws IOException {
+    private Map<String, File> getSubPackages() throws MojoFailureException {
         Map<String, File> fileMap = new HashMap<>();
         for (SubPackage pack : subPackages) {
             final Collection<Artifact> artifacts = pack.getMatchingArtifacts(project);
             if (artifacts.isEmpty()) {
-                getLog().warn("No matching artifacts for " + pack);
+                getLog().warn("No matching artifacts for sub package " + pack);
                 continue;
             }
 
@@ -881,11 +881,12 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
                 try (ZipFile zip = new ZipFile(source, ZipFile.OPEN_READ)){
                     ZipEntry e = zip.getEntry("META-INF/vault/properties.xml");
                     if (e == null) {
-                        getLog().error("Package does not contain properties.xml");
-                        throw new IOException("properties.xml missing");
+                        throw new IOException("Package does not contain 'META-INF/vault/properties.xml'");
                     }
                     in = zip.getInputStream(e);
                     props.loadFromXML(in);
+                } catch (IOException e) {
+                    throw new MojoFailureException("Could not open subpackage '" + source + "' to extract metadata: " + e.getMessage(), e);
                 } finally {
                     IOUtil.close(in);
                 }
@@ -897,8 +898,8 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
                 final String targetNodePathName = pid.getInstallationPath() + ".zip";
                 final String targetPathName = "jcr_root" + targetNodePathName;
 
+                getLog().info(String.format("Embedding %s (from %s) -> %s", artifact.getId(), source.getAbsolutePath(), targetPathName));
                 fileMap.put(targetPathName, source);
-                getLog().info("Embedding " + artifact.getId() + " -> " + targetPathName);
                 if (pack.isFilter()) {
                     addWorkspaceFilter(targetNodePathName);
                 }
