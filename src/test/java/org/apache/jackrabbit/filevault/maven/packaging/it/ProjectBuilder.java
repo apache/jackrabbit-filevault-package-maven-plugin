@@ -98,6 +98,8 @@ public class ProjectBuilder {
 
     private boolean buildExpectedToFail;
 
+    private boolean verifyPackageContents = true;
+
     public ProjectBuilder() {
         testProjectsRoot = new File(TEST_PROJECTS_ROOT);
         testProperties = new Properties();
@@ -179,6 +181,11 @@ public class ProjectBuilder {
         return this;
     }
 
+    public ProjectBuilder setVerifyPackageContents(boolean verifyPackageContents) {
+        this.verifyPackageContents = verifyPackageContents;
+        return this;
+    }
+
     public ProjectBuilder setProperty(String name, String value) {
         testProperties.put(name, value);
         return this;
@@ -200,6 +207,10 @@ public class ProjectBuilder {
             throw e;
         } finally {
             verifier.resetStreams();
+        }
+
+        if (!verifyPackageContents) {
+            return this;
         }
 
         assertTrue("Project generates package file", testPackageFile.exists());
@@ -266,7 +277,7 @@ public class ProjectBuilder {
         }
         Collections.sort(entries);
         result = StringUtils.join(entries.iterator(), "\n");
-        assertEquals("Manifest", expected, result);
+        assertEquals("Manifest", normalizeWhitespace(expected), normalizeWhitespace(result));
         return this;
     }
 
@@ -294,7 +305,7 @@ public class ProjectBuilder {
             assertNotNull("package has a filter.xml", entry);
             String result = IOUtil.toString(zip.getInputStream(entry), "utf-8");
             String expected = FileUtils.fileRead(expectedFilterFile);
-            assertEquals("filter.xml is correct", expected, result);
+            assertEquals("filter.xml is correct", normalizeWhitespace(expected), normalizeWhitespace(result));
         }
         return this;
     }
@@ -311,5 +322,12 @@ public class ProjectBuilder {
             buf.append(line).append("\n");
         }
         return buf.toString();
+    }
+
+    /**
+     * Eliminates differences in line separators when executing tests on different platform (*nix / windows)
+     */
+    private String normalizeWhitespace(String s) {
+        return s.replaceAll("[\r\n]+", "\n");
     }
 }
