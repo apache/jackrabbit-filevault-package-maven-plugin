@@ -476,7 +476,7 @@ public class ImportPackageBuilder {
             id = artifact.getId();
             JarFile jar = new JarFile(artifact.getFile());
             Manifest manifest = jar.getManifest();
-            String exportPackages = manifest.getMainAttributes().getValue(Constants.EXPORT_PACKAGE);
+            String exportPackages = manifest == null ? null : manifest.getMainAttributes().getValue(Constants.EXPORT_PACKAGE);
             if (exportPackages != null) {
                 for (Map.Entry<String, Attrs> entry : new Parameters(exportPackages).entrySet()) {
                     Attrs options = entry.getValue();

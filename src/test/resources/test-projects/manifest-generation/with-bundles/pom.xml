@@ -33,7 +33,7 @@
                     <group>my/test/group</group>
                     <importUnusedPackages>true</importUnusedPackages>
                     <importPackage>
-                        -aQute*, <!-- example of removing a package -->
+                        -aQute*,-javax.inject*, <!-- example of removing a package -->
                         -org.osgi.framework.*, <!-- should keep the org.osgi.framework but remove subpackages-->
                         javax.jcr*;version="[1.0.0,3.0.0)", <!-- example of altering existing packages -->
                         org.apache.foo  <!-- example of adding a new package -->
@@ -72,6 +72,13 @@
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.core</artifactId>
             <version>5.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <!-- unused dependency without manifest -->
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
