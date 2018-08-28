@@ -530,10 +530,15 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
                 getLog().info("Merging inline filters.");
                 mergeFilters(sourceFilters, filters);
             }
-            filters.getFilterSets().clear();
-            filters.getFilterSets().addAll(sourceFilters.getFilterSets());
-            filters.getPropertyFilterSets().clear();
-            filters.getPropertyFilterSets().addAll(sourceFilters.getPropertyFilterSets());
+
+            // now copy everything from sourceFilter to filters (as the latter is supposed to contain the final filter rules)!
+            sourceFilters.resetSource();
+            // there is no suitable clone nor constructor, therefore use a serialization/deserialization approach
+            try (InputStream serializedFilters = sourceFilters.getSource()) {
+                filters.load(serializedFilters);
+            } catch (ConfigurationException e) {
+                throw new IllegalStateException("cloning filters failed.", e);
+            }
 
             // reset source filters for later. this looks a bit complicated but is needed to keep the same
             // filter order as in previous versions

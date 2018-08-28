@@ -178,12 +178,7 @@ public class VaultMojo extends AbstractPackageMojo {
                 getLog().warn("The 'builtContentDirectory' is deprecated. Please use the new 'jcrRootSourceDirectory' instead.");
                 jcrSourceDirectory = builtContentDirectory;
             } else {
-                for (File dir: jcrRootSourceDirectory) {
-                    if (dir.exists() && dir.isDirectory()) {
-                        jcrSourceDirectory = dir;
-                        break;
-                    }
-                }
+                jcrSourceDirectory = getFirstExistingDirectory(jcrRootSourceDirectory);
             }
             if (jcrSourceDirectory != null) {
                 getLog().info("packaging content from " + jcrSourceDirectory.getPath());

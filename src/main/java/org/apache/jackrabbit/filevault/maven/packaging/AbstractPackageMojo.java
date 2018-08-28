@@ -192,5 +192,14 @@ public abstract class AbstractPackageMojo extends AbstractMojo {
         filters.load(getFilterFile());
         return filters;
     }
+    
+    static File getFirstExistingDirectory(File[] directories) {
+        for (File dir: directories) {
+            if (dir.exists() && dir.isDirectory()) {
+                return dir;
+            }
+        }
+        return null;
+    }
 
  }
