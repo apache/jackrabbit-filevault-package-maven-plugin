@@ -27,6 +27,7 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.FileValidator;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
@@ -257,7 +258,9 @@ public class VaultMojo extends AbstractPackageMojo {
                         InputStream in = null;
                         try {
                             in = entry.getInputStream();
-                            fileValidator.lookupIndexDefinitionInArtifact(in, entry.getName());
+                            // ArchiveEntry.name always contains platform-dependent separators, convert to forwards slashes as separator
+                            String sanitizedFileName = FilenameUtils.separatorsToUnix(entry.getName());
+                            fileValidator.lookupIndexDefinitionInArtifact(in, sanitizedFileName);
                         } finally {
                             IOUtils.closeQuietly(in);
                         }
