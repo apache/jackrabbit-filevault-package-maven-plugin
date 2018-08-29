@@ -17,14 +17,18 @@
 package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,6 +39,7 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
@@ -53,6 +58,9 @@ import aQute.bnd.osgi.FileResource;
 import aQute.bnd.osgi.Processor;
 import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
 import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
+
+import static org.apache.commons.io.FileUtils.listFiles;
+import static org.apache.commons.io.FilenameUtils.normalize;
 
 /**
  * The import package builder is used to analyze the classes and dependencies of the project and calculate the
@@ -474,8 +482,13 @@ public class ImportPackageBuilder {
 
         private BundleInfo(Artifact artifact) throws IOException {
             id = artifact.getId();
-            JarFile jar = new JarFile(artifact.getFile());
-            Manifest manifest = jar.getManifest();
+            File file = artifact.getFile();
+
+            // In case of an internal dependency in a multi-module project, the dependency may be represented by a directory
+            // rather than a JAR file if the maven lifecycle phase does not include binding the JAR file to the dependency.
+            Dependency dependency = file.isDirectory() ? new DirectoryDependency(file) : new JarBasedDependency(file);
+
+            Manifest manifest = dependency.getManifest();
             String exportPackages = manifest == null ? null : manifest.getMainAttributes().getValue(Constants.EXPORT_PACKAGE);
             if (exportPackages != null) {
                 for (Map.Entry<String, Attrs> entry : new Parameters(exportPackages).entrySet()) {
@@ -484,7 +497,69 @@ public class ImportPackageBuilder {
                     packageVersions.put(entry.getKey(), version == null ? "" : version);
                 }
             } else {
-                // scan the jar and associate the version
+                // scan the class files and associate the version
+                for (String path : dependency.getClassFiles()) {
+                    // skip internal / impl
+                    if (path.contains("/impl/") || path.contains("/internal/")) {
+                        continue;
+                    }
+                    path = StringUtils.chomp(path, "/");
+                    if (path.charAt(0) == '/') {
+                        path = path.substring(1);
+                    }
+                    String packageName = path.replaceAll("/", ".");
+                    packageVersions.put(packageName, "");
+                }
+            }
+        }
+
+        public String getId() {
+            return id;
+        }
+    }
+
+    private interface Dependency {
+
+        /**
+         * Returns the Manifest of the dependency.
+         * @return the Manifest.
+         */
+        @Nullable
+        Manifest getManifest() throws IOException;
+
+        /**
+         * Returns the paths representing .class files in their java package directory with *nix-style path separators,
+         * e.g. {@code /some/package/name/ClassFile.class}.
+         * @return the paths.
+         */
+        @Nonnull
+        Collection<String> getClassFiles() throws IOException;
+    }
+
+    /**
+     * Represents the JAR file of an {@link Artifact} dependency.
+     */
+    private static class JarBasedDependency implements Dependency {
+
+        private final File file;
+
+        private JarBasedDependency(File file) {
+            this.file = file;
+        }
+
+        @Override
+        @Nullable
+        public Manifest getManifest() throws IOException {
+            try (JarFile jarFile = new JarFile(this.file)) {
+                return jarFile.getManifest();
+            }
+        }
+
+        @Override
+        @Nonnull
+        public Collection<String> getClassFiles() throws IOException {
+            List<String> fileNames = new LinkedList<>();
+            try (JarFile jar = new JarFile(this.file)) {
                 Enumeration<JarEntry> entries = jar.entries();
                 while (entries.hasMoreElements()) {
                     JarEntry e = entries.nextElement();
@@ -493,24 +568,53 @@ public class ImportPackageBuilder {
                     }
                     String path = e.getName();
                     if (path.endsWith(".class")) {
-                        // skip internal / impl
-                        if (path.contains("/impl/") || path.contains("/internal/")) {
-                            continue;
-                        }
-                        path = StringUtils.chomp(path, "/");
-                        if (path.charAt(0) == '/') {
-                            path = path.substring(1);
-                        }
-                        String packageName = path.replaceAll("/", ".");
-                        packageVersions.put(packageName, "");
+                        fileNames.add(path);
                     }
                 }
             }
-            jar.close();
+
+            return fileNames;
+        }
+    }
+
+    /**
+     * Represents an {@link Artifact} dependency to another module of a multi-module setup
+     * which may point to the target/classes directory of the module rather than a jar file.
+     */
+    private static class DirectoryDependency implements Dependency {
+
+        private final File directory;
+
+        private DirectoryDependency(File directory) {
+            this.directory = directory;
         }
 
-        public String getId() {
-            return id;
+        @Override
+        @Nullable
+        public Manifest getManifest() throws IOException {
+            File manifest = new File(this.directory, "META-INF/MANIFEST.MF");
+            if (!manifest.exists()) {
+                return null;
+            }
+            try (InputStream in = new FileInputStream(manifest)) {
+                return new Manifest(in);
+            }
+        }
+
+        @Override
+        @Nonnull
+        public Collection<String> getClassFiles() throws IOException {
+            Collection<File> files = listFiles(this.directory, new String[]{"class"}, true);
+            String basePath = this.directory.getCanonicalPath();
+            Collection<String> fileNames = new ArrayList<>(files.size());
+            for (File file : files) {
+                // Use the relative file path as the the path segments will be used
+                // to calculate the package name.
+                String relativePath = file.getCanonicalPath().substring(basePath.length());
+                // The path may contain platform-specific paths that must be normalized to unix paths.
+                fileNames.add(normalize(relativePath, true));
+            }
+            return fileNames;
         }
     }
 
