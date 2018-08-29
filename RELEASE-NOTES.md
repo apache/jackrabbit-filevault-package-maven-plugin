@@ -31,6 +31,7 @@ Changes in Jackrabbit FileVault Package Maven Plugin 1.0.2
 #### Bug Fixes
 * [JCRVLT-256] Package Maven Plugin: NPE when dependency has no manifest
 * [JCRVLT-276] Switch to timezone designators being understood by ISO8601.parse(...)
+* [JCRVLT-272] analyze-classes mojo can fail with "Access denied" for multi-module projects
 
 #### New Features
 * [JCRVLT-288] Support XML Docview formatting in a dedicated goal
