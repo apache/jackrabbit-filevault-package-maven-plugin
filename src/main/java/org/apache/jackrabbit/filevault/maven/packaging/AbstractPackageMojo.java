@@ -103,7 +103,7 @@ public abstract class AbstractPackageMojo extends AbstractMojo {
     /**
      * Defines the content package type. this is either 'application', 'content', 'container' or 'mixed'.
      * If omitted, it is calculated automatically based on filter definitions. certain package types imply restrictions,
-     * for example, 'application' and 'content' packages are not allowed to contain sub packages or embedded bundles.<br/>
+     * for example, 'application' and 'content' packages are not allowed to contain sub packages or embedded bundles.<br>
      * Possible values:
      * <ul>
      *   <li>{@code application}: An application package consists purely of application content. It serializes

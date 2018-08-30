@@ -49,8 +49,8 @@ public class FileValidator {
      * Checks if the given input stream and file name refers to a index definition or filter file covering an oak index.
      * @param artifactFileInputStream the input stream of the artifact to check
      * @param artifactName the file name within the content package (using forward slashes as separators) of the artifact to check
-     * @throws IOException
-     * @throws MojoExecutionException
+     * @throws IOException if an I/O error occurs
+     * @throws MojoExecutionException if an internal execution error occurs
      */
     public void lookupIndexDefinitionInArtifact(InputStream artifactFileInputStream, String artifactName) throws IOException, MojoExecutionException {
         // in case this is a subpackage
