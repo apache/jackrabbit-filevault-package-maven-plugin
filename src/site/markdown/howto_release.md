@@ -73,12 +73,13 @@ Release management tasks
 
 7. If the vote fails (easy case first):
     1. remove the release tag from svn
-
-       ````
-       svn rm https://svn.apache.org/repos/asf/jackrabbit/commons/filevault/tags/jackrabbit-filevault-package-maven-plugin-$version
-       ````
-
+        ````
+        svn rm https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/tags/filevault-package-maven-plugin-$version
+        ````
     2. delete the RC from _dist.apache.org_
+        ````
+        svn rm https://dist.apache.org/repos/dist/dev/jackrabbit/filevault-package-maven-plugin/$version
+        ````
     3. and drop the staged repository
     4. done 
  
