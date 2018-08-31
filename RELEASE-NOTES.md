@@ -15,7 +15,7 @@
    limitations under the License.
   -->
 
-Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.0.2
+Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.0.3
 ==================================================================================
 
 Introduction
@@ -25,7 +25,7 @@ content package maven artifacts. The content packages can later be used to insta
 using the Apache Jackrabbit FileVault packaging runtime.
 
 
-Changes in Jackrabbit FileVault Package Maven Plugin 1.0.2
+Changes in Jackrabbit FileVault Package Maven Plugin 1.0.3
 ----------------------------------------------------------
 
 #### Bug Fixes
