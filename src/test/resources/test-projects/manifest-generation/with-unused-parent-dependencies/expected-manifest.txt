@@ -1,9 +1,7 @@
-Archiver-Version:Plexus Archiver
 Content-Package-Description:This is an Example Project to verify that manifest generation is correct.
 Content-Package-Id:my/test/group:package-plugin-test-pkg:1.0.0-SNAPSHOT
 Content-Package-Roots:/libs/apache
 Content-Package-Type:application
-Created-By:Apache Maven
 Implementation-Title:Example Default Project
 Implementation-Vendor-Id:org.apache.jackrabbit.filevault
 Implementation-Version:1.0.0-SNAPSHOT

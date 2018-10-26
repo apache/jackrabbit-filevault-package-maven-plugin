@@ -68,7 +68,7 @@ public class ProjectBuilder {
      */
     private static final Logger log = LoggerFactory.getLogger(ProjectBuilder.class);
 
-    private static final Set<String> IGNORED_MANIFEST_ENTRIES = new HashSet<>(Arrays.asList("Build-Jdk", "Built-By"));
+    private static final Set<String> IGNORED_MANIFEST_ENTRIES = new HashSet<>(Arrays.asList("Build-Jdk", "Built-By", "Created-By"));
 
     static final String TEST_PROJECTS_ROOT = "target/test-classes/test-projects";
 
