@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import org.apache.maven.it.VerificationException;
@@ -68,7 +69,7 @@ public class ProjectBuilder {
      */
     private static final Logger log = LoggerFactory.getLogger(ProjectBuilder.class);
 
-    private static final Set<String> IGNORED_MANIFEST_ENTRIES = new HashSet<>(Arrays.asList("Build-Jdk", "Built-By"));
+    private static final Set<String> IGNORED_MANIFEST_ENTRIES = new HashSet<>(Arrays.asList("Build-Jdk", "Built-By", "Created-By"));
 
     static final String TEST_PROJECTS_ROOT = "target/test-classes/test-projects";
 
@@ -100,6 +101,7 @@ public class ProjectBuilder {
 
     private boolean buildExpectedToFail;
 
+    private boolean verifyPackageContents = true;
 
     public ProjectBuilder() {
         testProjectsRoot = new File(TEST_PROJECTS_ROOT);
@@ -183,6 +185,11 @@ public class ProjectBuilder {
         return this;
     }
 
+    public ProjectBuilder setVerifyPackageContents(boolean verifyPackageContents) {
+        this.verifyPackageContents = verifyPackageContents;
+        return this;
+    }
+
     public ProjectBuilder setProperty(String name, String value) {
         testProperties.put(name, value);
         return this;
@@ -204,6 +211,10 @@ public class ProjectBuilder {
             throw e;
         } finally {
             verifier.resetStreams();
+        }
+
+        if (!verifyPackageContents) {
+            return this;
         }
 
         assertTrue("Project generates package file", testPackageFile.exists());
@@ -230,6 +241,11 @@ public class ProjectBuilder {
         if (buildExpectedToFail) {
             return this;
         }
+        assertEquals("Property '" + key + "' has correct value", value, getPackageProperty(key));
+        return this;
+    }
+
+    public String getPackageProperty(String key) throws ZipException, IOException {
         Properties properties;
         try (ZipFile zip = new ZipFile(testPackageFile)) {
             ZipEntry propertiesFile = zip.getEntry("META-INF/vault/properties.xml");
@@ -238,9 +254,7 @@ public class ProjectBuilder {
             properties = new Properties();
             properties.loadFromXML(zip.getInputStream(propertiesFile));
         }
-
-        assertEquals("Property '" + key + "' has correct value", value, properties.getProperty(key));
-        return this;
+        return properties.getProperty(key);
     }
 
     public ProjectBuilder verifyExpectedManifest() throws IOException {
@@ -267,7 +281,7 @@ public class ProjectBuilder {
         }
         Collections.sort(entries);
         result = StringUtils.join(entries.iterator(), "\n");
-        assertEquals("Manifest", expected, result);
+        assertEquals("Manifest", normalizeWhitespace(expected), normalizeWhitespace(result));
         return this;
     }
 
@@ -315,7 +329,7 @@ public class ProjectBuilder {
             assertNotNull("package has a filter.xml", entry);
             String result = IOUtil.toString(zip.getInputStream(entry), "utf-8");
             String expected = FileUtils.fileRead(expectedFilterFile);
-            assertEquals("filter.xml is correct", expected, result);
+            assertEquals("filter.xml is correct", normalizeWhitespace(expected), normalizeWhitespace(result));
         }
         return this;
     }
@@ -332,5 +346,12 @@ public class ProjectBuilder {
             buf.append(line).append("\n");
         }
         return buf.toString();
+    }
+
+    /**
+     * Eliminates differences in line separators when executing tests on different platform (*nix / windows)
+     */
+    private String normalizeWhitespace(String s) {
+        return s.replaceAll("[\r\n]+", "\n");
     }
 }

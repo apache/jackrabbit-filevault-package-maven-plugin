@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -80,7 +81,12 @@ import aQute.bnd.osgi.Processor;
 )
 public class GenerateMetadataMojo extends AbstractPackageMojo {
 
-    private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    /**
+     *  A date format which is compliant with {@code org.apache.jackrabbit.util.ISO8601.parse(...)}
+     *  @see <a href="https://www.w3.org/TR/NOTE-datetime">Restricted profile for ISO8601</a>
+     *  @see <a href="https://issues.apache.org/jira/browse/JCR-4267">JCR-4267</a>
+     */
+    private final DateFormat iso8601DateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
 
     public static final String MF_KEY_PACKAGE_TYPE = "Content-Package-Type";
 
@@ -277,16 +283,21 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
      * Each {@code <embedded>} element may configure any of the following fields
      *  <p>
      * <table>
-     * <tr><td>groupId</td><td>String</td><td>Filter criterion against the group id of a project dependency. A pattern of format {@code &lt;filter&gt;{,&lt;filter&gt;}}. Each {@code filter} is a string which is either an exclude (if it starts with a {@code ~}) or an include otherwise. If the first {@code filter} is an include the pattern acts as whitelist, otherwise as blacklist. The last matching filter determines the outcome. Only matching group ids are being considered for being embedded.</td></tr>
-     * <tr><td>artifactId</td><td>String</td><td>Filter criterion against the artifact ids of a project dependency. A pattern of format {@code &lt;filter&gt;{,&lt;filter&gt;}}. Each {@code filter} is a string which is either an exclude (if it starts with a {@code ~}) or an include otherwise. If the first {@code filter} is an include the pattern acts as whitelist, otherwise as blacklist. The last matching filter determines the outcome. Only matching artifacts ids are being considered for being embedded.</td></tr>
+     * <tr><td>groupId</td><td>String</td><td>Filter criterion against the group id of a project dependency. A pattern as described below.</td></tr>
+     * <tr><td>artifactId</td><td>String</td><td>Filter criterion against the artifact id of a project dependency. A pattern as described below.</td></tr>
      * <tr><td>scope</td><td>ScopeArtifactFilter</td><td>Filter criterion against the <a href="https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Scope">scope of a project dependency</a>. Possible values are <ul><li>{@code test}, which allows every scope</li><li>{@code compile+runtime} which allows every scope except {@code test}</li><li>{@code runtime+system} which allows every scope except {@code test} and {@code provided}</li><li>{@code compile} which allows only scope {@code compile}, {@code provided} and {@code system}</li><li>{@code runtime} which only allows scope {@code runtime} and {@code compile}.</td></tr>
-     * <tr><td>type</td><td>String</td><td>Filter criterion against the type of a project dependency. The value given here must be equal to the project dependency's type.</td></tr>
-     * <tr><td>classifier</td><td>String</td><td>Filter criterion against the classifier of a project dependency. The value given here must be equal to the project dependency's classifier.</td></tr>
+     * <tr><td>type</td><td>String</td><td>Filter criterion against the type of a project dependency. A pattern as described below.</td></tr>
+     * <tr><td>classifier</td><td>String</td><td>Filter criterion against the classifier of a project dependency. A pattern as described below.</td></tr>
      * <tr><td>filter</td><td>Boolean</td><td>If set to {@code true} adds the embedded artifact location to the package's filter.</td></tr>
      * <tr><td>target</td><td>String</td><td>The parent folder location in the package where to place the embedded artifact. Falls back to {@link #embeddedTarget} if not set.</td></tr>
      * </table>
      * </pre>
      * All fields are optional. All filter criteria is concatenated with AND logic (i.e. every criterion must match for a specific dependency to be embedded).
+     * <br>
+     * All filter patterns follow the format {@code &lt;filter&gt;{,&lt;filter&gt;}}.
+     * Each {@code filter} is a string which is either an exclude (if it starts with a {@code ~}) or an include otherwise. If the first {@code filter} is an include the pattern acts as whitelist, 
+     * otherwise as blacklist. The last matching filter determines the outcome. Only matching dependencies are being considered for being embedded.</td></tr>
+     * <br>
      * <i>The difference between {@link #embeddeds} and {@link #subPackages} is that for the former an explicit target is given while for the latter the target is being computed from the artifact's vault property file.</i>
      */
     @Parameter
@@ -305,15 +316,20 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
      * from the project descriptor. Each {@code <subPackage>} element may configure any of the following fields
      *  <p>
      * <table>
-     * <tr><td>groupId</td><td>String</td><td>Filter criterion against the group id of a project dependency. A pattern of format {@code &lt;filter&gt;{,&lt;filter&gt;}}. Each {@code filter} is a string which is either an exclude (if it starts with a {@code ~}) or an include otherwise. If the first {@code filter} is an include the pattern acts as whitelist, otherwise as blacklist. The last matching filter determines the outcome. Only matching group ids are being considered for being embedded.</td></tr>
-     * <tr><td>artifactId</td><td>String</td><td>Filter criterion against the artifact ids of a project dependency. A pattern of format {@code &lt;filter&gt;{,&lt;filter&gt;}}. Each {@code filter} is a string which is either an exclude (if it starts with a {@code ~}) or an include otherwise. If the first {@code filter} is an include the pattern acts as whitelist, otherwise as blacklist. The last matching filter determines the outcome. Only matching artifacts ids are being considered for being embedded.</td></tr>
+     * <tr><td>groupId</td><td>String</td><td>Filter criterion against the group id of a project dependency. A pattern as described below.</td></tr>
+     * <tr><td>artifactId</td><td>String</td><td>Filter criterion against the artifact ids of a project dependency. A pattern as described below.</td></tr>
      * <tr><td>scope</td><td>ScopeArtifactFilter</td><td>Filter criterion against the <a href="https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Scope">scope of a project dependency</a>. Possible values are <ul><li>{@code test}, which allows every scope</li><li>{@code compile+runtime} which allows every scope except {@code test}</li><li>{@code runtime+system} which allows every scope except {@code test} and {@code provided}</li><li>{@code compile} which allows only scope {@code compile}, {@code provided} and {@code system}</li><li>{@code runtime} which only allows scope {@code runtime} and {@code compile}.</td></tr>
-     * <tr><td>type</td><td>String</td><td>Filter criterion against the type of a project dependency. The value given here must be equal to the project dependency's type. In most cases should be "content-package" or "zip".</td></tr>
-     * <tr><td>classifier</td><td>String</td><td>Filter criterion against the classifier of a project dependency. The value given here must be equal to the project dependency's classifier.</td></tr>
+     * <tr><td>type</td><td>String</td><td>Filter criterion against the type of a project dependency.A pattern as described below.</td></tr>
+     * <tr><td>classifier</td><td>String</td><td>Filter criterion against the classifier of a project dependency. A pattern as described below.</td></tr>
      * <tr><td>filter</td><td>Boolean</td><td>If set to {@code true} adds the embedded artifact location to the package's filter</td></tr>
      * </table>
      * </pre>
-     * All fields are optional. All filter criteria is concatenated with AND logic (i.e. every criterion must match for a specific dependency to be embedded).
+     * All fields are optional. All filter criteria is concatenated with AND logic (i.e. every criterion must match for a specific dependency to be embedded as a sub package).
+     * <br>
+     * All filter patterns follow the format {@code &lt;filter&gt;{,&lt;filter&gt;}}.
+     * Each {@code filter} within a filter pattern is a string which is either an exclude (if it starts with a {@code ~}) or an include otherwise. If the first {@code filter} is an include the pattern acts as whitelist, 
+     * otherwise as blacklist. The last matching filter determines the outcome. Only matching dependencies are being considered for being embedded.
+     * <br>
      * <i>The difference between {@link #embeddeds} and {@link #subPackages} is that for the former an explicit target is given while for the latter the target is being computed from the artifact's vault property file.</i>
      */
     @Parameter
@@ -514,10 +530,15 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
                 getLog().info("Merging inline filters.");
                 mergeFilters(sourceFilters, filters);
             }
-            filters.getFilterSets().clear();
-            filters.getFilterSets().addAll(sourceFilters.getFilterSets());
-            filters.getPropertyFilterSets().clear();
-            filters.getPropertyFilterSets().addAll(sourceFilters.getPropertyFilterSets());
+
+            // now copy everything from sourceFilter to filters (as the latter is supposed to contain the final filter rules)!
+            sourceFilters.resetSource();
+            // there is no suitable clone nor constructor, therefore use a serialization/deserialization approach
+            try (InputStream serializedFilters = sourceFilters.getSource()) {
+                filters.load(serializedFilters);
+            } catch (ConfigurationException e) {
+                throw new IllegalStateException("cloning filters failed.", e);
+            }
 
             // reset source filters for later. this looks a bit complicated but is needed to keep the same
             // filter order as in previous versions
@@ -774,7 +795,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
         if (!props.containsKey("createdBy")) {
             props.put("createdBy", System.getProperty("user.name"));
         }
-        props.put("created", DATE_FORMAT.format(new Date()));
+        props.put("created", iso8601DateFormat.format(new Date()));
 
         // configurable properties
         props.put("requiresRoot", String.valueOf(requiresRoot));
@@ -787,10 +808,10 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
     }
     
 
-    private Map<String, File> getEmbeddeds() throws IOException, MojoFailureException {
+    private Map<String, File> getEmbeddeds() throws MojoFailureException {
         Map<String, File> fileMap = new HashMap<>();
         for (Embedded emb : embeddeds) {
-            final List<Artifact> artifacts = emb.getMatchingArtifacts(project);
+            final Collection<Artifact> artifacts = emb.getMatchingArtifacts(project);
             if (artifacts.isEmpty()) {
                 if (failOnMissingEmbed) {
                     throw new MojoFailureException("Embedded artifact specified " + emb + ", but no matching dependency artifact found. Add the missing dependency or fix the embed definition.");
@@ -834,8 +855,8 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
                 final String targetPathName = targetPath + destFileName;
                 final String targetNodePathName = targetPathName.substring(JCR_ROOT.length() - 1);
 
-                fileMap.put(targetPathName, source);
                 getLog().info(String.format("Embedding %s (from %s) -> %s", artifact.getId(), source.getAbsolutePath(), targetPathName));
+                fileMap.put(targetPathName, source);
 
                 if (emb.isFilter()) {
                     addWorkspaceFilter(targetNodePathName);
@@ -845,12 +866,12 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
         return fileMap;
     }
 
-    private Map<String, File> getSubPackages() throws IOException {
+    private Map<String, File> getSubPackages() throws MojoFailureException {
         Map<String, File> fileMap = new HashMap<>();
         for (SubPackage pack : subPackages) {
-            final List<Artifact> artifacts = pack.getMatchingArtifacts(project);
+            final Collection<Artifact> artifacts = pack.getMatchingArtifacts(project);
             if (artifacts.isEmpty()) {
-                getLog().warn("No matching artifacts for " + pack);
+                getLog().warn("No matching artifacts for sub package " + pack);
                 continue;
             }
 
@@ -865,11 +886,12 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
                 try (ZipFile zip = new ZipFile(source, ZipFile.OPEN_READ)){
                     ZipEntry e = zip.getEntry("META-INF/vault/properties.xml");
                     if (e == null) {
-                        getLog().error("Package does not contain properties.xml");
-                        throw new IOException("properties.xml missing");
+                        throw new IOException("Package does not contain 'META-INF/vault/properties.xml'");
                     }
                     in = zip.getInputStream(e);
                     props.loadFromXML(in);
+                } catch (IOException e) {
+                    throw new MojoFailureException("Could not open subpackage '" + source + "' to extract metadata: " + e.getMessage(), e);
                 } finally {
                     IOUtil.close(in);
                 }
@@ -881,8 +903,8 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
                 final String targetNodePathName = pid.getInstallationPath() + ".zip";
                 final String targetPathName = "jcr_root" + targetNodePathName;
 
+                getLog().info(String.format("Embedding %s (from %s) -> %s", artifact.getId(), source.getAbsolutePath(), targetPathName));
                 fileMap.put(targetPathName, source);
-                getLog().info("Embedding " + artifact.getId() + " -> " + targetPathName);
                 if (pack.isFilter()) {
                     addWorkspaceFilter(targetNodePathName);
                 }

@@ -45,12 +45,21 @@ public class FileValidator {
     //store entries of index found in _oak_index/.content.xml
     Map<String, String> foundIndexes = new HashMap<String, String>();
 
+    /**
+     * Checks if the given input stream and file name refers to a index definition or filter file covering an oak index.
+     * @param artifactFileInputStream the input stream of the artifact to check
+     * @param artifactName the file name within the content package (using forward slashes as separators) of the artifact to check
+     * @throws IOException if an I/O error occurs
+     * @throws MojoExecutionException if an internal execution error occurs
+     */
     public void lookupIndexDefinitionInArtifact(InputStream artifactFileInputStream, String artifactName) throws IOException, MojoExecutionException {
+        // in case this is a subpackage
         if (artifactName.endsWith("zip")) {
             ZipInputStream zipArtifactStream = new ZipInputStream(artifactFileInputStream);
             String entryName = "";
             ZipEntry entry = zipArtifactStream.getNextEntry();
             while (entry != null) {
+                // entryName must only contain forward slashes as separators
                 entryName = entry.getName();
                 if (entryName.endsWith("zip")) {
                     //recur if the entry is a zip file

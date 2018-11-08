@@ -19,7 +19,9 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,6 +29,7 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.FileValidator;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
@@ -93,6 +96,17 @@ public class VaultMojo extends AbstractPackageMojo {
                     "${project.build.outputDirectory}"
     )
     private File[] jcrRootSourceDirectory;
+    
+    /**
+     * Set to {@code true} to fail the build in case of files are being contained in the {@code jcrRootSourceDirectory} 
+     * which are not covered by the filter rules and therefore would not end up in the package.
+     */
+    @Parameter(
+            property = "vault.failOnUncoveredSourceFiles",
+            required = true,
+            defaultValue = "false"
+    )
+    private boolean failOnUncoveredSourceFiles;
 
     /**
      * The name of the generated package ZIP file without the ".zip" file
@@ -178,12 +192,7 @@ public class VaultMojo extends AbstractPackageMojo {
                 getLog().warn("The 'builtContentDirectory' is deprecated. Please use the new 'jcrRootSourceDirectory' instead.");
                 jcrSourceDirectory = builtContentDirectory;
             } else {
-                for (File dir: jcrRootSourceDirectory) {
-                    if (dir.exists() && dir.isDirectory()) {
-                        jcrSourceDirectory = dir;
-                        break;
-                    }
-                }
+                jcrSourceDirectory = getFirstExistingDirectory(jcrRootSourceDirectory);
             }
             if (jcrSourceDirectory != null) {
                 getLog().info("packaging content from " + jcrSourceDirectory.getPath());
@@ -247,6 +256,16 @@ public class VaultMojo extends AbstractPackageMojo {
                         }
                     }
                 }
+                
+                Collection<File> uncoveredFiles = getUncoveredFiles(jcrSourceDirectory, prefix, contentPackageArchiver.getFiles().keySet());
+                if (!uncoveredFiles.isEmpty()) {
+                    for (File uncoveredFile : uncoveredFiles) {
+                        getLog().warn("File " + uncoveredFile + " not covered by a filter rule and therefore not contained in the resulting package");
+                    }
+                    if (failOnUncoveredSourceFiles) {
+                        throw new MojoFailureException("The following files are not covered by a filter rule: \n" + StringUtils.join(uncoveredFiles.iterator(), ",\n"));
+                    }
+                }
             }
 
             for (Map.Entry<String, File> entry : embeddedFiles.entrySet()) {
@@ -262,7 +281,9 @@ public class VaultMojo extends AbstractPackageMojo {
                         InputStream in = null;
                         try {
                             in = entry.getInputStream();
-                            fileValidator.lookupIndexDefinitionInArtifact(in, entry.getName());
+                            // ArchiveEntry.name always contains platform-dependent separators, convert to forwards slashes as separator
+                            String sanitizedFileName = FilenameUtils.separatorsToUnix(entry.getName());
+                            fileValidator.lookupIndexDefinitionInArtifact(in, sanitizedFileName);
                         } finally {
                             IOUtils.closeQuietly(in);
                         }
@@ -291,6 +312,28 @@ public class VaultMojo extends AbstractPackageMojo {
         }
     }
 
+    private Collection<File> getUncoveredFiles(final File sourceDirectory, final String prefix, final Collection<String> entryNames) throws IOException {
+        /*
+         *  similar method as in {@link org.codehaus.plexus.components.io.resources.PlexusIoFileResourceCollection#getResources();}
+         */
+        DirectoryScanner scanner = new DirectoryScanner();
+        scanner.setBasedir(sourceDirectory);
+        scanner.setExcludes(excludes);
+        scanner.addDefaultExcludes();
+        scanner.scan();
+        return getUncoveredFiles(sourceDirectory, scanner.getIncludedFiles(), prefix, entryNames);
+    }
+
+    private Collection<File> getUncoveredFiles(final File sourceDirectory, final String[] relativeSourceFileNames, final String prefix, final Collection<String> entryNames) {
+        Collection<File> uncoveredFiles = new ArrayList<>();
+        for (String relativeSourceFileName : relativeSourceFileNames) {
+            if (!entryNames.contains(JCR_ROOT + prefix + relativeSourceFileName)) {
+                uncoveredFiles.add(new File(sourceDirectory, relativeSourceFileName));
+            }
+        }
+        return uncoveredFiles;
+    }
+    
     private MavenArchiveConfiguration getMavenArchiveConfiguration(File manifestFile) throws IOException {
         if (archive == null) {
             archive = new MavenArchiveConfiguration();

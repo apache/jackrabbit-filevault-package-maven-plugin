@@ -157,4 +157,9 @@ public class FilterIT {
 
         assertTrue("Marker file still exists.", marker.exists());
     }
+    
+    @Test 
+    public void test_filter_not_covering_all_files() throws Exception {
+        verify("filter-not-covering-all-files", true);
+    }
 }

@@ -19,7 +19,6 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -179,7 +178,7 @@ public class CheckSignatureMojo extends AbstractMojo {
     private Collection<File> getEmbeddeds() throws MojoFailureException {
         Set<File> files = new HashSet<File>();
         for (Embedded emb : embeddeds) {
-            final List<Artifact> artifacts = emb.getMatchingArtifacts(project);
+            final Collection<Artifact> artifacts = emb.getMatchingArtifacts(project);
             if (artifacts.isEmpty()) {
                 if (failOnMissingEmbed) {
                     throw new MojoFailureException(
