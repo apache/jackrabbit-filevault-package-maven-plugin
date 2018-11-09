@@ -46,7 +46,10 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.archiver.ArchiveEntry;
+import org.codehaus.plexus.archiver.Archiver;
+import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.FileSet;
+import org.codehaus.plexus.archiver.ResourceIterator;
 import org.codehaus.plexus.util.AbstractScanner;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
@@ -109,6 +112,17 @@ public class VaultMojo extends AbstractPackageMojo {
     private boolean failOnUncoveredSourceFiles;
 
     /**
+     * Set to {@code false} to not fail the build in case of files/folders being added to the resulting 
+     * package more than once. Usually this indicates overlapping with embedded files or overlapping filter rules.
+     */
+    @Parameter(
+            property = "vault.failOnDuplicateEntries",
+            required = true,
+            defaultValue = "true"
+    )
+    private boolean failOnDuplicateEntries;
+
+    /**
      * The name of the generated package ZIP file without the ".zip" file
      * extension.
      */
@@ -139,9 +153,15 @@ public class VaultMojo extends AbstractPackageMojo {
     /**
      * The file name patterns to exclude in addition to the ones listed in
      * {@link AbstractScanner#DEFAULTEXCLUDES}. The format of each pattern is described in {@link DirectoryScanner}.
+     * The comparison is against the path relative to the according filter root.
+     * Since this is hardly predictable it is recommended to use only filename/directory name patterns here 
+     * but not take into account file system hierarchies!
+     * <p>
+     * Each value is either a regex pattern if enclosed within {@code %regex[} and {@code ]}, otherwise an 
+     * <a href="https://ant.apache.org/manual/dirtasks.html#patterns">Ant pattern</a>.
      */
     @Parameter(property = "vault.excludes",
-               defaultValue="**/.vlt,**/.vltignore,**/.DS_Store",
+               defaultValue="**/.vlt,**/.vltignore",
                required = true)
     private String[] excludes;
 
@@ -203,18 +223,26 @@ public class VaultMojo extends AbstractPackageMojo {
             Map<String, File> embeddedFiles = getEmbeddedFilesMap();
 
             ContentPackageArchiver contentPackageArchiver = new ContentPackageArchiver();
+            if (failOnDuplicateEntries) {
+                contentPackageArchiver.setDuplicateBehavior(Archiver.DUPLICATES_FAIL);
+            }
             contentPackageArchiver.setIncludeEmptyDirs(true);
             if (metaInfDirectory != null) {
-                // ensure that generated filter.xml comes first
-                File filterXML = getFilterFile();
-                if (filterXML.exists()) {
-                    contentPackageArchiver.addFile(filterXML, "META-INF/vault/filter.xml");
-                }
-                contentPackageArchiver.addFileSet(createFileSet(metaInfDirectory, "META-INF/vault/"));
+                // first add the metadata from the metaInfDirectory (they should take precedence over the generated ones from workDirectory, 
+                // except for the filter.xml, which should always come from the work directory)
+                contentPackageArchiver.addFileSet(createFileSet(metaInfDirectory, "META-INF/vault/", Collections.singletonList("filter.xml")));
             }
-            contentPackageArchiver.addFileSet(createFileSet(workDirectory, "", Collections.singletonList("META-INF/MANIFEST.MF")));
-            contentPackageArchiver.addFileSet(createFileSet(workDirectory, "", null));
-
+            // then add all files from the workDirectory (they might overlap with the ones from metaInfDirectory, therefore only add the non-conflicting ones)
+            Collection<File> workDirectoryFilesNotYetExistingInArchive = getUncoveredFiles(workDirectory, "", contentPackageArchiver.getFiles().keySet(), Collections.singletonList("META-INF/MANIFEST.MF"));
+            for (File workDirectoryFile : workDirectoryFilesNotYetExistingInArchive) {
+                contentPackageArchiver.addFile(workDirectoryFile, workDirectory.toPath().relativize(workDirectoryFile.toPath()).toString());
+            }
+            
+            // add embedded files
+            for (Map.Entry<String, File> entry : embeddedFiles.entrySet()) {
+                contentPackageArchiver.addFile(entry.getValue(), entry.getKey());
+            }
+            
             // include content from build only if it exists
             if (jcrSourceDirectory != null && jcrSourceDirectory.exists()) {
                 // See GRANITE-16348
@@ -241,23 +269,55 @@ public class VaultMojo extends AbstractPackageMojo {
                             continue;
                         }
 
+                        boolean isFilterRootDirectory = true;
                         File rootDirectory = new File(jcrSourceDirectory, relPath);
 
                         // traverse the ancestors until we find a existing directory (see CQ-4204625)
                         while ((!rootDirectory.exists() || !rootDirectory.isDirectory())
-                                && !jcrSourceDirectory.equals(rootDirectory)) {
+                                && !jcrSourceDirectory.equals(rootDirectory) && !fullCoverage.isFile()) {
                             rootDirectory = rootDirectory.getParentFile();
                             relPath = StringUtils.chomp(relPath, "/");
+                            fullCoverage = new File(rootDirectory, relPath + ".xml");
+                            isFilterRootDirectory = false;
                         }
 
-                        if (!jcrSourceDirectory.equals(rootDirectory)) {
+                        // either parent node was covered by a full coverage aggregate
+                        if (fullCoverage.isFile()) {
+                            rootPath = FileUtils.normalize(JCR_ROOT + prefix + relPath + ".xml");
+                            contentPackageArchiver.addFile(fullCoverage, rootPath);
+                        } else {
+                            // or a simple folder containing a ".content.xml"
                             rootPath = FileUtils.normalize(JCR_ROOT + prefix + relPath);
-                            contentPackageArchiver.addFileSet(createFileSet(rootDirectory, rootPath + "/"));
+                            // is the folder the filter root?
+                            if (isFilterRootDirectory) {
+                                // then just include the full folder
+                                contentPackageArchiver.addFileSet(createFileSet(rootDirectory, rootPath + "/"));
+                            } else {
+                                // otherwise, make sure to not add child directories which are not direct ancestors of the filter roots
+                                contentPackageArchiver.addFileSet(createFileSet(rootDirectory, rootPath + "/", Arrays.asList("%regex[^(?!\\.content\\.xml).*]")));
+                            }
                         }
                     }
                 }
-                
-                Collection<File> uncoveredFiles = getUncoveredFiles(jcrSourceDirectory, prefix, contentPackageArchiver.getFiles().keySet());
+
+                // check for for duplicates in the content package
+                if (failOnDuplicateEntries) {
+                    try {
+                        for (ResourceIterator iter = contentPackageArchiver.getResources(); iter.hasNext();) {
+                            iter.next();
+                        }
+                    } catch (ArchiverException e) {
+                        // this is most probably a duplicate exception
+                        // since there is no dedicated exception check if the message starts with "Duplicate file"
+                        if (e.getMessage() != null && e.getMessage().startsWith("Duplicate file")) {
+                            throw new MojoFailureException("Found duplicate files in content package, most probably you have overlapping filter roots " +
+                                    "or you embed a file which is already there in 'jcrRootSourceDirectory'. For details check the nested exception!", e);
+                        }
+                    }
+                }
+
+                // check for uncovered files
+                Collection<File> uncoveredFiles = getUncoveredFiles(jcrSourceDirectory, JCR_ROOT + prefix, contentPackageArchiver.getFiles().keySet(), null);
                 if (!uncoveredFiles.isEmpty()) {
                     for (File uncoveredFile : uncoveredFiles) {
                         getLog().warn("File " + uncoveredFile + " not covered by a filter rule and therefore not contained in the resulting package");
@@ -266,10 +326,6 @@ public class VaultMojo extends AbstractPackageMojo {
                         throw new MojoFailureException("The following files are not covered by a filter rule: \n" + StringUtils.join(uncoveredFiles.iterator(), ",\n"));
                     }
                 }
-            }
-
-            for (Map.Entry<String, File> entry : embeddedFiles.entrySet()) {
-                contentPackageArchiver.addFile(entry.getValue(), entry.getKey());
             }
 
             //NPR-14102 - Automated check for index definition
@@ -312,13 +368,26 @@ public class VaultMojo extends AbstractPackageMojo {
         }
     }
 
-    private Collection<File> getUncoveredFiles(final File sourceDirectory, final String prefix, final Collection<String> entryNames) throws IOException {
+    /**
+     * 
+     * @param sourceDirectory
+     * @param prefix
+     * @param entryNames
+     * @param additionalExcludes
+     * @return the absolute file names in the source directory which are not already listed in {@code entryNames}.
+     * @throws IOException
+     */
+    private Collection<File> getUncoveredFiles(final File sourceDirectory, final String prefix, final Collection<String> entryNames, List<String> additionalExcludes) throws IOException {
         /*
          *  similar method as in {@link org.codehaus.plexus.components.io.resources.PlexusIoFileResourceCollection#getResources();}
          */
         DirectoryScanner scanner = new DirectoryScanner();
         scanner.setBasedir(sourceDirectory);
-        scanner.setExcludes(excludes);
+        List<String> excludes = new LinkedList<>(Arrays.asList(this.excludes));
+        if (additionalExcludes != null) {
+            excludes.addAll(additionalExcludes);
+        }
+        scanner.setExcludes(excludes.toArray(new String[excludes.size()]));
         scanner.addDefaultExcludes();
         scanner.scan();
         return getUncoveredFiles(sourceDirectory, scanner.getIncludedFiles(), prefix, entryNames);
@@ -327,7 +396,7 @@ public class VaultMojo extends AbstractPackageMojo {
     private Collection<File> getUncoveredFiles(final File sourceDirectory, final String[] relativeSourceFileNames, final String prefix, final Collection<String> entryNames) {
         Collection<File> uncoveredFiles = new ArrayList<>();
         for (String relativeSourceFileName : relativeSourceFileNames) {
-            if (!entryNames.contains(JCR_ROOT + prefix + relativeSourceFileName)) {
+            if (!entryNames.contains(prefix + relativeSourceFileName)) {
                 uncoveredFiles.add(new File(sourceDirectory, relativeSourceFileName));
             }
         }

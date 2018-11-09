@@ -1,1 +1,0 @@
-jcr_root/apps/install/jcr-2.0.jar ec7a5d12

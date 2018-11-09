@@ -37,7 +37,6 @@ public class DefaultProjectIT {
                 .build()
                 .verifyExpectedFiles()
                 .verifyExpectedFilesOrder()
-                .verifyExpectedFilesChecksum()
                 .verifyExpectedManifest();
 
     }
@@ -105,5 +104,13 @@ public class DefaultProjectIT {
                 .setTestProjectDir(TEST_PROJECT_NAME + "overwritten-embed")
                 .setBuildExpectedToFail(true)
                 .build();
+    }
+
+    @Test
+    public void overwritten_embed_not_failing() throws Exception {
+        new ProjectBuilder()
+                .setTestProjectDir(TEST_PROJECT_NAME + "overwritten-embed-not-failing")
+                .build()
+                .verifyExpectedFilesChecksum();
     }
 }
