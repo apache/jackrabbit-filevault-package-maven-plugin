@@ -312,6 +312,8 @@ public class VaultMojo extends AbstractPackageMojo {
                         if (e.getMessage() != null && e.getMessage().startsWith("Duplicate file")) {
                             throw new MojoFailureException("Found duplicate files in content package, most probably you have overlapping filter roots " +
                                     "or you embed a file which is already there in 'jcrRootSourceDirectory'. For details check the nested exception!", e);
+                        } else {
+                            throw e;
                         }
                     }
                 }
