@@ -19,15 +19,12 @@ jcr_root/apps/
 jcr_root/apps/install/
 jcr_root/apps/install/org.apache.jackrabbit.vault-3.1.40.jar
 jcr_root/apps/wcm/
-jcr_root/apps/wcm/.content.xml
 jcr_root/apps/wcm/core/
-jcr_root/apps/wcm/core/.content.xml
 jcr_root/apps/wcm/core/content/
 jcr_root/apps/wcm/core/content/.content.xml
 jcr_root/apps/wcm/core/content/siteadmin.xml
 jcr_root/etc/
 jcr_root/etc/cloudservices/
-jcr_root/etc/cloudservices/.content.xml
 jcr_root/etc/cloudservices/ooyala/
 jcr_root/etc/cloudservices/ooyala/.content.xml
 jcr_root/etc/designs/

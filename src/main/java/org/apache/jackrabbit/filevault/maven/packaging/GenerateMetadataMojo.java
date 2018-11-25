@@ -71,7 +71,9 @@ import aQute.bnd.header.Parameters;
 import aQute.bnd.osgi.Processor;
 
 /**
- * Maven goal which generates the metadata ending up in the package like {@code filter.xml}, {@code properties.xml} as well as the {@code MANIFEST.MF}.
+ * Maven goal which generates the metadata ending up in the package like {@code META-INF/MANIFEST.MF} as well as the
+ * files ending up in {@code META-INF/vault} like {@code filter.xml}, {@code properties.xml}, {@code config.xml} and
+ * {@code settings.xml}. Those files will be written to the directory given via parameter {@link #workDirectory}.
  * In addition performs some validations.
  */
 @Mojo(

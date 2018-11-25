@@ -24,9 +24,6 @@ jcr_root/etc/designs/some-thirdparty-libs/clientlibs/thirdparty-common/js.txt
 jcr_root/etc/cloudservices/
 jcr_root/etc/cloudservices/ooyala/
 jcr_root/etc/cloudservices/ooyala/.content.xml
-jcr_root/etc/cloudservices/.content.xml
-jcr_root/apps/wcm/.content.xml
-jcr_root/apps/wcm/core/.content.xml
 META-INF/maven/
 META-INF/maven/org.apache.jackrabbit.filevault/
 META-INF/maven/org.apache.jackrabbit.filevault/package-plugin-test-pkg/
