@@ -16,8 +16,15 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import java.beans.XMLDecoder;
+import java.beans.XMLEncoder;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
@@ -27,6 +34,9 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.StringInputStream;
+
+import aQute.lib.base64.Base64;
 
 public abstract class AbstractPackageMojo extends AbstractMojo {
 
@@ -135,27 +145,46 @@ public abstract class AbstractPackageMojo extends AbstractMojo {
         }
     }
 
+    static String serializeObjectToString(Object object) throws IOException {
+        ByteArrayOutputStream data = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(data);
+        out.writeObject(object);
+        // convert to string (every character should be mappable)
+        return Base64.encodeBase64(data.toByteArray());
+    }
+
+    static Object deserializeObjectFromString(String value) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream data = new ByteArrayInputStream(Base64.decodeBase64(value));
+        ObjectInputStream out = new ObjectInputStream(data);
+        return out.readObject();
+    }
+
     /**
      * Sets the map of embedded files as project properties as a helper to pass data between the goals
-     * @param embeddedFiles map of embedded files.
+     * @param embeddedFiles map of embedded files where key=relative path within the target content zip and value=file containing the content
+     * @throws IOException 
      */
-    void setEmbeddedFilesMap(Map<String, File> embeddedFiles) {
-        project.getProperties().put(PROPERTIES_EMBEDDEDFILESMAP_KEY, embeddedFiles);
+    void setEmbeddedFilesMap(Map<String, File> embeddedFiles) throws IOException {
+        project.getProperties().setProperty(PROPERTIES_EMBEDDEDFILESMAP_KEY, serializeObjectToString(embeddedFiles));
     }
 
     /**
      * Reads the map of embedded files from the project properties. This is a helper to pass data between the goals.
      * @return the map of embedded files.
+     * @throws IOException 
+     * @throws ClassNotFoundException 
      */
-    Map<String, File> getEmbeddedFilesMap() {
-        Object value = project.getProperties().get(PROPERTIES_EMBEDDEDFILESMAP_KEY);
+    Map<String, File> getEmbeddedFilesMap() throws ClassNotFoundException, IOException {
+        // deserialize the map from the string representation being created via {@link AbstractMap#toString()}.
+        String value = project.getProperties().getProperty(PROPERTIES_EMBEDDEDFILESMAP_KEY);
         if (value == null) {
             return Collections.emptyMap();
         } else {
-            if (value instanceof Map<?,?>) {
-                return (Map<String, File>) value;
+            Object object = deserializeObjectFromString(value);
+            if (object instanceof Map<?,?>) {
+                return (Map<String, File>) object;
             } else {
-                throw new IllegalStateException("The Maven property " + PROPERTIES_EMBEDDEDFILESMAP_KEY + " is not containing a Map but rather " + value.getClass());
+                throw new IllegalStateException("The Maven property " + PROPERTIES_EMBEDDEDFILESMAP_KEY + " is not containing a serialized Map but rather " + value.getClass());
             }
         }
     }
