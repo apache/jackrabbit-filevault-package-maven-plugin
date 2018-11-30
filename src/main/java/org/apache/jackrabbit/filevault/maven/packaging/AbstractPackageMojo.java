@@ -16,15 +16,12 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
-import java.beans.XMLDecoder;
-import java.beans.XMLEncoder;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
@@ -34,7 +31,6 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.util.StringInputStream;
 
 import aQute.lib.base64.Base64;
 
@@ -174,6 +170,7 @@ public abstract class AbstractPackageMojo extends AbstractMojo {
      * @throws IOException 
      * @throws ClassNotFoundException 
      */
+    @SuppressWarnings("unchecked")
     Map<String, File> getEmbeddedFilesMap() throws ClassNotFoundException, IOException {
         // deserialize the map from the string representation being created via {@link AbstractMap#toString()}.
         String value = project.getProperties().getProperty(PROPERTIES_EMBEDDEDFILESMAP_KEY);
