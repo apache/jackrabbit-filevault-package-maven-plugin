@@ -142,17 +142,18 @@ public abstract class AbstractPackageMojo extends AbstractMojo {
     }
 
     static String serializeObjectToString(Object object) throws IOException {
-        ByteArrayOutputStream data = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(data);
-        out.writeObject(object);
-        // convert to string (every character should be mappable)
-        return Base64.encodeBase64(data.toByteArray());
+        try (ByteArrayOutputStream data = new ByteArrayOutputStream();
+             ObjectOutputStream out = new ObjectOutputStream(data)) {
+            out.writeObject(object);
+            return Base64.encodeBase64(data.toByteArray());
+        }
     }
 
     static Object deserializeObjectFromString(String value) throws IOException, ClassNotFoundException {
-        ByteArrayInputStream data = new ByteArrayInputStream(Base64.decodeBase64(value));
-        ObjectInputStream out = new ObjectInputStream(data);
-        return out.readObject();
+        try (ByteArrayInputStream data = new ByteArrayInputStream(Base64.decodeBase64(value));
+             ObjectInputStream out = new ObjectInputStream(data)) {
+            return out.readObject();
+        }
     }
 
     /**
@@ -172,7 +173,6 @@ public abstract class AbstractPackageMojo extends AbstractMojo {
      */
     @SuppressWarnings("unchecked")
     Map<String, File> getEmbeddedFilesMap() throws ClassNotFoundException, IOException {
-        // deserialize the map from the string representation being created via {@link AbstractMap#toString()}.
         String value = project.getProperties().getProperty(PROPERTIES_EMBEDDEDFILESMAP_KEY);
         if (value == null) {
             return Collections.emptyMap();
