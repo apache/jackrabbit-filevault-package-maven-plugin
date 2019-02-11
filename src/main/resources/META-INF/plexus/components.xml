@@ -31,13 +31,13 @@
                             <compile>org.apache.maven.plugins:maven-compiler-plugin:compile</compile>
                             <process-classes>
                                 org.apache.jackrabbit:filevault-package-maven-plugin:check-signature,
-                                org.apache.jackrabbit:filevault-package-maven-plugin:analyze-classes,
-                                org.apache.jackrabbit:filevault-package-maven-plugin:generate-metadata
+                                org.apache.jackrabbit:filevault-package-maven-plugin:analyze-classes
                             </process-classes>
                             <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources
                             </process-test-resources>
                             <test-compile>org.apache.maven.plugins:maven-compiler-plugin:testCompile</test-compile>
                             <test>org.apache.maven.plugins:maven-surefire-plugin:test</test>
+                            <prepare-package>org.apache.jackrabbit:filevault-package-maven-plugin:generate-metadata</prepare-package>
                             <package>org.apache.jackrabbit:filevault-package-maven-plugin:package</package>
                             <install>org.apache.maven.plugins:maven-install-plugin:install</install>
                             <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
