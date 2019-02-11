@@ -47,11 +47,13 @@ import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.io.AccessControlHandling;
 import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageType;
+import org.apache.jackrabbit.vault.util.Text;
 import org.apache.maven.archiver.ManifestConfiguration;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -78,7 +80,7 @@ import aQute.bnd.osgi.Processor;
  */
 @Mojo(
         name = "generate-metadata",
-        defaultPhase = LifecyclePhase.PREPARE_PACKAGE,
+        defaultPhase = LifecyclePhase.PROCESS_CLASSES,
         requiresDependencyResolution = ResolutionScope.COMPILE
 )
 public class GenerateMetadataMojo extends AbstractPackageMojo {
@@ -107,6 +109,12 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
      */
     @Component
     private BuildContext buildContext;
+
+    /**
+     * For correct source of standard embedded path base name.
+     */
+    @Component(hint = "default")
+    private ArtifactRepositoryLayout embedArtifactLayout;
 
     /**
      * The Maven session.
@@ -852,7 +860,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
 
                 // todo: add support for patterns
                 if (destFileName == null) {
-                    destFileName = source.getName();
+                    destFileName = Text.getName(embedArtifactLayout.pathOf(artifact));
                 }
                 final String targetPathName = targetPath + destFileName;
                 final String targetNodePathName = targetPathName.substring(JCR_ROOT.length() - 1);
