@@ -32,7 +32,7 @@ public abstract class AbstractPackageMojo extends AbstractMojo {
 
     static final String JCR_ROOT = "jcr_root/";
 
-    private static final String PROPERTIES_EMBEDDEDFILESMAP_KEY = "vault.embeddedfiles.map";
+    private static final String PROPERTIES_EMBEDDEDFILESMAP_KEY = "embeddedfiles.map";
 
     private static final String VAULT_DIR = "META-INF/vault";
 
@@ -139,16 +139,18 @@ public abstract class AbstractPackageMojo extends AbstractMojo {
      * Sets the map of embedded files as project properties as a helper to pass data between the goals
      * @param embeddedFiles map of embedded files.
      */
+    @SuppressWarnings("unchecked")
     void setEmbeddedFilesMap(Map<String, File> embeddedFiles) {
-        project.getProperties().put(PROPERTIES_EMBEDDEDFILESMAP_KEY, embeddedFiles);
+        getPluginContext().put(PROPERTIES_EMBEDDEDFILESMAP_KEY, embeddedFiles);
     }
 
     /**
      * Reads the map of embedded files from the project properties. This is a helper to pass data between the goals.
      * @return the map of embedded files.
      */
+    @SuppressWarnings("unchecked")
     Map<String, File> getEmbeddedFilesMap() {
-        Object value = project.getProperties().get(PROPERTIES_EMBEDDEDFILESMAP_KEY);
+        Object value = getPluginContext().get(PROPERTIES_EMBEDDEDFILESMAP_KEY);
         if (value == null) {
             return Collections.emptyMap();
         } else {
