@@ -21,15 +21,31 @@ import org.junit.Test;
 public class GenerateMetadataMultiModuleIT {
 
     /**
-     * Tests that the generate-manifest goal succeeds when run on
-     * inter-module dependencies in a multi-module setup.
+     * Tests that the generate-manifest goal generates the expected filter.xml when run on
+     * inter-module dependencies in a multi-module setup for clean + test goals.
      */
     @Test
-    public void multi_module_build_succeeds() throws Exception {
+    public void multi_module_build_clean_test() throws Exception {
         new ProjectBuilder()
                 .setTestProjectDir("/generate-metadata-multimodule")
                 .setTestGoals("clean", "test")
                 .setVerifyPackageContents(false)
-                .build();
+                .build()
+                .verifyExpectedFilterInWorkDirectory("container/target/vault-work");
+    }
+
+    /**
+     * Tests that the generate-manifest goal generates the expected filter.xml when run on
+     * inter-module dependencies in a multi-module setup for clean + test goals.
+     */
+    @Test
+    public void multi_module_build_clean_package() throws Exception {
+        new ProjectBuilder()
+                .setTestProjectDir("/generate-metadata-multimodule")
+                .setTestPackageFile("container/" + ProjectBuilder.TEST_PACKAGE_DEFAULT_NAME)
+                .setTestGoals("clean", "package")
+                .setVerifyPackageContents(false)
+                .build()
+                .verifyExpectedFilter();
     }
 }

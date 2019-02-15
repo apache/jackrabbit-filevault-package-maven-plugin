@@ -21,7 +21,7 @@
         <artifactId>package-plugin-test-pkg-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
-    <artifactId>package-plugin-test-pkg-container</artifactId>
+    <artifactId>package-plugin-test-pkg</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>content-package</packaging>
     <name>Packaging test</name>
@@ -44,6 +44,12 @@
                             <groupId>${project.groupId}</groupId>
                             <artifactId>package-plugin-test-pkg-bundle2</artifactId>
                             <filter>true</filter>
+                        </embedded>
+                        <embedded>
+                            <groupId>${project.groupId}</groupId>
+                            <artifactId>package-plugin-test-pkg-bundle3</artifactId>
+                            <filter>true</filter>
+                            <destFileName>bundle3-core.jar</destFileName>
                         </embedded>
                     </embeddeds>
                     <subPackages>
@@ -72,6 +78,11 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>package-plugin-test-pkg-bundle2</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>package-plugin-test-pkg-bundle3</artifactId>
             <version>1.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>

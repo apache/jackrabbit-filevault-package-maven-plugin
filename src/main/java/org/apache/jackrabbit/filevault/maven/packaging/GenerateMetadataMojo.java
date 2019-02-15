@@ -868,7 +868,32 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
 
                 // todo: add support for patterns
                 if (destFileName == null) {
-                    destFileName = Text.getName(embedArtifactLayout.pathOf(artifact));
+                    // If the <destFileName> param is not specified...
+                    if (!source.isDirectory()) {
+                        // If the artifact file is not a directory, defer to File.getName().
+                        destFileName = source.getName();
+                    } else {
+                        // If the dependency file is a directory, the final artifact file has not yet been packaged.
+                        // Construct a fallback file name from the artifact coordinates.
+                        final String layoutBaseName = Text.getName(embedArtifactLayout.pathOf(artifact));
+                        // Look for a peer module in the session that the artifact is attached to.
+                        final MavenProject peerModule = findModuleForArtifact(artifact);
+                        if (peerModule != null) {
+                            // determine the finalName of the artifact, which is ${artifactId}-${version} by default.
+                            final Artifact attached = peerModule.getArtifact();
+                            final String defaultFinalName = attached.getArtifactId() + "-" + attached.getVersion();
+                            final String peerFinalName = peerModule.getBuild().getFinalName();
+                            if (peerFinalName != null) {
+                                // remove the default finalName from the beginning of the layout basename, and
+                                // prepend the specified finalName to create the destFileName.
+                                destFileName = peerFinalName + layoutBaseName.substring(defaultFinalName.length());
+                            }
+                        }
+                        // If destFileName is still null, fallback to layoutBaseName.
+                        if (destFileName == null) {
+                            destFileName = layoutBaseName;
+                        }
+                    }
                 }
                 final String targetPathName = targetPath + destFileName;
                 final String targetNodePathName = targetPathName.substring(JCR_ROOT.length() - 1);
@@ -921,6 +946,9 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
      * Construct a handler-independent artifact disambiguation key. This helps with the issue
      * of matching dependency artifacts, which cannot reliably reference their original artifact handler to match the
      * correct packaging type, to multimodule artifacts, which include the packaging type in their getId() result.
+     *
+     * I.E. {@link Artifact#getId()} contains either ":content-package:" or ":zip:" depending on whether it comes from
+     * this.session.getProjects() -> MavenProject#getArtifact() or from this.project.getArtifacts().
      *
      * @param artifact the module artifact ({@link MavenProject#getArtifact()}) to identify
      * @return a handler-independent artifact disambiguation key

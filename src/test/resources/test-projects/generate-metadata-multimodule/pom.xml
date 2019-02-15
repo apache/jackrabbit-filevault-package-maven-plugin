@@ -28,6 +28,7 @@
     <modules>
         <module>bundle1</module>
         <module>bundle2</module>
+        <module>bundle3</module>
         <module>sub1</module>
         <module>sub2</module>
         <module>container</module>

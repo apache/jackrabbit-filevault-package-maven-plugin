@@ -22,13 +22,12 @@
         <artifactId>package-plugin-test-pkg-parent</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
-    <artifactId>package-plugin-test-pkg-bundle1</artifactId>
+    <artifactId>package-plugin-test-pkg-bundle3</artifactId>
     <packaging>bundle</packaging>
 
     <name>Packaging test bundle artifact</name>
 
     <build>
-        <finalName>bundle1</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
