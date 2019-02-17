@@ -169,6 +169,11 @@ public class ProjectBuilder {
         return this;
     }
 
+    public ProjectBuilder setTestPackageFile(String testPackageFileName) {
+        this.setTestPackageFile(new File(testProjectDir, testPackageFileName));
+        return this;
+    }
+
     public File getTestPackageFile() {
         return testPackageFile;
     }
@@ -331,6 +336,20 @@ public class ProjectBuilder {
             String expected = FileUtils.fileRead(expectedFilterFile);
             assertEquals("filter.xml is correct", normalizeWhitespace(expected), normalizeWhitespace(result));
         }
+        return this;
+    }
+
+    public ProjectBuilder verifyExpectedFilterInWorkDirectory(final String workDirectory) throws IOException {
+        if (buildExpectedToFail) {
+            return this;
+        }
+        File workDirFile = new File(testProjectDir, workDirectory);
+        assertTrue("workDirectory should exist: " + workDirFile.toString(), workDirFile.isDirectory());
+        File filterFile = new File(workDirFile, "META-INF/vault/filter.xml");
+        assertTrue("filterFile should exist: " + filterFile.toString(), filterFile.isFile());
+        String result = FileUtils.fileRead(filterFile);
+        String expected = FileUtils.fileRead(expectedFilterFile);
+        assertEquals("filter.xml is incorrect", normalizeWhitespace(expected), normalizeWhitespace(result));
         return this;
     }
 

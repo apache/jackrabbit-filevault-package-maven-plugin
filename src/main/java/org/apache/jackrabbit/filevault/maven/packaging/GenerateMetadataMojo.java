@@ -17,6 +17,7 @@
 package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,10 +36,14 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import aQute.bnd.header.Attrs;
+import aQute.bnd.header.Parameters;
+import aQute.bnd.osgi.Processor;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.DependencyValidator;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageDependency;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
@@ -47,28 +52,28 @@ import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.io.AccessControlHandling;
 import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageType;
+import org.apache.jackrabbit.vault.util.Text;
 import org.apache.maven.archiver.ManifestConfiguration;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.descriptor.PluginDescriptor;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.sonatype.plexus.build.incremental.BuildContext;
-
-import aQute.bnd.header.Attrs;
-import aQute.bnd.header.Parameters;
-import aQute.bnd.osgi.Processor;
 
 /**
  * Maven goal which generates the metadata ending up in the package like {@code META-INF/MANIFEST.MF} as well as the
@@ -78,7 +83,7 @@ import aQute.bnd.osgi.Processor;
  */
 @Mojo(
         name = "generate-metadata",
-        defaultPhase = LifecyclePhase.PREPARE_PACKAGE,
+        defaultPhase = LifecyclePhase.PROCESS_CLASSES,
         requiresDependencyResolution = ResolutionScope.COMPILE
 )
 public class GenerateMetadataMojo extends AbstractPackageMojo {
@@ -107,6 +112,12 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
      */
     @Component
     private BuildContext buildContext;
+
+    /**
+     * For correct source of standard embedded path base name.
+     */
+    @Component(hint = "default")
+    private ArtifactRepositoryLayout embedArtifactLayout;
 
     /**
      * The Maven session.
@@ -409,6 +420,11 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
 
         final File vaultDir = getVaultDir();
         vaultDir.mkdirs();
+
+        // JCRVLT-331 share work directory to expose vault metadata between process-classes and package phases for
+        // multi-module builds.
+        getArtifactWorkDirectoryLookup(getPluginContext())
+                .put(getModuleArtifactKey(project.getArtifact()), workDirectory);
 
         try {
             // calculate the embeddeds and subpackages
@@ -852,7 +868,32 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
 
                 // todo: add support for patterns
                 if (destFileName == null) {
-                    destFileName = source.getName();
+                    // If the <destFileName> param is not specified...
+                    if (!source.isDirectory()) {
+                        // If the artifact file is not a directory, defer to File.getName().
+                        destFileName = source.getName();
+                    } else {
+                        // If the dependency file is a directory, the final artifact file has not yet been packaged.
+                        // Construct a fallback file name from the artifact coordinates.
+                        final String layoutBaseName = Text.getName(embedArtifactLayout.pathOf(artifact));
+                        // Look for a peer module in the session that the artifact is attached to.
+                        final MavenProject peerModule = findModuleForArtifact(artifact);
+                        if (peerModule != null) {
+                            // determine the finalName of the artifact, which is ${artifactId}-${version} by default.
+                            final Artifact attached = peerModule.getArtifact();
+                            final String defaultFinalName = attached.getArtifactId() + "-" + attached.getVersion();
+                            final String peerFinalName = peerModule.getBuild().getFinalName();
+                            if (peerFinalName != null) {
+                                // remove the default finalName from the beginning of the layout basename, and
+                                // prepend the specified finalName to create the destFileName.
+                                destFileName = peerFinalName + layoutBaseName.substring(defaultFinalName.length());
+                            }
+                        }
+                        // If destFileName is still null, fallback to layoutBaseName.
+                        if (destFileName == null) {
+                            destFileName = layoutBaseName;
+                        }
+                    }
                 }
                 final String targetPathName = targetPath + destFileName;
                 final String targetNodePathName = targetPathName.substring(JCR_ROOT.length() - 1);
@@ -868,7 +909,56 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
         return fileMap;
     }
 
+    /**
+     * Establishes a session-shareable workDirectory lookup map for the given pluginContext.
+     *
+     * @param pluginContext a Map retrieved from {@link MavenSession#getPluginContext(PluginDescriptor, MavenProject)}.
+     * @return a lookup Map. The key is {@link Artifact#getId()} and value is {@link AbstractPackageMojo#workDirectory}.
+     */
+    @SuppressWarnings("unchecked")
+    static Map<String, File> getArtifactWorkDirectoryLookup(final Map pluginContext) {
+        final String workDirectoryLookupKey = "workDirectoryLookup";
+        if (!pluginContext.containsKey(workDirectoryLookupKey)) {
+            pluginContext.put(workDirectoryLookupKey, new ConcurrentHashMap<String, File>());
+        }
+        return (Map<String, File>) pluginContext.get(workDirectoryLookupKey);
+    }
+
+    /**
+     * Find the other project which produces the provided artifact.
+     *
+     * @param artifact the dependency artifact needle
+     * @return another project that is a dependency of thisProject
+     */
+    MavenProject findModuleForArtifact(final Artifact artifact) {
+        for (MavenProject otherProject : session.getProjects()) {
+            if (otherProject != this.project) {
+                final Artifact otherArtifact = otherProject.getArtifact();
+                if (getModuleArtifactKey(artifact).equals(getModuleArtifactKey(otherArtifact))) {
+                    return otherProject;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Construct a handler-independent artifact disambiguation key. This helps with the issue
+     * of matching dependency artifacts, which cannot reliably reference their original artifact handler to match the
+     * correct packaging type, to multimodule artifacts, which include the packaging type in their getId() result.
+     *
+     * I.E. {@link Artifact#getId()} contains either ":content-package:" or ":zip:" depending on whether it comes from
+     * this.session.getProjects() -> MavenProject#getArtifact() or from this.project.getArtifacts().
+     *
+     * @param artifact the module artifact ({@link MavenProject#getArtifact()}) to identify
+     * @return a handler-independent artifact disambiguation key
+     */
+    String getModuleArtifactKey(final Artifact artifact) {
+        return this.embedArtifactLayout.pathOf(artifact);
+    }
+
     private Map<String, File> getSubPackages() throws MojoFailureException {
+        final String propsRelPath = "META-INF/vault/properties.xml";
         Map<String, File> fileMap = new HashMap<>();
         for (SubPackage pack : subPackages) {
             final Collection<Artifact> artifacts = pack.getMatchingArtifacts(project);
@@ -880,22 +970,47 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
             // get the package path
             getLog().info("Embedding --- " + pack + " ---");
             for (Artifact artifact : artifacts) {
-                final File source = artifact.getFile();
+                final Properties props = new Properties();
 
-                // load properties
-                InputStream in = null;
-                Properties props = new Properties();
-                try (ZipFile zip = new ZipFile(source, ZipFile.OPEN_READ)){
-                    ZipEntry e = zip.getEntry("META-INF/vault/properties.xml");
-                    if (e == null) {
-                        throw new IOException("Package does not contain 'META-INF/vault/properties.xml'");
+                final File source = artifact.getFile();
+                if (source.isDirectory()) {
+                    File otherWorkDirectory = null;
+                    final MavenProject otherProject = findModuleForArtifact(artifact);
+                    if (otherProject != null) {
+                        final PluginDescriptor pluginDescriptor = (PluginDescriptor) this.getPluginContext().get("pluginDescriptor");
+                        if (pluginDescriptor != null) {
+                            Map<String, Object> otherContext = this.session.getPluginContext(pluginDescriptor, otherProject);
+                            otherWorkDirectory = getArtifactWorkDirectoryLookup(otherContext).get(getModuleArtifactKey(artifact));
+                        }
                     }
-                    in = zip.getInputStream(e);
-                    props.loadFromXML(in);
-                } catch (IOException e) {
-                    throw new MojoFailureException("Could not open subpackage '" + source + "' to extract metadata: " + e.getMessage(), e);
-                } finally {
-                    IOUtil.close(in);
+
+                    // if not identifiable as a filevault content-package dependency, assume a generic archive layout.
+                    if (otherWorkDirectory == null) {
+                        otherWorkDirectory = source;
+                    }
+
+                    final File propsXml = new File(otherWorkDirectory, propsRelPath);
+                    try (InputStream input = new FileInputStream(propsXml)) {
+                        props.loadFromXML(input);
+                    } catch (IOException e) {
+                        throw new MojoFailureException("Could not read META-INF/vault/properties.xml from directory '" +
+                                otherWorkDirectory + "' to extract metadata: " + e.getMessage(), e);
+                    }
+                } else {
+                    // load properties
+                    InputStream in = null;
+                    try (ZipFile zip = new ZipFile(source, ZipFile.OPEN_READ)) {
+                        ZipEntry e = zip.getEntry(propsRelPath);
+                        if (e == null) {
+                            throw new IOException("Package does not contain 'META-INF/vault/properties.xml'");
+                        }
+                        in = zip.getInputStream(e);
+                        props.loadFromXML(in);
+                    } catch (IOException e) {
+                        throw new MojoFailureException("Could not open subpackage '" + source + "' to extract metadata: " + e.getMessage(), e);
+                    } finally {
+                        IOUtil.close(in);
+                    }
                 }
                 PackageId pid = new PackageId(
                         props.getProperty("group"),
