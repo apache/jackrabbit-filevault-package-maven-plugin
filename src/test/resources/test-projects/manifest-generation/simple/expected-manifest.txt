@@ -4,7 +4,6 @@ Content-Package-Id:my/test/group:package-plugin-test-pkg:1.0.0-SNAPSHOT
 Content-Package-Roots:/apps/test,/apps/test2
 Content-Package-Type:application
 Implementation-Title:Example Default Project
-Implementation-Vendor-Id:org.apache.jackrabbit.filevault
 Implementation-Version:1.0.0-SNAPSHOT
 Import-Package:com.apache.components;version="[5.5.0,6)"
 Import-Package:javax.jcr;version="[2.0.0,3)"

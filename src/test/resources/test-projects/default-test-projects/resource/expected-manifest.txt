@@ -3,6 +3,5 @@ Content-Package-Id:org.apache.jackrabbit.filevault:package-plugin-test-pkg:1.0.0
 Content-Package-Roots:/apps/some-thirdparty-libs,/apps/wcm/core/content,/etc/cloudservices/ooyala,/etc/designs/some-thirdparty-libs,/etc/packages/apache/consulting,/rep:policy
 Content-Package-Type:mixed
 Implementation-Title:Packaging test
-Implementation-Vendor-Id:org.apache.jackrabbit.filevault
 Implementation-Version:1.0.0-SNAPSHOT
 Manifest-Version:1.0
