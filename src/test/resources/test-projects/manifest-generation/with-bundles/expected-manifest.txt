@@ -3,7 +3,6 @@ Content-Package-Id:my/test/group:package-plugin-test-pkg:1.0.0-SNAPSHOT
 Content-Package-Roots:/apps/test
 Content-Package-Type:application
 Implementation-Title:Example Default Project
-Implementation-Vendor-Id:org.apache.jackrabbit.filevault
 Implementation-Version:1.0.0-SNAPSHOT
 Import-Package:javax.jcr.lock;version="[1.0.0,3.0.0)"
 Import-Package:javax.jcr.nodetype;version="[1.0.0,3.0.0)"
