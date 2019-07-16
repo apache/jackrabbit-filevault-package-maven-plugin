@@ -729,6 +729,20 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
         return dependenciesString;
     }
 
+    /**
+     * Escapes multiline manifest values to work around bug <a href="https://bugs.java.com/bugdatabase/view_bug.do?bug_id=JDK-8222547">JDK-8222547</a>
+     * Java itself only adds leading SPACE in case a line is longer than 72 chars.
+     *
+     * If the value contains a newline, suffix it with an additional space (continuation character)!
+     *
+     * Unfortunately although the generated manifests for such escaped values are perfectly valid according to the spec,
+     * when reading those via {@link java.util.jar.Manifest} the new lines are stripped.
+     */
+    static final String escapeManifestValue(String value) {
+        return value.replaceAll("\n", "\n ")    // this covers CRLF and LF
+               .replaceAll("\r(?!\n)", "\r ");  // only CR (not followed by LF)
+    }
+
     private MavenArchiveConfiguration getMavenArchiveConfiguration(Properties vaultProperties, String dependenciesString) throws IOException {
         if (archive == null) {
             archive = new MavenArchiveConfiguration();
@@ -743,11 +757,11 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
 
             // TODO: split up manifest generation
             PackageId id = new PackageId(group, name, version);
-            archive.addManifestEntry(MF_KEY_PACKAGE_TYPE, packageType.name().toLowerCase());
-            archive.addManifestEntry(MF_KEY_PACKAGE_ID, id.toString());
-            archive.addManifestEntry(MF_KEY_PACKAGE_DESC, vaultProperties.getProperty("description", ""));
+            archive.addManifestEntry(MF_KEY_PACKAGE_TYPE, escapeManifestValue(packageType.name().toLowerCase()));
+            archive.addManifestEntry(MF_KEY_PACKAGE_ID, escapeManifestValue(id.toString()));
+            archive.addManifestEntry(MF_KEY_PACKAGE_DESC, escapeManifestValue(vaultProperties.getProperty("description", "")));
             if (dependenciesString != null && dependenciesString.length() > 0) {
-                archive.addManifestEntry(MF_KEY_PACKAGE_DEPENDENCIES, dependenciesString);
+                archive.addManifestEntry(MF_KEY_PACKAGE_DEPENDENCIES, escapeManifestValue(dependenciesString));
             }
             // be sure to avoid duplicates
             Set<String> rts = new TreeSet<>();
@@ -756,11 +770,11 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
             }
             String[] roots = rts.toArray(new String[rts.size()]);
             Arrays.sort(roots);
-            archive.addManifestEntry(MF_KEY_PACKAGE_ROOTS, StringUtils.join(roots, ","));
+            archive.addManifestEntry(MF_KEY_PACKAGE_ROOTS, escapeManifestValue(StringUtils.join(roots, ",")));
 
             // import package is not yet there!
             if (StringUtils.isNotEmpty(importPackage)) {
-                archive.addManifestEntry(MF_KEY_IMPORT_PACKAGE, StringUtils.deleteWhitespace(importPackage));
+                archive.addManifestEntry(MF_KEY_IMPORT_PACKAGE, escapeManifestValue(StringUtils.deleteWhitespace(importPackage)));
             }
         }
 
