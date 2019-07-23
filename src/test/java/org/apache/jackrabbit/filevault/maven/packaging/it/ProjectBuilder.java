@@ -123,10 +123,10 @@ public class ProjectBuilder {
     private String getPluginVersion() {
         String pluginVersion  = System.getProperty("plugin.version");
         if (pluginVersion == null) {
-            try {
+            try (FileReader fileReader = new FileReader("pom.xml")) {
                 // try to read from project
                 MavenXpp3Reader reader = new MavenXpp3Reader();
-                Model model = reader.read(new FileReader("pom.xml"));
+                Model model = reader.read(fileReader);
                 pluginVersion = model.getVersion();
             } catch (IOException | XmlPullParserException e) {
                 log.error("Unable to read version from pom", e);
