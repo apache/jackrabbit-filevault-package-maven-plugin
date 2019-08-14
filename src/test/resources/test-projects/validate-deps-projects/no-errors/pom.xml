@@ -47,9 +47,6 @@
                         <!-- test internal ancestors that are exclude by dependent package -->
                         <filter>
                             <root>/libs/foo/bar</root>
-                            <includes>
-                                <include>/libs/foo/bar</include>
-                            </includes>
                         </filter>
                         <filter><root>/libs/foo/bar/sub</root></filter>
                     </filters>

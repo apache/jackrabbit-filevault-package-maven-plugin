@@ -16,6 +16,14 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -32,6 +40,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -51,14 +61,6 @@ import org.slf4j.LoggerFactory;
 import aQute.bnd.header.Attrs;
 import aQute.bnd.header.Parameters;
 
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 /**
  * Helper class to build and verify a maven project.
  */
@@ -74,6 +76,8 @@ public class ProjectBuilder {
     static final String TEST_PROJECTS_ROOT = "target/test-classes/test-projects";
 
     static final String TEST_PACKAGE_DEFAULT_NAME = "target/package-plugin-test-pkg-1.0.0-SNAPSHOT.zip";
+
+    static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%(\\d*)%");
 
     private File testProjectsRoot;
 
@@ -96,6 +100,8 @@ public class ProjectBuilder {
     private File expectedFilterFile;
     
     private File expectedFilesWithChecksumsFile;
+
+    private File expectedLogLinesFile;
 
     private File logTxtFile;
 
@@ -156,7 +162,9 @@ public class ProjectBuilder {
         this.expectedManifestFile = new File(testProjectDir, "expected-manifest.txt");
         this.expectedFilterFile = new File(testProjectDir, "expected-filter.xml");
         this.expectedFilesWithChecksumsFile = new File(testProjectDir, "expected-files-with-checksums.txt");
+        this.expectedLogLinesFile = new File(testProjectDir, "expected-log-lines.txt");
         this.logTxtFile = new File(testProjectDir, "log.txt");
+        
         return this;
     }
 
@@ -205,10 +213,11 @@ public class ProjectBuilder {
         verifier.setSystemProperties(testProperties);
         verifier.setDebug(true);
         verifier.setAutoclean(false);
+        //verifier.setDebugJvm(true);
 
         try {
             verifier.executeGoals(Arrays.asList(testGoals));
-            assertFalse("Build expected to fail ", buildExpectedToFail);
+            assertFalse("Build expected to fail in project " + testProjectDir.getAbsolutePath(), buildExpectedToFail);
         } catch (VerificationException e) {
             if (buildExpectedToFail) {
                 return this;
@@ -217,6 +226,7 @@ public class ProjectBuilder {
         } finally {
             verifier.resetStreams();
         }
+        verifier.verify(true);
 
         if (!verifyPackageContents) {
             return this;
@@ -353,6 +363,27 @@ public class ProjectBuilder {
         return this;
     }
 
+    public ProjectBuilder verifyExpectedLogLines(String... placeholderValues) throws IOException {
+        List<String> expectedLogLines = Files.readAllLines(expectedLogLinesFile.toPath());
+        List<String> actualLogLines = getBuildOutput();
+        for (String expectedLogLine : expectedLogLines) {
+            // do placeholder replacement
+            
+            Matcher matcher = PLACEHOLDER_PATTERN.matcher(expectedLogLine);
+            while (matcher.find()) {
+                int placeholderIndex = Integer.parseInt(matcher.group(1));
+                if (placeholderIndex >= placeholderValues.length) {
+                    throw new IllegalArgumentException("At least " + placeholderIndex + " placeholder values need to be given, but only "+ placeholderValues.length + " received.");
+                }
+                // replace current item in iterator with the new value
+                expectedLogLine = matcher.replaceAll(placeholderValues[placeholderIndex]);
+            }
+            // update list
+            assertThat("Could not find the expected log line in the output '" + logTxtFile +"'", actualLogLines, Matchers.hasItem(expectedLogLine));
+        }
+        // support not and exists
+        return this;
+    }
     public List<String> getBuildOutput() throws IOException {
         return Files.readAllLines(logTxtFile.toPath(), StandardCharsets.UTF_8);
     }

@@ -20,7 +20,7 @@
 <project xmlns="http://maven.apache.org/DECORATION/1.3.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/DECORATION/1.3.0 http://maven.apache.org/xsd/decoration-1.3.0.xsd"
-         name="Jackrabbit Filevault Package Maven Plugin">
+         name="Jackrabbit FileVault Package Maven Plugin">
     <body>
         <menu name="Overview">
             <item name="Introduction" href="index.html"/>
@@ -30,6 +30,7 @@
         <menu name="Documentation">
             <item name="Import-package Generation" href="import_package.html"/>
             <item name="Migration from Adobe" href="migrating.html"/>
+            <item name="Validators" href="validators.html"/>
         </menu>
         <menu name="Project Documentation">
             <item href="project-summary.html" name="Project Summary"/>

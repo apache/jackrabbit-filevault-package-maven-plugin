@@ -27,9 +27,7 @@ Apache Jackrabbit FileVault is a project of the Apache Software Foundation.
 
 Downloads
 ---------
-The latest filevault package plugin sources are available for checkout from [svn]
-(https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/trunk), or you can [fork them]
-(https://github.com/apache/jackrabbit-filevault-package-maven-plugin) on GitHub.
+The latest filevault package plugin sources are available for checkout from [svn](https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/trunk), or you can [fork them](https://github.com/apache/jackrabbit-filevault-package-maven-plugin) on GitHub.
 
 See also our [releases](http://jackrabbit.apache.org/downloads.html) on the Jackrabbit
 download page for slightly more stable versions of the codebase.

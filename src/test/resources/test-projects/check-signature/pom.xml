@@ -46,6 +46,7 @@
                             <groupId>javax.jcr</groupId>
                             <artifactId>jcr</artifactId>
                             <target>/libs/install</target>
+                            <filter>true</filter>
                         </embedded>
                     </embeddeds>
                 </configuration>

@@ -17,5 +17,5 @@
   -->
 
 <workspaceFilter version="1.0">
-    <filter root="/libs/granite/replication"/>
+    <filter root="/libs/granite"/>
 </workspaceFilter>

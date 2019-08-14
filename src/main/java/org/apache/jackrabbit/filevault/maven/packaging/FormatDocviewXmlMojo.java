@@ -45,6 +45,10 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 )
 public class FormatDocviewXmlMojo extends AbstractMojo {
 
+    /**
+     * The directory that contains the jcr_root of the content. Multiple directories can be specified as a comma separated list,
+     * which will act as a search path and cause the plugin to look for the first existing directory.
+     */
     @Parameter(
             property = "vault.jcrRootSourceDirectory",
             required = true,
@@ -93,7 +97,7 @@ public class FormatDocviewXmlMojo extends AbstractMojo {
            "(http://jackrabbit.apache.org/filevault/usage.html).";
  
     public void execute() throws MojoExecutionException, MojoFailureException {
-        File jcrSourceDirectory = AbstractPackageMojo.getFirstExistingDirectory(jcrRootSourceDirectory);
+        File jcrSourceDirectory = AbstractSourceAndMetadataPackageMojo.getFirstExistingDirectory(jcrRootSourceDirectory);
         executeInternal(jcrSourceDirectory);
     }
     

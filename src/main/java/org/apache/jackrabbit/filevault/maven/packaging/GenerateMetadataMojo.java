@@ -30,7 +30,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -41,17 +40,14 @@ import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import aQute.bnd.header.Attrs;
-import aQute.bnd.header.Parameters;
-import aQute.bnd.osgi.Processor;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.DependencyValidator;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageDependency;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.io.AccessControlHandling;
 import org.apache.jackrabbit.vault.packaging.PackageId;
+import org.apache.jackrabbit.vault.packaging.PackageProperties;
 import org.apache.jackrabbit.vault.packaging.PackageType;
+import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.util.Text;
 import org.apache.maven.archiver.ManifestConfiguration;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
@@ -75,6 +71,10 @@ import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
+import aQute.bnd.header.Attrs;
+import aQute.bnd.header.Parameters;
+import aQute.bnd.osgi.Processor;
+
 /**
  * Maven goal which generates the metadata ending up in the package like {@code META-INF/MANIFEST.MF} as well as the
  * files ending up in {@code META-INF/vault} like {@code filter.xml}, {@code properties.xml}, {@code config.xml} and
@@ -86,7 +86,7 @@ import org.sonatype.plexus.build.incremental.BuildContext;
         defaultPhase = LifecyclePhase.PROCESS_CLASSES,
         requiresDependencyResolution = ResolutionScope.COMPILE
 )
-public class GenerateMetadataMojo extends AbstractPackageMojo {
+public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
 
     /**
      *  A date format which is compliant with {@code org.apache.jackrabbit.util.ISO8601.parse(...)}
@@ -94,18 +94,6 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
      *  @see <a href="https://issues.apache.org/jira/browse/JCR-4267">JCR-4267</a>
      */
     private final DateFormat iso8601DateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-
-    public static final String MF_KEY_PACKAGE_TYPE = "Content-Package-Type";
-
-    public static final String MF_KEY_PACKAGE_ID = "Content-Package-Id";
-
-    public static final String MF_KEY_PACKAGE_DEPENDENCIES = "Content-Package-Dependencies";
-
-    public static final String MF_KEY_PACKAGE_ROOTS = "Content-Package-Roots";
-
-    public static final String MF_KEY_PACKAGE_DESC = "Content-Package-Description";
-
-    public static final String MF_KEY_IMPORT_PACKAGE = "Import-Package";
 
     /**
      * For m2e incremental build support
@@ -225,17 +213,9 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
      * accepted versions, where the bounds are either included using parentheses
      * {@code ()} or excluded using brackets {@code []}
      */
-    @Parameter
-    private Dependency[] dependencies = new Dependency[0];
+    @Parameter(property = "vault.dependencies")
+    private MavenBasedPackageDependency[] dependencies = new MavenBasedPackageDependency[0];
 
-    /**
-     * Controls if errors during dependency validation should fail the build.
-     */
-    @Parameter(
-            property = "vault.failOnDependencyErrors",
-            defaultValue="true",
-            required = true)
-    private boolean failOnDependencyErrors;
 
     /**
      * Defines the Access control handling. This will become the
@@ -349,21 +329,6 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
     private SubPackage[] subPackages = new SubPackage[0];
 
     /**
-     * Defines the packages that define the repository structure.
-     * For the format description look at {@link #dependencies}.
-     * <p>
-     * The repository-init feature of sling-start can define initial content that will be available in the
-     * repository before the first package is installed. Packages that depend on those nodes have no way to reference
-     * any dependency package that provides these nodes. A "real" package that would creates those nodes cannot be
-     * installed in the repository, because it would void the repository init structure. On the other hand would filevault
-     * complain, if the package was listed as dependency but not installed in the repository. So therefor this
-     * repository-structure packages serve as indicator packages that helps satisfy the structural dependencies, but are
-     * not added as real dependencies to the package.
-     */
-    @Parameter
-    private Dependency[] repositoryStructurePackages = new Dependency[0];
-
-    /**
      * File to store the generated manifest snippet.
      */
     @Parameter(property = "vault.generatedImportPackage", defaultValue = "${project.build.directory}/vault-generated-import.txt")
@@ -374,7 +339,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
      * href="http://maven.apache.org/shared/maven-archiver/index.html">the
      * documentation for Maven Archiver</a>.
      * 
-     * All settings related to manifest are not relevant as this gets overwritten by the manifest in {@link AbstractPackageMojo#workDirectory}
+     * All settings related to manifest are not relevant as this gets overwritten by the manifest in {@link AbstractMetadataPackageMojo#workDirectory}
      */
     @Parameter
     private MavenArchiveConfiguration archive;
@@ -385,6 +350,52 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
     @Parameter
     private File thumbnailImage;
 
+
+    /**
+     * Defines the content package type. This is either 'application', 'content', 'container' or 'mixed'.
+     * If omitted, it is calculated automatically based on filter definitions. Certain package types imply restrictions,
+     * for example, 'application' and 'content' packages are not allowed to contain sub packages or embedded bundles.<br>
+     * Possible values:
+     * <ul>
+     *   <li>{@code application}: An application package consists purely of application content. It serializes
+     *       entire subtrees with no inclusion or exclusion filters. it does not contain any subpackages nor OSGi
+     *       configuration or bundles.</li> 
+     *   <li>{@code content}: A content package consists only of content and user defined configuration.
+     *       It usually serializes entire subtrees but can contain inclusion or exclusion filters. it does not contain
+     *       any subpackages nor OSGi configuration or bundles.</li> 
+     *   <li>{@code container}: A container package only contains sub packages and OSGi configuration and bundles.
+     *       The container package is only used as container for deployment.</li> 
+     *   <li>{@code mixed}: Catch all type for a combination of the above.</li> 
+     * </ul>
+     */
+    @Parameter(property = "vault.packageType")
+    protected PackageType packageType;
+
+
+    /**
+     * Defines whether the package is allowed to contain index definitions. This will become the
+     * {@code allowIndexDefinitions} property of the properties.xml file.
+     */
+    @Parameter(
+            property = "vault.allowIndexDefinitions",
+            defaultValue="false",
+            required = true)
+    boolean allowIndexDefinitions;
+
+    /**
+     * Sets the package type.
+     * @param type the string representation of the package type
+     * @throws MojoFailureException if an error occurs
+     */
+    public void setPackageType(String type) throws MojoFailureException {
+        try {
+            packageType = PackageType.valueOf(type.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new MojoFailureException("Invalid package type specified: " + type +".\n" +
+                    "Must be empty or one of 'application', 'content', 'container', 'mixed'");
+        }
+    }
+
     /**
      * Sets the access control handling.
      * @param type the string representation of the ac handling
@@ -394,6 +405,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
         try {
             accessControlHandling = AccessControlHandling.valueOf(type.toUpperCase());
         } catch (IllegalArgumentException e) {
+            // TODO: emit in lower case
             throw new MojoFailureException("Invalid accessControlHandling specified: " + type +".\n" +
                     "Must be empty or one of '" + StringUtils.join(AccessControlHandling.values(), "','") + "'.");
         }
@@ -418,7 +430,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
             }
         }
 
-        final File vaultDir = getVaultDir();
+        final File vaultDir = getGeneratedVaultDir();
         vaultDir.mkdirs();
 
         // JCRVLT-331 share work directory to expose vault metadata between process-classes and package phases for
@@ -427,34 +439,32 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
                 .put(getModuleArtifactKey(project.getArtifact()), workDirectory);
 
         try {
+            // find the meta-inf source directory
+            File metaInfDirectory = getMetaInfVaultSourceDirectory();
+            
+            // generate the filter.xml
+            String sourceFilters = computeFilters(metaInfDirectory);
+            computeImportPackage();
+
+            // this must happen before the filter rules are extended 
+            // but after filters have been consolidated
+            computePackageTypeIfNotSet();
+            
             // calculate the embeddeds and subpackages
             Map<String, File> embeddedFiles = getEmbeddeds();
             embeddedFiles.putAll(getSubPackages());
             setEmbeddedFilesMap(embeddedFiles);
 
-            // find the meta-inf source directory
-            File metaInfDirectory = getMetaInfDir();
-            
-            // generate the filter.xml
-            computePackageFilters(metaInfDirectory);
-            computeImportPackage();
             String dependenciesString = computeDependencies();
-            
-            // some validations
-            validatePackageType();
-            if (packageType == PackageType.APPLICATION) {
-                validateDependencies();
-            } else {
-                getLog().info("Ignoring dependency validation due to non-application package type: " + packageType);
-            }
 
             // generate properties.xml
             final Properties vaultProperties = computeProperties(dependenciesString);
-            final FileOutputStream fos = new FileOutputStream(new File(vaultDir, "properties.xml"));
-            vaultProperties.storeToXML(fos, project.getName());
-
-            copyFile("/vault/config.xml", new File(vaultDir, "config.xml"));
-            copyFile("/vault/settings.xml", new File(vaultDir, "settings.xml"));
+            try (FileOutputStream fos = new FileOutputStream(new File(vaultDir, Constants.PROPERTIES_XML))) {
+                vaultProperties.storeToXML(fos, project.getName());
+            }
+            writeFilters(sourceFilters);
+            copyFile("/vault/config.xml", new File(vaultDir, Constants.CONFIG_XML));
+            copyFile("/vault/settings.xml", new File(vaultDir, Constants.SETTINGS_XML));
             
             // add package thumbnail
             if (thumbnailImage != null && thumbnailImage.exists()) {
@@ -469,12 +479,13 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
             // generate manifest file
             MavenArchiver mavenArchiver = new MavenArchiver();
             Manifest manifest = mavenArchiver.getManifest(session, project, getMavenArchiveConfiguration(vaultProperties, dependenciesString));
-            try (OutputStream out = new FileOutputStream(getManifestFile())) {
+            try (OutputStream out = new FileOutputStream(getGeneratedManifestFile())) {
                 manifest.write(out);
             }
         } catch (IOException | ManifestException | DependencyResolutionRequiredException e) {
             throw new MojoExecutionException(e.toString(), e);
         }
+        buildContext.refresh(vaultDir);
     }
     
     /**
@@ -488,12 +499,13 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
      * - if both, a inline filter and a implicit filter is present, the build fails.
      * - re-run the package goal w/o cleaning the target first must work
      *
+     *@return the source filter string (if there have been a filter given manually), otherwise {@code null}
      * @throws IOException if an I/O error occurs
      * @throws MojoExecutionException if the build fails
      */
-    private void computePackageFilters(File vaultMetaDir) throws IOException, MojoExecutionException {
+    private String computeFilters(File vaultMetaDir) throws IOException, MojoExecutionException {
         // backward compatibility: if implicit filter exists, use it. but check for conflicts
-        File filterFile = getFilterFile();
+        File filterFile = getGeneratedFilterFile();
         if (filterFile.exists() && filterFile.lastModified() != 0) {
             // if both, a inline filter and a implicit filter is present, the build fails.
             if (!filters.getFilterSets().isEmpty()) {
@@ -504,13 +516,13 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
             try {
                 filters.load(filterFile);
             } catch (ConfigurationException e) {
-                throw new IOException(e);
+                throw new IOException("Error loading filter file '" + filterFile + "'", e);
             }
 
             getLog().warn("The project is using a filter.xml provided via the resource plugin.");
             getLog().warn("This is deprecated and might no longer be supported in future versions.");
             getLog().warn("Use the 'filterSource' property to specify the filter or use inline filters.");
-            return;
+            return null;
         }
 
         // if last modified of vault-work/META-INF/vault/filter.xml == 0 -> delete it
@@ -550,10 +562,11 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
             }
 
             // now copy everything from sourceFilter to filters (as the latter is supposed to contain the final filter rules)!
-            sourceFilters.resetSource();
+            // sourceFilters.resetSource();
             // there is no suitable clone nor constructor, therefore use a serialization/deserialization approach
             try (InputStream serializedFilters = sourceFilters.getSource()) {
                 filters.load(serializedFilters);
+                //filters.resetSource();
             } catch (ConfigurationException e) {
                 throw new IllegalStateException("cloning filters failed.", e);
             }
@@ -564,9 +577,8 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
             try {
                 sourceFilters.load(filterSource);
             } catch (ConfigurationException e) {
-                throw new IOException(e);
+                throw new IOException("Error loading filter file '" + filterSource + "'", e);
             }
-            sourceFilters.resetSource();
         }
 
         // if the prefix property is set, it should be used if no filter is set
@@ -574,30 +586,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
             addWorkspaceFilter(prefix);
         }
 
-        // if no filter is defined at all, fail
-        if (filters.getFilterSets().isEmpty()) {
-            if (failOnEmptyFilter) {
-                final String msg = "No workspace filter defined (failOnEmptyFilter=true)";
-                getLog().error(msg);
-                throw new MojoExecutionException(msg);
-            } else {
-                getLog().warn("No workspace filter defined. Package import might have unexpected results.");
-            }
-        }
-
-        // if the source filters and the generated filters are the same, copy the source file to retain the comments
-        if (filterSource != null && sourceFilters.getSourceAsString().equals(filters.getSourceAsString())) {
-            FileUtils.copyFile(filterSource, filterFile);
-        } else {
-            // generate xml and write to filter.xml
-            getLog().info("Generating filter.xml from plugin configuration");
-            FileUtils.fileWrite(filterFile.getAbsolutePath(), filters.getSourceAsString());
-        }
-
-        // update the last modified time of filter.xml to for generated filters
-        if (!filterFile.setLastModified(0)) {
-            getLog().warn("Unable to set last modified of filters file. make sure to clean the project before next run.");
-        }
+        return sourceFilters.getSourceAsString();
     }
 
     private void mergeFilters(DefaultWorkspaceFilter dst, DefaultWorkspaceFilter src) {
@@ -612,11 +601,41 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
         }
     }
 
+    private void writeFilters(String sourceFilters) throws IOException, MojoExecutionException {
+        // if no filter is defined at all, fail
+        if (filters.getFilterSets().isEmpty()) {
+            if (failOnEmptyFilter) {
+                final String msg = "No workspace filter defined (failOnEmptyFilter=true)";
+                getLog().error(msg);
+                throw new MojoExecutionException(msg);
+            } else {
+                getLog().warn("No workspace filter defined. Package import might have unexpected results.");
+            }
+        }
+
+        File filterFile = getGeneratedFilterFile();
+        // if the source filters and the generated filters are the same, copy the source file to retain the comments
+        if (filterSource != null && filters.getSourceAsString().equals(sourceFilters)) {
+            FileUtils.copyFile(filterSource, filterFile);
+        } else {
+            // generate xml and write to filter.xml
+            getLog().info("Generating filter.xml from plugin configuration");
+            FileUtils.fileWrite(filterFile.getAbsolutePath(), filters.getSourceAsString());
+        }
+
+        // update the last modified time of filter.xml to for generated filters
+        if (!filterFile.setLastModified(0)) {
+            getLog().warn("Unable to set last modified of filters file. make sure to clean the project before next run.");
+        }
+    }
+
+    
+
 
     /**
      * Checks if the filter roots of this package are covered by the dependencies and also checks for colliding roots
      * in the dependencies.
-     */
+     
     private void validateDependencies() throws MojoExecutionException {
         List<String> errors = new DependencyValidator()
                 .addDependencies(dependencies)
@@ -641,7 +660,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
         } else {
             getLog().info("All dependencies satisfied.");
         }
-    }
+    }*/
 
     /**
      * Computes the import-package definition from the given bundles if not provided by the project.
@@ -722,10 +741,8 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
     private String computeDependencies() throws IOException {
         String dependenciesString = null;
         if (dependencies.length > 0) {
-            dependenciesString = PackageDependency.toString(Dependency.resolve(project, getLog(), dependencies));
+            dependenciesString = org.apache.jackrabbit.vault.packaging.Dependency.toString(MavenBasedPackageDependency.resolve(project, getLog(), dependencies));
         }
-        // this is mainly checking that the dependencies given by the repositoryStructurePackages are valid
-        Dependency.resolve(project, getLog(), repositoryStructurePackages);
         return dependenciesString;
     }
 
@@ -757,11 +774,11 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
 
             // TODO: split up manifest generation
             PackageId id = new PackageId(group, name, version);
-            archive.addManifestEntry(MF_KEY_PACKAGE_TYPE, escapeManifestValue(packageType.name().toLowerCase()));
-            archive.addManifestEntry(MF_KEY_PACKAGE_ID, escapeManifestValue(id.toString()));
-            archive.addManifestEntry(MF_KEY_PACKAGE_DESC, escapeManifestValue(vaultProperties.getProperty("description", "")));
+            archive.addManifestEntry(PackageProperties.MF_KEY_PACKAGE_TYPE, escapeManifestValue(packageType.name().toLowerCase()));
+            archive.addManifestEntry(PackageProperties.MF_KEY_PACKAGE_ID, escapeManifestValue(id.toString()));
+            archive.addManifestEntry(PackageProperties.MF_KEY_PACKAGE_DESC, escapeManifestValue(vaultProperties.getProperty("description", "")));
             if (dependenciesString != null && dependenciesString.length() > 0) {
-                archive.addManifestEntry(MF_KEY_PACKAGE_DEPENDENCIES, escapeManifestValue(dependenciesString));
+                archive.addManifestEntry(PackageProperties.MF_KEY_PACKAGE_DEPENDENCIES, escapeManifestValue(dependenciesString));
             }
             // be sure to avoid duplicates
             Set<String> rts = new TreeSet<>();
@@ -770,11 +787,11 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
             }
             String[] roots = rts.toArray(new String[rts.size()]);
             Arrays.sort(roots);
-            archive.addManifestEntry(MF_KEY_PACKAGE_ROOTS, escapeManifestValue(StringUtils.join(roots, ",")));
+            archive.addManifestEntry(PackageProperties.MF_KEY_PACKAGE_ROOTS, escapeManifestValue(StringUtils.join(roots, ",")));
 
             // import package is not yet there!
             if (StringUtils.isNotEmpty(importPackage)) {
-                archive.addManifestEntry(MF_KEY_IMPORT_PACKAGE, escapeManifestValue(StringUtils.deleteWhitespace(importPackage)));
+                archive.addManifestEntry(PackageProperties.MF_KEY_IMPORT_PACKAGE, escapeManifestValue(StringUtils.deleteWhitespace(importPackage)));
             }
         }
 
@@ -793,7 +810,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
                 description = project.getArtifactId();
             }
         }
-        props.put("description", description);
+        props.put(PackageProperties.NAME_DESCRIPTION, description);
 
         // add all user defined properties
         // before the rest of the properties to prevent user
@@ -810,9 +827,9 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
         props.putAll(properties);
 
         // package descriptor properties
-        props.put("group", group);
-        props.put("name", name);
-        props.put("version", version);
+        props.put(PackageProperties.NAME_GROUP, group);
+        props.put(PackageProperties.NAME_NAME, name);
+        props.put(PackageProperties.NAME_VERSION, version);
 
         // maven artifact identification
         props.put("groupId", project.getGroupId());
@@ -820,21 +837,21 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
 
         // dependencies
         if (dependenciesString != null && dependenciesString.length() > 0) {
-            props.put("dependencies", dependenciesString);
+            props.put(PackageProperties.NAME_DEPENDENCIES, dependenciesString);
         }
 
         // creation stamp
-        if (!props.containsKey("createdBy")) {
-            props.put("createdBy", System.getProperty("user.name"));
+        if (!props.containsKey(PackageProperties.NAME_CREATED_BY)) {
+            props.put(PackageProperties.NAME_CREATED_BY, System.getProperty("user.name"));
         }
-        props.put("created", iso8601DateFormat.format(new Date()));
+        props.put(PackageProperties.NAME_CREATED, iso8601DateFormat.format(new Date()));
 
         // configurable properties
-        props.put("requiresRoot", String.valueOf(requiresRoot));
-        props.put("allowIndexDefinitions", String.valueOf(allowIndexDefinitions));
-        props.put("packageType", packageType.name().toLowerCase());
+        props.put(PackageProperties.NAME_REQUIRES_ROOT, String.valueOf(requiresRoot));
+        props.put(PackageProperties.NAME_ALLOW_INDEX_DEFINITIONS, String.valueOf(allowIndexDefinitions));
+        props.put(PackageProperties.NAME_PACKAGE_TYPE, packageType.name().toLowerCase());
         if (accessControlHandling != null) {
-            props.put("acHandling", accessControlHandling.name().toLowerCase());
+            props.put(PackageProperties.NAME_AC_HANDLING, accessControlHandling.name().toLowerCase());
         }
         return props;
     }
@@ -869,7 +886,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
             }
             targetPath = makeAbsolutePath(targetPath);
 
-            targetPath = JCR_ROOT + targetPath;
+            targetPath = Constants.ROOT_DIR + "/" + targetPath;
             targetPath = FileUtils.normalize(targetPath);
             if (!targetPath.endsWith("/")) {
                 targetPath += "/";
@@ -910,7 +927,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
                     }
                 }
                 final String targetPathName = targetPath + destFileName;
-                final String targetNodePathName = targetPathName.substring(JCR_ROOT.length() - 1);
+                final String targetNodePathName = targetPathName.substring(Constants.ROOT_DIR.length());
 
                 getLog().info(String.format("Embedding %s (from %s) -> %s", artifact.getId(), source.getAbsolutePath(), targetPathName));
                 fileMap.put(targetPathName, source);
@@ -927,7 +944,7 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
      * Establishes a session-shareable workDirectory lookup map for the given pluginContext.
      *
      * @param pluginContext a Map retrieved from {@link MavenSession#getPluginContext(PluginDescriptor, MavenProject)}.
-     * @return a lookup Map. The key is {@link Artifact#getId()} and value is {@link AbstractPackageMojo#workDirectory}.
+     * @return a lookup Map. The key is {@link Artifact#getId()} and value is {@link AbstractMetadataPackageMojo#workDirectory}.
      */
     @SuppressWarnings("unchecked")
     static Map<String, File> getArtifactWorkDirectoryLookup(final Map pluginContext) {
@@ -1012,24 +1029,22 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
                     }
                 } else {
                     // load properties
-                    InputStream in = null;
-                    try (ZipFile zip = new ZipFile(source, ZipFile.OPEN_READ)) {
+                    try (ZipFile zip = new ZipFile(source)) {
                         ZipEntry e = zip.getEntry(propsRelPath);
                         if (e == null) {
                             throw new IOException("Package does not contain 'META-INF/vault/properties.xml'");
                         }
-                        in = zip.getInputStream(e);
-                        props.loadFromXML(in);
+                        try (InputStream in = zip.getInputStream(e)) {
+                            props.loadFromXML(in);
+                        }
                     } catch (IOException e) {
                         throw new MojoFailureException("Could not open subpackage '" + source + "' to extract metadata: " + e.getMessage(), e);
-                    } finally {
-                        IOUtil.close(in);
                     }
                 }
                 PackageId pid = new PackageId(
-                        props.getProperty("group"),
-                        props.getProperty("name"),
-                        props.getProperty("version")
+                        props.getProperty(PackageProperties.NAME_GROUP),
+                        props.getProperty(PackageProperties.NAME_NAME),
+                        props.getProperty(PackageProperties.NAME_VERSION)
                 );
                 final String targetNodePathName = pid.getInstallationPath() + ".zip";
                 final String targetPathName = "jcr_root" + targetNodePathName;
@@ -1060,32 +1075,52 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
         return absPath;
     }
 
-    private void validatePackageType() throws MojoFailureException {
+    private void computePackageTypeIfNotSet() {
         if (packageType == null) {
             // auto detect...
             boolean hasApps = false;
             boolean hasOther = false;
             for (PathFilterSet p: filters.getFilterSets()) {
-                if ("cleanup".equals(p.getType())) {
+                if (PathFilterSet.TYPE_CLEANUP.equals(p.getType())) {
                     continue;
                 }
                 String root = p.getRoot();
                 if ("/apps".equals(root) || root.startsWith("/apps/") || "/libs".equals(root) || root.startsWith("/libs/")) {
                     hasApps = true;
+                    getLog().debug("Detected /apps or /libs filter entry: " + p);
                 } else {
                     hasOther = true;
+                    getLog().debug("Detected filter entry outside /apps and /libs: " + p);
                 }
             }
-            if (hasApps && !hasOther) {
-                packageType = PackageType.APPLICATION;
-            } else if (hasOther && !hasApps) {
-                packageType = PackageType.CONTENT;
+            // no embeds and subpackages?
+            getLog().debug("Detected " + embeddeds.length + " bundle(s) and " + subPackages.length + " sub package(s).");
+            if (embeddeds.length == 0 && subPackages.length == 0) {
+                if (hasApps && !hasOther) {
+                    packageType = PackageType.APPLICATION;
+                } else if (hasOther && !hasApps) {
+                    packageType = PackageType.CONTENT;
+                } else {
+                    packageType = PackageType.MIXED;
+                }
             } else {
-                packageType = PackageType.MIXED;
+                if (!hasApps && !hasOther) {
+                    packageType = PackageType.CONTAINER;
+                } else {
+                    packageType = PackageType.MIXED;
+                }
             }
+            getLog().info("Auto-detected package type: " + packageType.toString().toLowerCase());
         }
     }
 
+    /**
+     * Copies from the class loader resource given by {@link source} into the file given in {@link target} in case
+     * the target file does not exist yet.
+     * @param source the name of the class loader resource
+     * @param target the target file to copy to
+     * @throws IOException
+     */
     private void copyFile(String source, File target) throws IOException {
         // nothing to do if the file exists
         if (target.exists()) {
@@ -1094,15 +1129,10 @@ public class GenerateMetadataMojo extends AbstractPackageMojo {
 
         target.getParentFile().mkdirs();
 
-        InputStream ins = getClass().getResourceAsStream(source);
-        if (ins != null) {
-            OutputStream out = null;
-            try {
-                out = new FileOutputStream(target);
+        try (InputStream ins = getClass().getResourceAsStream(source);
+             OutputStream out = new FileOutputStream(target)) {
+            if (ins != null) {
                 IOUtil.copy(ins, out);
-            } finally {
-                IOUtil.close(ins);
-                IOUtil.close(out);
             }
         }
     }

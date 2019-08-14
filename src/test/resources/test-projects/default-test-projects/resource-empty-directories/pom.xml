@@ -55,6 +55,7 @@
                 <configuration>
                     <jcrRootSourceDirectory>${project.build.outputDirectory}</jcrRootSourceDirectory>
                     <failOnDependencyErrors>false</failOnDependencyErrors>
+                    <packageType>mixed</packageType>
                     <filters>
                         <filter>
                             <root>/apps/wcm/core</root>
