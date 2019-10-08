@@ -40,10 +40,12 @@
                             <groupId>javax.jcr</groupId>
                             <artifactId>jcr</artifactId>
                             <target>/libs/install</target>
+                            <filter>true</filter>
                         </embedded>
                         <embedded>
                             <groupId>org.apache.jackrabbit.vault</groupId>
                             <artifactId>org.apache.jackrabbit.vault</artifactId>
+                            <filter>true</filter>
                         </embedded>
                     </embeddeds>
                     <embeddedTarget>/apps/install</embeddedTarget>

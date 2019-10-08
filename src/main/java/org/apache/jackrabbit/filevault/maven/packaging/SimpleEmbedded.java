@@ -96,6 +96,7 @@ public class SimpleEmbedded {
         return excludeTransitive;
     }
     
+    @SuppressWarnings("deprecation")
     public Collection<Artifact> getMatchingArtifacts(final MavenProject project) {
 
         // get artifacts depending on whether we exclude transitives or not

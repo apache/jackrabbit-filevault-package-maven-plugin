@@ -16,8 +16,9 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
+
 import java.io.File;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,10 +29,8 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.FileValidator;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
+import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.util.PlatformNameFormat;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -44,17 +43,13 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.codehaus.plexus.archiver.ArchiveEntry;
 import org.codehaus.plexus.archiver.Archiver;
 import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.archiver.ResourceIterator;
-import org.codehaus.plexus.util.AbstractScanner;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
-
-import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
 /**
  * Build a content package.
@@ -64,41 +59,15 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
         defaultPhase = LifecyclePhase.PACKAGE,
         requiresDependencyResolution = ResolutionScope.COMPILE
 )
-public class VaultMojo extends AbstractPackageMojo {
+public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
 
     private static final String PACKAGE_TYPE = "zip";
 
-    private static final String PACKAGE_EXT = "." + PACKAGE_TYPE;
+    static final String PACKAGE_EXT = "." + PACKAGE_TYPE;
 
     @Component
     private ArtifactHandlerManager artifactHandlerManager;
 
-    /**
-     * The directory containing the content to be packaged up into the content
-     * package.
-     *
-     * This property is deprecated; use jcrRootSourceDirectory instead.
-     */
-    @Deprecated
-    @Parameter
-    private File builtContentDirectory;
-
-    /**
-     * The directory that contains the jcr_root of the content. Multiple directories can be specified as a comma separated list,
-     * which will act as a search path and cause the plugin to look for the first existing directory.
-     */
-    @Parameter(
-            property = "vault.jcrRootSourceDirectory",
-            required = true,
-            defaultValue =
-                    "${project.basedir}/jcr_root," +
-                    "${project.basedir}/src/main/jcr_root," +
-                    "${project.basedir}/src/main/content/jcr_root," +
-                    "${project.basedir}/src/content/jcr_root," +
-                    "${project.build.outputDirectory}"
-    )
-    private File[] jcrRootSourceDirectory;
-    
     /**
      * Set to {@code true} to fail the build in case of files are being contained in the {@code jcrRootSourceDirectory} 
      * which are not covered by the filter rules and therefore would not end up in the package.
@@ -144,26 +113,10 @@ public class VaultMojo extends AbstractPackageMojo {
      * href="http://maven.apache.org/shared/maven-archiver/index.html">the
      * documentation for Maven Archiver</a>.
      * 
-     * All settings related to manifest are not relevant as this gets overwritten by the manifest in {@link AbstractPackageMojo#workDirectory}
+     * All settings related to manifest are not relevant as this gets overwritten by the manifest in {@link AbstractMetadataPackageMojo#workDirectory}
      */
     @Parameter
     private MavenArchiveConfiguration archive;
-
-    /**
-     * The file name patterns to exclude in addition to the ones listed in
-     * {@link AbstractScanner#DEFAULTEXCLUDES}. The format of each pattern is described in {@link DirectoryScanner}.
-     * The comparison is against the path relative to the according filter root.
-     * Since this is hardly predictable it is recommended to use only filename/directory name patterns here 
-     * but not take into account file system hierarchies!
-     * <p>
-     * Each value is either a regex pattern if enclosed within {@code %regex[} and {@code ]}, otherwise an 
-     * <a href="https://ant.apache.org/manual/dirtasks.html#patterns">Ant pattern</a>.
-     */
-    @Parameter(property = "vault.excludes",
-               defaultValue="**/.vlt,**/.vltignore",
-               required = true)
-    private String[] excludes;
-
 
     /**
      * Creates a {@link FileSet} for the archiver
@@ -204,21 +157,14 @@ public class VaultMojo extends AbstractPackageMojo {
 
         try {
             // find the meta-inf source directory
-            File metaInfDirectory = getMetaInfDir();
+            File metaInfDirectory = getMetaInfVaultSourceDirectory();
             // find the source directory
-            final File jcrSourceDirectory;
-            if (builtContentDirectory != null) {
-                getLog().warn("The 'builtContentDirectory' is deprecated. Please use the new 'jcrRootSourceDirectory' instead.");
-                jcrSourceDirectory = builtContentDirectory;
-            } else {
-                jcrSourceDirectory = getFirstExistingDirectory(jcrRootSourceDirectory);
-            }
+            final File jcrSourceDirectory = getJcrSourceDirectory();
             if (jcrSourceDirectory != null) {
                 getLog().info("packaging content from " + jcrSourceDirectory.getPath());
             }
-
             // retrieve filters
-            Filters filters = loadFilterFile();
+            Filters filters = loadGeneratedFilterFile();
             Map<String, File> embeddedFiles = getEmbeddedFilesMap();
 
             ContentPackageArchiver contentPackageArchiver = new ContentPackageArchiver();
@@ -249,11 +195,11 @@ public class VaultMojo extends AbstractPackageMojo {
                 // but ignore the roots that don't point to a directory
                 List<PathFilterSet> filterSets = filters.getFilterSets();
                 if (filterSets.isEmpty()) {
-                    contentPackageArchiver.addFileSet(createFileSet(jcrSourceDirectory, FileUtils.normalize(JCR_ROOT + prefix)));
+                    contentPackageArchiver.addFileSet(createFileSet(jcrSourceDirectory, FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix)));
                 } else {
                     for (PathFilterSet filterSet : filterSets) {
                         String relPath = PlatformNameFormat.getPlatformPath(filterSet.getRoot());
-                        String rootPath = FileUtils.normalize(JCR_ROOT + prefix + relPath);
+                        String rootPath = FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix + relPath);
 
                         // CQ-4204625 skip embedded files, will be added later in the proper way
                         if (embeddedFiles.containsKey(rootPath)) {
@@ -263,7 +209,7 @@ public class VaultMojo extends AbstractPackageMojo {
                         // check for full coverage aggregate
                         File fullCoverage = new File(jcrSourceDirectory, relPath + ".xml");
                         if (fullCoverage.isFile()) {
-                            rootPath = FileUtils.normalize(JCR_ROOT + prefix + relPath + ".xml");
+                            rootPath = FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix + relPath + ".xml");
                             contentPackageArchiver.addFile(fullCoverage, rootPath);
                             continue;
                         }
@@ -282,11 +228,11 @@ public class VaultMojo extends AbstractPackageMojo {
 
                         // either parent node was covered by a full coverage aggregate
                         if (fullCoverage.isFile()) {
-                            rootPath = FileUtils.normalize(JCR_ROOT + prefix + relPath + ".xml");
+                            rootPath = FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix + relPath + ".xml");
                             contentPackageArchiver.addFile(fullCoverage, rootPath);
                         } else {
                             // or a simple folder containing a ".content.xml"
-                            rootPath = FileUtils.normalize(JCR_ROOT + prefix + relPath);
+                            rootPath = FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix + relPath);
                             // is the folder the filter root?
                             if (isFilterRootDirectory) {
                                 // then just include the full folder
@@ -318,8 +264,8 @@ public class VaultMojo extends AbstractPackageMojo {
                     }
                 }
 
-                // check for uncovered files
-                Collection<File> uncoveredFiles = getUncoveredFiles(jcrSourceDirectory, JCR_ROOT + prefix, contentPackageArchiver.getFiles().keySet(), null);
+                // check for uncovered files (i.e. files from the source which are not even added to the content package)
+                Collection<File> uncoveredFiles = getUncoveredFiles(jcrSourceDirectory, Constants.ROOT_DIR + "/" + prefix, contentPackageArchiver.getFiles().keySet(), null);
                 if (!uncoveredFiles.isEmpty()) {
                     for (File uncoveredFile : uncoveredFiles) {
                         getLog().warn("File " + uncoveredFile + " not covered by a filter rule and therefore not contained in the resulting package");
@@ -331,7 +277,9 @@ public class VaultMojo extends AbstractPackageMojo {
             }
 
             //NPR-14102 - Automated check for index definition
+            /*
             if (!allowIndexDefinitions) {
+                
                 FileValidator fileValidator = new FileValidator();
                 getLog().info("Scanning files for oak index definitions.");
                 for (ArchiveEntry entry: contentPackageArchiver.getFiles().values()) {
@@ -339,8 +287,7 @@ public class VaultMojo extends AbstractPackageMojo {
                         InputStream in = null;
                         try {
                             in = entry.getInputStream();
-                            // ArchiveEntry.name always contains platform-dependent separators, convert to forwards slashes as separator
-                            String sanitizedFileName = FilenameUtils.separatorsToUnix(entry.getName());
+                            
                             fileValidator.lookupIndexDefinitionInArtifact(in, sanitizedFileName);
                         } finally {
                             IOUtils.closeQuietly(in);
@@ -351,12 +298,12 @@ public class VaultMojo extends AbstractPackageMojo {
                     getLog().error(fileValidator.getMessageWithPathsOfIndexDef());
                     throw new MojoExecutionException("Package should not contain index definitions, because 'allowIndexDefinitions=false'.");
                 }
-            }
+            }*/
 
             MavenArchiver mavenArchiver = new MavenArchiver();
             mavenArchiver.setArchiver(contentPackageArchiver);
             mavenArchiver.setOutputFile(finalFile);
-            mavenArchiver.createArchive(null, project, getMavenArchiveConfiguration(getManifestFile()));
+            mavenArchiver.createArchive(null, project, getMavenArchiveConfiguration(getGeneratedManifestFile()));
 
             // set the file for the project's artifact and ensure the
             // artifact is correctly handled with the "zip" handler

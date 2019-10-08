@@ -16,14 +16,16 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import java.io.File;
 import java.io.IOException;
 
 import javax.annotation.Nullable;
 
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageDependency;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.PackageInfo;
+import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageId;
+import org.apache.jackrabbit.vault.packaging.PackageInfo;
 import org.apache.jackrabbit.vault.packaging.VersionRange;
+import org.apache.jackrabbit.vault.packaging.impl.DefaultPackageInfo;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
@@ -58,7 +60,7 @@ import org.codehaus.plexus.util.StringUtils;
  * accepted versions, where the bounds are either included using parentheses
  * {@code ()} or excluded using brackets {@code []}
  */
-public class Dependency {
+public class MavenBasedPackageDependency {
 
     /**
      * The group name, required for package-id references
@@ -93,17 +95,34 @@ public class Dependency {
     /**
      * Resolved package dependency. only available after {@link #resolve(MavenProject, Log)}
      */
-    private PackageDependency dependency;
+    private org.apache.jackrabbit.vault.packaging.Dependency dependency;
+    
+    // default constructor for passing Maven Mojo parameters of that type
+    public MavenBasedPackageDependency() {
+        
+    }
+
+    public MavenBasedPackageDependency(Dependency dependency, File file) throws IOException {
+        super();
+        this.dependency = dependency;
+        this.name = dependency.getName();
+        this.group = dependency.getGroup();
+        this.version = dependency.getRange().toString();
+        readMetaData(file);
+    }
 
     /**
-     * Converts a list of {@link Dependency} instances to vault dependencies.
+     * Converts a list of {@link MavenBasedPackageDependency} instances to vault dependencies.
      *
+     * @param project the Maven project
      * @param log the Logger
-     * @param dependencyList The list of {@link Dependency} instances to convert.
+     * @param dependencyList The list of {@link MavenBasedPackageDependency} instances to convert.
      * @return The Vault Packaging Dependency representing the dependencies.
+     * @throws IOException in case meta information could not be read from the project dependency or the 
+     * dependency is not a content package.
      */
-    static PackageDependency[] resolve(final MavenProject project, final Log log, final Dependency... dependencyList) throws IOException {
-        PackageDependency[] dependencies = new PackageDependency[dependencyList.length];
+    public static org.apache.jackrabbit.vault.packaging.Dependency[] resolve(final MavenProject project, final Log log, final MavenBasedPackageDependency... dependencyList) throws IOException {
+        org.apache.jackrabbit.vault.packaging.Dependency[] dependencies = new org.apache.jackrabbit.vault.packaging.Dependency[dependencyList.length];
         for (int i = 0; i < dependencies.length; i++) {
             dependencies[i] = dependencyList[i].resolve(project, log);
         }
@@ -113,37 +132,55 @@ public class Dependency {
     /**
      * Helper method for {@link #toString)} to convert an instance of this
      * class to a Vault Packaging Dependency for easy string conversion.
+     * @throws IOException in case meta information could not be read from the project dependency or the 
+     * dependency is not a content package.
      */
-    private PackageDependency resolve(final MavenProject project, final Log log) throws IOException {
+    @SuppressWarnings("deprecation")
+    private org.apache.jackrabbit.vault.packaging.Dependency resolve(final MavenProject project, final Log log) throws IOException {
         if (!StringUtils.isEmpty(group) || !StringUtils.isEmpty(name)) {
-            log.warn("Using package id in dependencies is deprecated. use maven coordinates instead: " + group + ":" + name);
+            log.warn("Using package id in dependencies is deprecated. Use Maven coordinates (given via 'groupId' and 'artifactId') instead of '" + group + ":" + name +"'!");
         }
         if (!StringUtils.isEmpty(groupId) && !StringUtils.isEmpty(artifactId)) {
-            for (Artifact a : project.getDependencyArtifacts()) {
-                if (a.getArtifactId().equals(artifactId) && a.getGroupId().equals(groupId)) {
-                    PackageInfo info = PackageInfo.read(a.getFile());
-                    if (info != null) {
-                        PackageId id = info.getId();
-                        group = id.getGroup();
-                        name = id.getName();
-                        if (StringUtils.isEmpty(version)) {
-                            version = new VersionRange(id.getVersion(), true, null, false).toString();
-                        }
-                        this.info = info;
+            boolean foundMavenDependency = false;
+            if (!StringUtils.isEmpty(version)) {
+                log.warn("The version should not be explicitly given if the dependency is specified with 'groupId' and 'artifactId' as the version can be automatically determined from the Maven dependencies");
+            }
+            if (project != null) {
+                for (Artifact a : project.getDependencyArtifacts()) {
+                    if (a.getArtifactId().equals(artifactId) && a.getGroupId().equals(groupId)) {
+                        readMetaData(a.getFile());
+                        foundMavenDependency = true;
                         break;
-                    } else {
-                        throw new IOException("Specified dependency " + this + " is not a package.");
                     }
                 }
+                if (!foundMavenDependency) {
+                    throw new IOException("Specified dependency '" + this + "' was not found among the Maven dependencies of this project!");
+                }
+            } else {
+                throw new IOException("Dependency '" + this + "' was given via Maven coordinates but there is no Maven project connect which allows to resolve those.");
             }
         }
         if (StringUtils.isEmpty(group) || StringUtils.isEmpty(name)) {
-            throw new IOException("Specified dependency " + this + " is not qualified.");
+            throw new IOException("Specified dependency " + this + " is not qualified (group and name or groupId and artifactId is missing)!");
         }
         VersionRange range = StringUtils.isEmpty(version) ? VersionRange.INFINITE : VersionRange.fromString(version);
-        return dependency = new PackageDependency(group, name, range);
+        return dependency = new org.apache.jackrabbit.vault.packaging.Dependency(group, name, range);
     }
 
+    public void readMetaData(File file) throws IOException {
+        PackageInfo info = DefaultPackageInfo.read(file);
+        if (info != null) {
+            PackageId id = info.getId();
+            group = id.getGroup();
+            name = id.getName();
+            if (StringUtils.isEmpty(version)) {
+                version = new VersionRange(id.getVersion(), true, null, false).toString();
+            }
+            this.info = info;
+        } else {
+            throw new IOException("Specified dependency " + this + " is not a package.");
+        }
+    }
     /**
      * Returns the package info or {@code null}.
      *
@@ -160,7 +197,7 @@ public class Dependency {
      * @return the package dependency.
      */
     @Nullable
-    public PackageDependency getPackageDependency() {
+    public org.apache.jackrabbit.vault.packaging.Dependency getPackageDependency() {
         return dependency;
     }
 

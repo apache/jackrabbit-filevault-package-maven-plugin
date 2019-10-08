@@ -36,6 +36,7 @@
                 <configuration>
                     <failOnDependencyErrors>false</failOnDependencyErrors>
                     <filterSource>filter.xml</filterSource>
+                    <packageType>mixed</packageType>
                     <filters>
                         <filter>
                             <root>/libs/foo</root>

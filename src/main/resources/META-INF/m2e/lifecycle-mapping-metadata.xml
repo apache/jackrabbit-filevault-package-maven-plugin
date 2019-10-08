@@ -31,6 +31,7 @@
             <pluginExecutionFilter>
                 <goals>
                     <goal>generate-metadata</goal>
+                    <goal>validate-files</goal>
                 </goals>
             </pluginExecutionFilter>
             <action>
