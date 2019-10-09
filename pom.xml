@@ -422,13 +422,6 @@
             <version>1.4</version>
         </dependency>
 
-        <!-- oak:index definition checker -->
-        <dependency>
-            <groupId>org.jsoup</groupId>
-            <artifactId>jsoup</artifactId>
-            <version>1.10.3</version>
-        </dependency>
-
         <!-- incremental build support (http://www.eclipse.org/m2e/documentation/m2e-making-maven-plugins-compat.html) -->
         <dependency>
            <groupId>org.sonatype.plexus</groupId>

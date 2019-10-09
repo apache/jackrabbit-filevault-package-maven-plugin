@@ -13,6 +13,7 @@ META-INF/vault/settings.xml
 jcr_root/
 jcr_root/apps/
 jcr_root/apps/wcm/
+jcr_root/apps/wcm/.content.xml
 jcr_root/apps/wcm/core/
 jcr_root/apps/wcm/core/.content.xml
 jcr_root/apps/wcm/core/content/

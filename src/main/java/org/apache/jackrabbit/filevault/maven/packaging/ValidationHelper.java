@@ -107,7 +107,7 @@ public class ValidationHelper {
     }
 
     public void printUsedValidators(Log log, ValidationExecutor executor, ValidationContext context, boolean printUnusedValidators) {
-        log.info("Using " + executor.getAllValidatorsById().entrySet().size() + " validators: " + ValidationHelper.getValidatorNames(executor, ", ") + " for package of type " + context.getPackageType());
+        log.info("Using " + executor.getAllValidatorsById().entrySet().size() + " validators for package of type " + context.getPackageType() + ": " + ValidationHelper.getValidatorNames(executor, ", "));
         if (printUnusedValidators) {
             Map<String, Validator> unusedValidatorsById = executor.getUnusedValidatorsById();
             if (!unusedValidatorsById.isEmpty()) {
