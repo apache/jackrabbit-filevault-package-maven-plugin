@@ -22,7 +22,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.text.DateFormat;
@@ -40,13 +39,17 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
+import org.apache.jackrabbit.vault.fs.filter.DefaultPathFilter;
 import org.apache.jackrabbit.vault.fs.io.AccessControlHandling;
 import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageId;
@@ -287,6 +290,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * <tr><td>type</td><td>String</td><td>Filter criterion against the type of a project dependency. A pattern as described below.</td></tr>
      * <tr><td>classifier</td><td>String</td><td>Filter criterion against the classifier of a project dependency. A pattern as described below.</td></tr>
      * <tr><td>filter</td><td>Boolean</td><td>If set to {@code true} adds the embedded artifact location to the package's filter.</td></tr>
+     * <tr><td>isAllVersionsFilter</td><td>Boolean</td><td>If {@code filter} is {@code true} and this is {@code true} as well, the filter entry will contain all versions of the same artifact (by creating an according filter pattern).</td></tr>
      * <tr><td>target</td><td>String</td><td>The parent folder location in the package where to place the embedded artifact. Falls back to {@link #embeddedTarget} if not set.</td></tr>
      * </table>
      * </pre>
@@ -319,6 +323,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * <tr><td>scope</td><td>ScopeArtifactFilter</td><td>Filter criterion against the <a href="https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Scope">scope of a project dependency</a>. Possible values are <ul><li>{@code test}, which allows every scope</li><li>{@code compile+runtime} which allows every scope except {@code test}</li><li>{@code runtime+system} which allows every scope except {@code test} and {@code provided}</li><li>{@code compile} which allows only scope {@code compile}, {@code provided} and {@code system}</li><li>{@code runtime} which only allows scope {@code runtime} and {@code compile}.</td></tr>
      * <tr><td>type</td><td>String</td><td>Filter criterion against the type of a project dependency.A pattern as described below.</td></tr>
      * <tr><td>classifier</td><td>String</td><td>Filter criterion against the classifier of a project dependency. A pattern as described below.</td></tr>
+     * <tr><td>isAllVersionsFilter</td><td>Boolean</td><td>If {@code filter} is {@code true} and this is {@code true} as well, the filter entry will contain all versions of the same artifact (by creating an according filter pattern).</td></tr>
      * <tr><td>filter</td><td>Boolean</td><td>If set to {@code true} adds the embedded artifact location to the package's filter</td></tr>
      * </table>
      * </pre>
@@ -387,6 +392,9 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             required = true)
     boolean allowIndexDefinitions;
 
+    // take the first "-" followed by a digit as separator between version suffix and rest
+    private static final Pattern FILENAME_PATTERN_WITHOUT_VERSION_IN_GROUP1 = Pattern.compile("((?!-\\d).*-)\\d.*");
+
     /**
      * Sets the package type.
      * @param type the string representation of the package type
@@ -453,8 +461,10 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
 
             // this must happen before the filter rules are extended 
             // but after filters have been consolidated
-            computePackageTypeIfNotSet();
-            
+            if (packageType == null) {
+                packageType = computePackageType();
+            }
+
             // calculate the embeddeds and subpackages
             Map<String, File> embeddedFiles = getEmbeddeds();
             embeddedFiles.putAll(getSubPackages());
@@ -488,7 +498,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             try (OutputStream out = new FileOutputStream(getGeneratedManifestFile())) {
                 manifest.write(out);
             }
-        } catch (IOException | ManifestException | DependencyResolutionRequiredException e) {
+        } catch (IOException | ManifestException | DependencyResolutionRequiredException | ConfigurationException e) {
             throw new MojoExecutionException(e.toString(), e);
         }
         buildContext.refresh(vaultDir);
@@ -572,7 +582,6 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             // there is no suitable clone nor constructor, therefore use a serialization/deserialization approach
             try (InputStream serializedFilters = sourceFilters.getSource()) {
                 filters.load(serializedFilters);
-                //filters.resetSource();
             } catch (ConfigurationException e) {
                 throw new IllegalStateException("cloning filters failed.", e);
             }
@@ -589,7 +598,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
 
         // if the prefix property is set, it should be used if no filter is set
         if (filters.getFilterSets().isEmpty() && prefix.length() > 0) {
-            addWorkspaceFilter(prefix);
+            filters.add(new PathFilterSet(prefix));
         }
 
         return sourceFilters.getSourceAsString();
@@ -850,7 +859,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
     }
     
 
-    private Map<String, File> getEmbeddeds() throws MojoFailureException {
+    private Map<String, File> getEmbeddeds() throws MojoFailureException, ConfigurationException {
         Map<String, File> fileMap = new HashMap<>();
         for (Embedded emb : embeddeds) {
             final Collection<Artifact> artifacts = emb.getMatchingArtifacts(project);
@@ -926,14 +935,14 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
                 fileMap.put(targetPathName, source);
 
                 if (emb.isFilter()) {
-                    addWorkspaceFilter(targetNodePathName);
+                    addEmbeddedFileToFilter(targetNodePathName, emb.isAllVersionsFilter());
                 }
             }
         }
         return fileMap;
     }
 
-    private Map<String, File> getSubPackages() throws MojoFailureException {
+    private Map<String, File> getSubPackages() throws MojoFailureException, ConfigurationException {
         final String propsRelPath = Constants.META_DIR + "/" + Constants.PROPERTIES_XML;
         Map<String, File> fileMap = new HashMap<>();
         for (SubPackage pack : subPackages) {
@@ -944,7 +953,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             }
 
             // get the package path
-            getLog().info("Embedding --- " + pack + " ---");
+            getLog().info("Embedding subpackage --- " + pack + " ---");
             for (Artifact artifact : artifacts) {
                 final Properties props = new Properties();
 
@@ -1001,7 +1010,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
                 getLog().info(String.format("Embedding %s (from %s) -> %s", artifact.getId(), source.getAbsolutePath(), targetPathName));
                 fileMap.put(targetPathName, source);
                 if (pack.isFilter()) {
-                    addWorkspaceFilter(targetNodePathName);
+                    addEmbeddedFileToFilter(targetNodePathName, pack.isAllVersionsFilter());
                 }
             }
         }
@@ -1056,8 +1065,39 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
         return this.embedArtifactLayout.pathOf(artifact);
     }
 
-    private void addWorkspaceFilter(final String filterRoot) {
-        filters.add(new PathFilterSet(filterRoot));
+    private void addEmbeddedFileToFilter(String embeddedFile, boolean includeAllVersions) throws ConfigurationException {
+        filters.add(getPathFilterSetForEmbeddedFile(embeddedFile, includeAllVersions));
+    }
+
+    static PathFilterSet getPathFilterSetForEmbeddedFile(final String embeddedFile, boolean includeAllVersions)
+            throws ConfigurationException {
+        final PathFilterSet pathFilterSet;
+        if (includeAllVersions) {
+            String filename = FilenameUtils.getName(embeddedFile);
+            // shorten the filter root by one level
+            String rootName = StringUtils.chomp(embeddedFile, "/");
+            String extension = FilenameUtils.getExtension(filename);
+
+            // now find a mattern which should apply to embeddedFile and all similar artifacts with different versions from format:
+            // ${artifactId}-${version})
+            Matcher matcher = FILENAME_PATTERN_WITHOUT_VERSION_IN_GROUP1.matcher(filename);
+            if (!matcher.matches()) {
+                throw new IllegalArgumentException("Could not figure out version part in filename '" + filename
+                        + "'. For this artifact you cannot use 'isAllVersionsFilter=true'");
+            }
+
+            // create new pattern which matches the same artifacts in all versions
+            String pattern = Pattern.quote(matcher.group(1)) + ".*" + "\\." + extension + "(/.*)?";
+            if (!filename.matches(pattern)) {
+                throw new IllegalArgumentException("Detected pattern '" + pattern + "' does not even match given filename '" + filename
+                        + "'. For this artifact you cannot use 'isAllVersionsFilter=true'");
+            }
+            pathFilterSet = new PathFilterSet(rootName);
+            pathFilterSet.addInclude(new DefaultPathFilter(pattern));
+        } else {
+            pathFilterSet = new PathFilterSet(embeddedFile);
+        }
+        return pathFilterSet;
     }
 
     private String makeAbsolutePath(final String relPath) {
@@ -1072,43 +1112,43 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
         return absPath;
     }
 
-    private void computePackageTypeIfNotSet() {
-        if (packageType == null) {
-            // auto detect...
-            boolean hasApps = false;
-            boolean hasOther = false;
-            for (PathFilterSet p: filters.getFilterSets()) {
-                if (PathFilterSet.TYPE_CLEANUP.equals(p.getType())) {
-                    continue;
-                }
-                String root = p.getRoot();
-                if ("/apps".equals(root) || root.startsWith("/apps/") || "/libs".equals(root) || root.startsWith("/libs/")) {
-                    hasApps = true;
-                    getLog().debug("Detected /apps or /libs filter entry: " + p);
-                } else {
-                    hasOther = true;
-                    getLog().debug("Detected filter entry outside /apps and /libs: " + p);
-                }
+    private PackageType computePackageType() {
+        final PackageType packageType;
+        // auto detect...
+        boolean hasApps = false;
+        boolean hasOther = false;
+        for (PathFilterSet p : filters.getFilterSets()) {
+            if (PathFilterSet.TYPE_CLEANUP.equals(p.getType())) {
+                continue;
             }
-            // no embeds and subpackages?
-            getLog().debug("Detected " + embeddeds.length + " bundle(s) and " + subPackages.length + " sub package(s).");
-            if (embeddeds.length == 0 && subPackages.length == 0) {
-                if (hasApps && !hasOther) {
-                    packageType = PackageType.APPLICATION;
-                } else if (hasOther && !hasApps) {
-                    packageType = PackageType.CONTENT;
-                } else {
-                    packageType = PackageType.MIXED;
-                }
+            String root = p.getRoot();
+            if ("/apps".equals(root) || root.startsWith("/apps/") || "/libs".equals(root) || root.startsWith("/libs/")) {
+                hasApps = true;
+                getLog().debug("Detected /apps or /libs filter entry: " + p);
             } else {
-                if (!hasApps && !hasOther) {
-                    packageType = PackageType.CONTAINER;
-                } else {
-                    packageType = PackageType.MIXED;
-                }
+                hasOther = true;
+                getLog().debug("Detected filter entry outside /apps and /libs: " + p);
             }
-            getLog().info("Auto-detected package type: " + packageType.toString().toLowerCase());
         }
+        // no embeds and subpackages?
+        getLog().debug("Detected " + embeddeds.length + " bundle(s) and " + subPackages.length + " sub package(s).");
+        if (embeddeds.length == 0 && subPackages.length == 0) {
+            if (hasApps && !hasOther) {
+                packageType = PackageType.APPLICATION;
+            } else if (hasOther && !hasApps) {
+                packageType = PackageType.CONTENT;
+            } else {
+                packageType = PackageType.MIXED;
+            }
+        } else {
+            if (!hasApps && !hasOther) {
+                packageType = PackageType.CONTAINER;
+            } else {
+                packageType = PackageType.MIXED;
+            }
+        }
+        getLog().info("Auto-detected package type: " + packageType.toString().toLowerCase());
+        return packageType;
     }
 
     /**

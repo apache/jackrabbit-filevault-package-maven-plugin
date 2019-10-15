@@ -30,6 +30,9 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
 import org.apache.maven.project.MavenProject;
 
+/**
+ * Abstract base class for all kinds of embeds (both OSGi bundles as well as subpackages)
+ */
 public class SimpleEmbedded {
 
     /**
@@ -59,6 +62,12 @@ public class SimpleEmbedded {
      */
     private boolean filter;
 
+    /**
+     * If {@link #filter} is {@code true} and this is {@code true} as well, the filter entry will contain
+     * all versions of the same artifact.
+     */
+    private boolean isAllVersionsFilter;
+
     private boolean excludeTransitive;
     
     public void setGroupId(String groupId) throws ConfigurationException {
@@ -87,6 +96,11 @@ public class SimpleEmbedded {
 
     public boolean isFilter() {
         return filter;
+    }
+
+    public boolean isAllVersionsFilter() {
+        return isAllVersionsFilter;
+        
     }
     
     public void setExcludeTransitive(boolean excludeTransitive) {

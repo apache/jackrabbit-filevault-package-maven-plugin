@@ -21,7 +21,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+import java.util.regex.Pattern;
 
+import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
+import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
+import org.apache.jackrabbit.vault.fs.filter.DefaultPathFilter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -37,6 +41,31 @@ public class GenerateMetadataMojoTest {
         assertEscapedValueWorksInManifest("Paragraph\r\n\r\nAnother paragraph");
         assertEscapedValueWorksInManifest("some very long line above 72 chars. some very long line above 72 chars. some very long line above 72 chars\n\nAnother paragraph");
         assertEscapedValueWorksInManifest("some very long line above 72 chars. some very long line above 72 chars. some very long line above 72 chars\r\rAnother paragraph");
+    }
+
+    @Test
+    public void testGetPathFilterSetForEmbeddedFile() throws ConfigurationException {
+        // TODO: check filter
+        // use OSGi bundle filename patterns first
+        PathFilterSet expectedPathFilter = new PathFilterSet("/apps/install/jcr-2.0.jar");
+        Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/install/jcr-2.0.jar", false));
+        expectedPathFilter = new PathFilterSet("/apps/install");
+        expectedPathFilter.addInclude(new DefaultPathFilter(Pattern.quote("jcr-") + ".*\\.jar(/.*)?"));
+        Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/install/jcr-2.0.jar", true));
+        Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/install/jcr-3.0.jar", true));
+
+        expectedPathFilter = new PathFilterSet("/apps/some/other/install");
+        expectedPathFilter.addInclude(new DefaultPathFilter(Pattern.quote("jcr-") + ".*\\.jar(/.*)?"));
+        Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/some/other/install/jcr-2.0-alpha1.jar", true));
+
+        // then test against some sub package names
+        // look at PackageId.getInstallationPath for patterns ("/etc/packages/<group>/<name>-<version>.zip")
+        expectedPathFilter = new PathFilterSet("/etc/packages/some/weird/group/name-1.0.zip");
+        Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/etc/packages/some/weird/group/name-1.0.zip", false));
+        
+        expectedPathFilter = new PathFilterSet("/etc/packages/some/weird/group");
+        expectedPathFilter.addInclude(new DefaultPathFilter(Pattern.quote("name-") + ".*\\.zip(/.*)?"));
+        Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/etc/packages/some/weird/group/name-1.0.zip", true));
     }
 
     private void assertEscapedValueWorksInManifest(String value) throws IOException {
@@ -56,7 +85,6 @@ public class GenerateMetadataMojoTest {
                 Assert.assertEquals(removeNewlines(value), unescapeContinuations(actualValue));
             }
         };
-        
     }
 
     private static String removeNewlines(String value) {
