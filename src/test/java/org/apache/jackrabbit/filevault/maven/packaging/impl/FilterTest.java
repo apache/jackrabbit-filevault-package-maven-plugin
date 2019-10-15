@@ -21,6 +21,8 @@ import junit.framework.TestCase;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
+
 /**
  * Test the string filter
  */
@@ -83,7 +85,7 @@ public class FilterTest extends TestCase {
                 })
     };
 
-    public void testPatterns() {
+    public void testPatterns() throws ConfigurationException {
         for (TestSet test: TESTS) {
             StringFilterSet set = new StringFilterSet();
             set.addEntries(test.pattern);

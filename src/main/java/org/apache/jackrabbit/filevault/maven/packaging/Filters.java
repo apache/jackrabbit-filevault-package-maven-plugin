@@ -16,16 +16,17 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
 
 public class Filters extends DefaultWorkspaceFilter {
 
-    public void addFilter(Filter filter) {
+    public void addFilter(Filter filter) throws ConfigurationException {
         add(filter.toPathFilterSet());
     }
 
     // added for Maven 2.2.1 compatibility
-    public void setFilter(Filter filter) {
+    public void setFilter(Filter filter) throws ConfigurationException {
         add(filter.toPathFilterSet());
     }
 

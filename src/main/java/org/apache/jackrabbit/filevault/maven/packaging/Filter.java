@@ -18,6 +18,7 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 
 import org.apache.jackrabbit.vault.fs.api.ImportMode;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
+import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.filter.DefaultPathFilter;
 
 public class Filter {
@@ -85,7 +86,7 @@ public class Filter {
         cleanupType = "cleanup".equals(type);
     }
 
-    public PathFilterSet toPathFilterSet() {
+    public PathFilterSet toPathFilterSet() throws ConfigurationException {
         PathFilterSet set = new PathFilterSet();
         set.setRoot(root);
         set.setImportMode(mode);

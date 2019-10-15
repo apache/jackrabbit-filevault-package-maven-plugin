@@ -19,6 +19,7 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.hamcrest.Matchers;
@@ -47,25 +48,25 @@ public class SimpleEmbeddedTest {
     }
     
     @Test
-    public void testGroupIdOnlyFilter() {
+    public void testGroupIdOnlyFilter() throws ConfigurationException {
         embedded.setGroupId("mygroupid");
         Assert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(0), artifacts.get(1), artifacts.get(4), artifacts.get(5), artifacts.get(6)));
     }
 
     @Test
-    public void testArtifactIdOnlyFilter() {
+    public void testArtifactIdOnlyFilter() throws ConfigurationException {
         embedded.setArtifactId("artifact1");
         Assert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(0), artifacts.get(3), artifacts.get(4)));
     }
 
     @Test
-    public void testTypeBundleOnlyFilter() {
+    public void testTypeBundleOnlyFilter() throws ConfigurationException {
         embedded.setType("bundle");
         Assert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.contains(artifacts.get(4), artifacts.get(5), artifacts.get(6)));
     }
 
     @Test
-    public void testTypeBundleOrJarOnlyFilter() {
+    public void testTypeBundleOrJarOnlyFilter() throws ConfigurationException {
         // in addition filter for jar
         embedded.setType("jar");
         embedded.setType("bundle");
@@ -73,7 +74,7 @@ public class SimpleEmbeddedTest {
     }
 
     @Test
-    public void testClassifierOnlyFilter() {
+    public void testClassifierOnlyFilter() throws ConfigurationException {
         // in addition filter for jar
         embedded.setClassifier("myclassifier");
         Assert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.contains(artifacts.get(6)));
@@ -87,7 +88,7 @@ public class SimpleEmbeddedTest {
     }
 
     @Test
-    public void testComplexFilter() {
+    public void testComplexFilter() throws ConfigurationException {
         embedded.setType("bundle");
         embedded.setArtifactId("artifact1");
         embedded.setGroupId("mygroupid");

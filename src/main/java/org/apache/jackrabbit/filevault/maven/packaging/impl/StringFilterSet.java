@@ -19,13 +19,14 @@ package org.apache.jackrabbit.filevault.maven.packaging.impl;
 import java.util.List;
 
 import org.apache.jackrabbit.vault.fs.api.FilterSet;
+import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 
 /**
  * {@code StringFilterSet}...
  */
 public class StringFilterSet extends FilterSet<StringFilter> {
 
-    public void addEntry(String pattern) {
+    public void addEntry(String pattern) throws ConfigurationException {
         if (pattern.startsWith("~")) {
             addExclude(new StringFilter(pattern.substring(1)));
         } else {
@@ -33,7 +34,7 @@ public class StringFilterSet extends FilterSet<StringFilter> {
         }
     }
 
-    public void addEntries(String patterns) {
+    public void addEntries(String patterns) throws ConfigurationException {
         for (String name: patterns.split(",")) {
             addEntry(name.trim());
         }

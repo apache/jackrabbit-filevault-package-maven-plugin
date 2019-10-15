@@ -16,6 +16,7 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
+import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.filter.DefaultPathFilter;
 
 /**
@@ -25,7 +26,7 @@ public class StringFilter extends DefaultPathFilter {
 
     private String string;
 
-    public StringFilter(String pattern) {
+    public StringFilter(String pattern) throws ConfigurationException {
         super(pattern);
     }
 
@@ -38,7 +39,7 @@ public class StringFilter extends DefaultPathFilter {
         }
     }
     @Override
-    public void setPattern(String pattern) {
+    public void setPattern(String pattern) throws ConfigurationException {
         if (pattern.startsWith("/")) {
             pattern = pattern.substring(1);
             if (pattern.endsWith("/")) {

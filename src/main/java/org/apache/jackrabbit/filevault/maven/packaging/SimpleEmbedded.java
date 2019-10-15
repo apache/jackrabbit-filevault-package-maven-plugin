@@ -25,6 +25,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.apache.jackrabbit.filevault.maven.packaging.impl.StringFilterSet;
+import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
 import org.apache.maven.project.MavenProject;
@@ -60,11 +61,11 @@ public class SimpleEmbedded {
 
     private boolean excludeTransitive;
     
-    public void setGroupId(String groupId) {
+    public void setGroupId(String groupId) throws ConfigurationException {
         this.groupId.addEntries(groupId);
     }
 
-    public void setArtifactId(String artifactId) {
+    public void setArtifactId(String artifactId) throws ConfigurationException {
         this.artifactId.addEntries(artifactId);
     }
 
@@ -72,11 +73,11 @@ public class SimpleEmbedded {
         this.scope = new ScopeArtifactFilter(scope);
     }
 
-    public void setType(String type) {
+    public void setType(String type) throws ConfigurationException {
         this.type.addEntries(type);
     }
 
-    public void setClassifier(String classifier) {
+    public void setClassifier(String classifier) throws ConfigurationException {
         this.classifier.addEntries(classifier);
     }
 
