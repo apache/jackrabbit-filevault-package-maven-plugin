@@ -23,9 +23,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
 
@@ -43,10 +45,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.codehaus.plexus.archiver.Archiver;
-import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.FileSet;
-import org.codehaus.plexus.archiver.ResourceIterator;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
@@ -64,6 +63,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     private static final String PACKAGE_TYPE = "zip";
 
     static final String PACKAGE_EXT = "." + PACKAGE_TYPE;
+    
+    private static final Collection<File> STATIC_META_INF_FILES = Arrays.asList(new File(Constants.META_DIR, Constants.CONFIG_XML), new File(Constants.META_DIR, Constants.SETTINGS_XML));
 
     @Component
     private ArtifactHandlerManager artifactHandlerManager;
@@ -119,6 +120,12 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     private MavenArchiveConfiguration archive;
 
     /**
+     * All file names (relative to the zip root) which are supposed to not get overwritten in the package.
+     * The value is the source file.
+     */
+    private Map<File, File> protectedFiles = new HashMap<>();
+
+    /**
      * Creates a {@link FileSet} for the archiver
      * @param directory the directory
      * @param prefix the prefix
@@ -139,13 +146,55 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     @Nonnull
     private FileSet createFileSet(@Nonnull File directory, @Nonnull String prefix, List<String> additionalExcludes) {
         List<String> excludes = new LinkedList<>(Arrays.asList(this.excludes));
-        if (additionalExcludes != null) {
+        if(additionalExcludes != null) {
             excludes.addAll(additionalExcludes);
         }
         return fileSet(directory)
                 .prefixed(prefix)
                 .includeExclude(null, excludes.toArray(new String[0]))
                 .includeEmptyDirs(true);
+    }
+
+    private boolean isOverwritingProtectedFile(File zipFile, File sourceFile, boolean isProtected) {
+        if (protectedFiles.containsKey(zipFile)) {
+            return true;
+        }
+        if (isProtected) {
+            protectedFiles.put(zipFile, sourceFile);
+        }
+        return false;
+    }
+
+    private Map<File, File> getOverwrittenProtectedFiles(FileSet fileSet, boolean isProtected) {
+        // copied from PlexusIoFileResourceCollection.getResources()
+        Map<File, File> overwrittenFiles = new HashMap<>(); 
+        final DirectoryScanner ds = new DirectoryScanner();
+        final File dir = fileSet.getDirectory();
+        ds.setBasedir( dir );
+        final String[] inc = fileSet.getIncludes();
+        if (inc != null && inc.length > 0) {
+            ds.setIncludes( inc );
+        }
+        final String[] exc = fileSet.getExcludes();
+        if (exc != null && exc.length > 0) {
+            ds.setExcludes( exc );
+        }
+        if (fileSet.isUsingDefaultExcludes()) {
+            ds.addDefaultExcludes();
+        }
+        ds.setCaseSensitive(fileSet.isCaseSensitive());
+        ds.setFollowSymlinks(false );
+        ds.scan();
+
+        String[] files = ds.getIncludedFiles();
+        for (String file : files) {
+            File zipFileEntry = new File(fileSet.getPrefix() + file);
+            File sourceFile = new File(fileSet.getDirectory(), file);
+            if (isOverwritingProtectedFile(zipFileEntry, sourceFile, isProtected)) {
+                overwrittenFiles.put(zipFileEntry, sourceFile);
+            }
+        }
+        return overwrittenFiles;
     }
 
     /**
@@ -161,106 +210,60 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             // find the source directory
             final File jcrSourceDirectory = getJcrSourceDirectory();
             if (jcrSourceDirectory != null) {
-                getLog().info("packaging content from " + jcrSourceDirectory.getPath());
+                getLog().info("Packaging content from " + jcrSourceDirectory.getPath());
             }
             // retrieve filters
             Filters filters = loadGeneratedFilterFile();
             Map<String, File> embeddedFiles = getEmbeddedFilesMap();
 
             ContentPackageArchiver contentPackageArchiver = new ContentPackageArchiver();
-            if (failOnDuplicateEntries) {
-                contentPackageArchiver.setDuplicateBehavior(Archiver.DUPLICATES_FAIL);
-            }
+            
+            Map<File, File> duplicateFiles = new HashMap<>();
             contentPackageArchiver.setIncludeEmptyDirs(true);
             if (metaInfDirectory != null) {
                 // first add the metadata from the metaInfDirectory (they should take precedence over the generated ones from workDirectory, 
                 // except for the filter.xml, which should always come from the work directory)
-                contentPackageArchiver.addFileSet(createFileSet(metaInfDirectory, "META-INF/vault/", Collections.singletonList("filter.xml")));
+                FileSet fileSet = createFileSet(metaInfDirectory, Constants.META_DIR + "/", Collections.singletonList(Constants.FILTER_XML));
+                duplicateFiles.putAll(getOverwrittenProtectedFiles(fileSet, true));
+                contentPackageArchiver.addFileSet(fileSet);
             }
-            // then add all files from the workDirectory (they might overlap with the ones from metaInfDirectory, therefore only add the non-conflicting ones)
-            Collection<File> workDirectoryFilesNotYetExistingInArchive = getUncoveredFiles(workDirectory, "", contentPackageArchiver.getFiles().keySet(), Collections.singletonList("META-INF/MANIFEST.MF"));
-            for (File workDirectoryFile : workDirectoryFilesNotYetExistingInArchive) {
-                contentPackageArchiver.addFile(workDirectoryFile, workDirectory.toPath().relativize(workDirectoryFile.toPath()).toString());
+            // then add all files from the workDirectory (they might overlap with the ones from metaInfDirectory, but the duplicates are just ignored in the package)
+            FileSet fileSet = createFileSet(workDirectory, "");
+            // issue warning in case of overlaps
+            Map<File, File> overwrittenWorkFiles = getOverwrittenProtectedFiles(fileSet, true);
+            for (Entry<File, File> entry : overwrittenWorkFiles.entrySet()) {
+                String message = "Found duplicate file '" + entry.getKey() + "' from sources '" + protectedFiles.get(entry.getKey()) + "' and '" + entry.getValue() + "'.";
+                
+                // INFO for the static ones all others warn
+                if (STATIC_META_INF_FILES.contains(entry.getKey())) {
+                    getLog().info(message);
+                } else {
+                    getLog().warn(message);
+                }
             }
+            contentPackageArchiver.addFileSet(fileSet);
             
             // add embedded files
             for (Map.Entry<String, File> entry : embeddedFiles.entrySet()) {
+                protectedFiles.put(new File(entry.getKey()), entry.getValue());
                 contentPackageArchiver.addFile(entry.getValue(), entry.getKey());
             }
             
             // include content from build only if it exists
             if (jcrSourceDirectory != null && jcrSourceDirectory.exists()) {
-                // See GRANITE-16348
-                // we want to build a list of all the root directories in the order they were specified in the filter
-                // but ignore the roots that don't point to a directory
-                List<PathFilterSet> filterSets = filters.getFilterSets();
-                if (filterSets.isEmpty()) {
-                    contentPackageArchiver.addFileSet(createFileSet(jcrSourceDirectory, FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix)));
-                } else {
-                    for (PathFilterSet filterSet : filterSets) {
-                        String relPath = PlatformNameFormat.getPlatformPath(filterSet.getRoot());
-                        String rootPath = FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix + relPath);
+                duplicateFiles.putAll(addSourceDirectory(contentPackageArchiver, jcrSourceDirectory, filters, embeddedFiles));
 
-                        // CQ-4204625 skip embedded files, will be added later in the proper way
-                        if (embeddedFiles.containsKey(rootPath)) {
-                            continue;
-                        }
-
-                        // check for full coverage aggregate
-                        File fullCoverage = new File(jcrSourceDirectory, relPath + ".xml");
-                        if (fullCoverage.isFile()) {
-                            rootPath = FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix + relPath + ".xml");
-                            contentPackageArchiver.addFile(fullCoverage, rootPath);
-                            continue;
-                        }
-
-                        boolean isFilterRootDirectory = true;
-                        File rootDirectory = new File(jcrSourceDirectory, relPath);
-
-                        // traverse the ancestors until we find a existing directory (see CQ-4204625)
-                        while ((!rootDirectory.exists() || !rootDirectory.isDirectory())
-                                && !jcrSourceDirectory.equals(rootDirectory) && !fullCoverage.isFile()) {
-                            rootDirectory = rootDirectory.getParentFile();
-                            relPath = StringUtils.chomp(relPath, "/");
-                            fullCoverage = new File(rootDirectory, relPath + ".xml");
-                            isFilterRootDirectory = false;
-                        }
-
-                        // either parent node was covered by a full coverage aggregate
-                        if (fullCoverage.isFile()) {
-                            rootPath = FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix + relPath + ".xml");
-                            contentPackageArchiver.addFile(fullCoverage, rootPath);
+                if (!duplicateFiles.isEmpty()) {
+                    for (Entry<File, File> entry : duplicateFiles.entrySet()) {
+                        String message = "Found duplicate file '" + entry.getKey() + "' from sources '" + protectedFiles.get(entry.getKey()) + "' and '" + entry.getValue() + "'.";
+                        if (failOnDuplicateEntries) {
+                            getLog().error(message);
                         } else {
-                            // or a simple folder containing a ".content.xml"
-                            rootPath = FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix + relPath);
-                            // is the folder the filter root?
-                            if (isFilterRootDirectory) {
-                                // then just include the full folder
-                                contentPackageArchiver.addFileSet(createFileSet(rootDirectory, rootPath + "/"));
-                            } else {
-                                // otherwise, make sure to not add child directories which are not direct ancestors of the filter roots
-                                contentPackageArchiver.addFileSet(createFileSet(rootDirectory, rootPath + "/",
-                                        Collections.singletonList("%regex[^(?!\\.content\\.xml).*]")));
-                            }
+                            getLog().warn(message);
                         }
                     }
-                }
-
-                // check for for duplicates in the content package
-                if (failOnDuplicateEntries) {
-                    try {
-                        for (ResourceIterator iter = contentPackageArchiver.getResources(); iter.hasNext();) {
-                            iter.next();
-                        }
-                    } catch (ArchiverException e) {
-                        // this is most probably a duplicate exception
-                        // since there is no dedicated exception check if the message starts with "Duplicate file"
-                        if (e.getMessage() != null && e.getMessage().startsWith("Duplicate file")) {
-                            throw new MojoFailureException("Found duplicate files in content package, most probably you have overlapping filter roots " +
-                                    "or you embed a file which is already there in 'jcrRootSourceDirectory'. For details check the nested exception!", e);
-                        } else {
-                            throw e;
-                        }
+                    if (failOnDuplicateEntries) {
+                        throw new MojoFailureException("Found " + duplicateFiles.size() + " duplicate file(s) in content package, see above errors for details.");
                     }
                 }
 
@@ -275,30 +278,6 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                     }
                 }
             }
-
-            //NPR-14102 - Automated check for index definition
-            /*
-            if (!allowIndexDefinitions) {
-                
-                FileValidator fileValidator = new FileValidator();
-                getLog().info("Scanning files for oak index definitions.");
-                for (ArchiveEntry entry: contentPackageArchiver.getFiles().values()) {
-                    if (entry.getType() == ArchiveEntry.FILE) {
-                        InputStream in = null;
-                        try {
-                            in = entry.getInputStream();
-                            
-                            fileValidator.lookupIndexDefinitionInArtifact(in, sanitizedFileName);
-                        } finally {
-                            IOUtils.closeQuietly(in);
-                        }
-                    }
-                }
-                if (fileValidator.isContainingIndexDef) {
-                    getLog().error(fileValidator.getMessageWithPathsOfIndexDef());
-                    throw new MojoExecutionException("Package should not contain index definitions, because 'allowIndexDefinitions=false'.");
-                }
-            }*/
 
             MavenArchiver mavenArchiver = new MavenArchiver();
             mavenArchiver.setArchiver(contentPackageArchiver);
@@ -317,6 +296,70 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         }
     }
 
+    private Map<File, File> addSourceDirectory(ContentPackageArchiver contentPackageArchiver, File jcrSourceDirectory, Filters filters, Map<String, File> embeddedFiles) {
+        Map<File, File> duplicateFiles = new HashMap<>();
+        // See GRANITE-16348
+        // we want to build a list of all the root directories in the order they were specified in the filter
+        // but ignore the roots that don't point to a directory
+        List<PathFilterSet> filterSets = filters.getFilterSets();
+        if (filterSets.isEmpty()) {
+            FileSet fileSet = createFileSet(jcrSourceDirectory, FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix));
+            duplicateFiles.putAll(getOverwrittenProtectedFiles(fileSet, false));
+            contentPackageArchiver.addFileSet(fileSet);
+        } else {
+            for (PathFilterSet filterSet : filterSets) {
+                String relPath = PlatformNameFormat.getPlatformPath(filterSet.getRoot());
+                String destPath = FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix + relPath);
+
+                // CQ-4204625 skip embedded files, they have been added already
+                if (embeddedFiles.containsKey(destPath)) {
+                    continue;
+                }
+
+                // check for full coverage aggregate
+                File sourceFile = new File(jcrSourceDirectory, relPath + ".xml");
+                if (sourceFile.isFile()) {
+                    destPath = FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix + relPath + ".xml");
+                    if (isOverwritingProtectedFile(new File(destPath), sourceFile, false)) {
+                        duplicateFiles.put(new File(destPath), sourceFile);
+                    }
+                    contentPackageArchiver.addFile(sourceFile, destPath);
+                    // root path for ancestors is the parent directory
+                } else {
+                    sourceFile = new File(jcrSourceDirectory, relPath);
+
+                    // traverse the ancestors until we find a existing directory (see CQ-4204625)
+                    while ((!sourceFile.exists() || !sourceFile.isDirectory())
+                            && !jcrSourceDirectory.equals(sourceFile)) {
+                        sourceFile = sourceFile.getParentFile();
+                        relPath = StringUtils.chomp(relPath, "/");
+                    }
+                    
+                    if (!jcrSourceDirectory.equals(sourceFile)) {
+                        destPath = FileUtils.normalize(Constants.ROOT_DIR + "/" + prefix + relPath);
+                        FileSet fileSet = createFileSet(sourceFile, destPath + "/");
+                        duplicateFiles.putAll(getOverwrittenProtectedFiles(fileSet, false));
+                        contentPackageArchiver.addFileSet(fileSet);
+                    }
+                }
+                // similar to AbstractExporter all ancestors should be contained as well (see AggregateImpl.prepare(...))
+                addAncestors(contentPackageArchiver, sourceFile, jcrSourceDirectory, destPath);
+            }
+        }
+        return duplicateFiles;
+    }
+
+    private void addAncestors(ContentPackageArchiver contentPackageArchiver, File inputFile, File inputRootFile, String destFile) {
+        if (inputFile.equals(inputRootFile)) {
+            return;
+        }
+        // is there an according .content.xml available? (ignore full-coverage files)
+        File genericAggregate = new File(inputFile, Constants.DOT_CONTENT_XML);
+        if (genericAggregate.exists()) {
+            contentPackageArchiver.addFile(genericAggregate, destFile + "/" +  Constants.DOT_CONTENT_XML);
+        }
+        addAncestors(contentPackageArchiver, inputFile.getParentFile(), inputRootFile, StringUtils.chomp(destFile, "/"));
+    }
     /**
      * 
      * @param sourceDirectory

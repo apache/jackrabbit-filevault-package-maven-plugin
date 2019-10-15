@@ -629,39 +629,6 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
         }
     }
 
-    
-
-
-    /**
-     * Checks if the filter roots of this package are covered by the dependencies and also checks for colliding roots
-     * in the dependencies.
-     
-    private void validateDependencies() throws MojoExecutionException {
-        List<String> errors = new DependencyValidator()
-                .addDependencies(dependencies)
-                .addRepositoryStructure(repositoryStructurePackages)
-                .setFilters(filters)
-                .validate()
-                .getErrors();
-
-        if (errors.size() > 0) {
-            String msg = String.format("%d error(s) detected during dependency analysis.", errors.size());
-            if (failOnDependencyErrors) {
-                getLog().error(msg);
-                for (String error: errors) {
-                    getLog().error(error);
-                }
-                throw new MojoExecutionException(msg);
-            }
-            getLog().warn(msg);
-            for (String error: errors) {
-                getLog().warn(error);
-            }
-        } else {
-            getLog().info("All dependencies satisfied.");
-        }
-    }*/
-
     /**
      * Computes the import-package definition from the given bundles if not provided by the project.
      */
@@ -1133,6 +1100,8 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
              OutputStream out = new FileOutputStream(target)) {
             if (ins != null) {
                 IOUtil.copy(ins, out);
+            } else {
+                throw new IllegalArgumentException("Could not find resource " + source);
             }
         }
     }
