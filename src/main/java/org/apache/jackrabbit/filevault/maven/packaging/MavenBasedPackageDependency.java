@@ -102,15 +102,6 @@ public class MavenBasedPackageDependency {
         
     }
 
-    public MavenBasedPackageDependency(Dependency dependency, File file) throws IOException {
-        super();
-        this.dependency = dependency;
-        this.name = dependency.getName();
-        this.group = dependency.getGroup();
-        this.version = dependency.getRange().toString();
-        readMetaData(file);
-    }
-
     /**
      * Converts a list of {@link MavenBasedPackageDependency} instances to vault dependencies.
      *
@@ -142,13 +133,10 @@ public class MavenBasedPackageDependency {
         }
         if (!StringUtils.isEmpty(groupId) && !StringUtils.isEmpty(artifactId)) {
             boolean foundMavenDependency = false;
-            if (!StringUtils.isEmpty(version)) {
-                log.warn("The version should not be explicitly given if the dependency is specified with 'groupId' and 'artifactId' as the version can be automatically determined from the Maven dependencies");
-            }
             if (project != null) {
                 for (Artifact a : project.getDependencyArtifacts()) {
                     if (a.getArtifactId().equals(artifactId) && a.getGroupId().equals(groupId)) {
-                        readMetaData(a.getFile());
+                        readMetaData(a.getFile(), log);
                         foundMavenDependency = true;
                         break;
                     }
@@ -167,13 +155,14 @@ public class MavenBasedPackageDependency {
         return dependency = new org.apache.jackrabbit.vault.packaging.Dependency(group, name, range);
     }
 
-    public void readMetaData(File file) throws IOException {
+    public void readMetaData(File file, Log log) throws IOException {
         PackageInfo info = DefaultPackageInfo.read(file);
         if (info != null) {
             PackageId id = info.getId();
             group = id.getGroup();
             name = id.getName();
             if (StringUtils.isEmpty(version)) {
+                log.info("No explicit version range given for dependency '" + this+ "'. Using default version range derived from the Maven dependency");
                 version = new VersionRange(id.getVersion(), true, null, false).toString();
             }
             this.info = info;
