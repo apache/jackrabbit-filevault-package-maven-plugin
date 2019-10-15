@@ -510,7 +510,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             // if both, a inline filter and a implicit filter is present, the build fails.
             if (!filters.getFilterSets().isEmpty()) {
                 getLog().error("Refuse to merge inline filters and non-sourced filter.xml. If this is intended, specify the filter.xml via the 'filterSource' property.");
-                throw new MojoExecutionException("conflicting filters.");
+                throw new MojoExecutionException("Conflicting filters, look at above log for details.");
             }
             // load filters for further processing
             try {
@@ -541,7 +541,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             if (metaFilterFile.exists()) {
                 if (filterSource != null && !filterSource.equals(metaFilterFile)) {
                     getLog().error("Project contains filter.xml in META-INF/vault but also specifies a filter source.");
-                    throw new MojoExecutionException("conflicting filters.");
+                    throw new MojoExecutionException("Conflicting filters, look at above log for details.");
                 }
                 filterSource = metaFilterFile;
             }
