@@ -45,8 +45,22 @@
                 <extensions>true</extensions>
                 <configuration>
                     <group>test</group>
+                    <dependencies>
+                        <dependency>
+                            <groupId>org.apache.jackrabbit.filevault</groupId>
+                            <artifactId>package-plugin-test-pkg-sub1</artifactId>
+                        </dependency>
+                    </dependencies>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.jackrabbit.filevault</groupId>
+            <artifactId>package-plugin-test-pkg-sub1</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+            <type>zip</type>
+        </dependency>
+    </dependencies>
 </project>

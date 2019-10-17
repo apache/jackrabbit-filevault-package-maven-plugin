@@ -68,17 +68,21 @@ public class DirectoryValidationContext implements ValidationContext {
         if (propertiesPath == null || !Files.exists(propertiesPath)) {
             propertiesPath = generatedMetaInfRootDirectory.toPath().resolve(RELATIVE_PROPERTIES_XML_PATH);
             if (!Files.exists(propertiesPath)) {
-                throw new IllegalStateException("No " + RELATIVE_PROPERTIES_XML_PATH + " found in either " +metaInfRootDirectory + " or " + generatedMetaInfRootDirectory);
+                throw new IllegalStateException("No '" + RELATIVE_PROPERTIES_XML_PATH + "' found in either '" +metaInfRootDirectory + "' or '" + generatedMetaInfRootDirectory + "'");
             }
-            log.debug("Using " + RELATIVE_PROPERTIES_XML_PATH + " from directory " + generatedMetaInfRootDirectory);
+            log.debug("Using '" + RELATIVE_PROPERTIES_XML_PATH + "' from directory " + generatedMetaInfRootDirectory);
         } else {
-            log.debug("Using " + RELATIVE_PROPERTIES_XML_PATH + " from directory " + metaInfRootDirectory);
+            log.debug("Using '" + RELATIVE_PROPERTIES_XML_PATH + "' from directory " + metaInfRootDirectory);
         }
         properties = DefaultPackageProperties.fromFile(propertiesPath);
         
         // filter always comes from the workDir
         filter = new DefaultWorkspaceFilter();
-        filter.load(new File(generatedMetaInfRootDirectory, Constants.VAULT_DIR +"/"+Constants.FILTER_XML));
+        File filterFile = new File(generatedMetaInfRootDirectory, Constants.VAULT_DIR +"/"+Constants.FILTER_XML);
+        if (!filterFile.exists()) {
+            throw new IllegalStateException("No mandatory '" + Constants.VAULT_DIR +"/"+Constants.FILTER_XML + "' found in " + generatedMetaInfRootDirectory + "'");
+        }
+        filter.load(filterFile);
         
         this.resolvedDependencies = resolver.resolve(getProperties().getDependencies(), resolvedDependencies, log);
     }

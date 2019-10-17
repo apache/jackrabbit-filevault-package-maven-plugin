@@ -21,7 +21,8 @@ import org.junit.Test;
 public class GenerateMetadataMultiModuleIT {
 
     /**
-     * Tests that the generate-manifest goal generates the expected filter.xml when run on
+     * Tests that the generate-manifest goal generates the expected filter.xml and
+     * runs validation successfully when run on
      * inter-module dependencies in a multi-module setup for clean + test goals.
      */
     @Test
@@ -31,12 +32,14 @@ public class GenerateMetadataMultiModuleIT {
                 .setTestGoals("clean", "test")
                 .setVerifyPackageContents(false)
                 .build()
-                .verifyExpectedFilterInWorkDirectory("container/target/vault-work");
+                .verifyExpectedFilterInWorkDirectory("container/target/vault-work")
+                .verifyExpectedLogLines(); // make sure validation runs
     }
 
     /**
-     * Tests that the generate-manifest goal generates the expected filter.xml when run on
-     * inter-module dependencies in a multi-module setup for clean + test goals.
+     * Tests that the generate-manifest goal generates the expected filter.xml and
+     * runs validation successfully when run on when run on
+     * inter-module dependencies in a multi-module setup for clean + package goals.
      */
     @Test
     public void multi_module_build_clean_package() throws Exception {

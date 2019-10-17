@@ -18,7 +18,11 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
+import java.util.LinkedList;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.apache.jackrabbit.vault.packaging.Dependency;
@@ -108,14 +112,17 @@ public class MavenBasedPackageDependency {
      * @param project the Maven project
      * @param log the Logger
      * @param dependencyList The list of {@link MavenBasedPackageDependency} instances to convert.
-     * @return The Vault Packaging Dependency representing the dependencies.
+     * @return The Vault Packaging Dependency representing the resolved dependencies. Not all given items from the {@code dependencyList} can necessarily be resolved, therefore the the size of the collection might be less than the size of the collection given in {@code dependencyList} 
      * @throws IOException in case meta information could not be read from the project dependency or the 
      * dependency is not a content package.
      */
-    public static org.apache.jackrabbit.vault.packaging.Dependency[] resolve(final MavenProject project, final Log log, final MavenBasedPackageDependency... dependencyList) throws IOException {
-        org.apache.jackrabbit.vault.packaging.Dependency[] dependencies = new org.apache.jackrabbit.vault.packaging.Dependency[dependencyList.length];
-        for (int i = 0; i < dependencies.length; i++) {
-            dependencies[i] = dependencyList[i].resolve(project, log);
+    public static @Nonnull Collection<Dependency> resolve(final MavenProject project, final Log log, final MavenBasedPackageDependency... dependencyList) throws IOException {
+        Collection<Dependency> dependencies = new LinkedList<>();
+        for (int i = 0; i < dependencyList.length; i++) {
+            Dependency dependency = dependencyList[i].resolve(project, log);
+            if (dependency != null) {
+                dependencies.add(dependency);
+            }
         }
         return dependencies;
     }
@@ -127,7 +134,7 @@ public class MavenBasedPackageDependency {
      * dependency is not a content package.
      */
     @SuppressWarnings("deprecation")
-    private org.apache.jackrabbit.vault.packaging.Dependency resolve(final MavenProject project, final Log log) throws IOException {
+    private @CheckForNull org.apache.jackrabbit.vault.packaging.Dependency resolve(final MavenProject project, final Log log) throws IOException {
         if (!StringUtils.isEmpty(group) || !StringUtils.isEmpty(name)) {
             log.warn("Using package id in dependencies is deprecated. Use Maven coordinates (given via 'groupId' and 'artifactId') instead of '" + group + ":" + name +"'!");
         }
@@ -136,8 +143,15 @@ public class MavenBasedPackageDependency {
             if (project != null) {
                 for (Artifact a : project.getDependencyArtifacts()) {
                     if (a.getArtifactId().equals(artifactId) && a.getGroupId().equals(groupId)) {
-                        readMetaData(a.getFile(), log);
-                        foundMavenDependency = true;
+                        // check if file exists and if it points to a real file (might also point to a classes dir)
+                        try {
+                            readMetaData(a.getFile(), log);
+                            foundMavenDependency = true;
+                        } catch (IOException e) {
+                            // can not resolve name and group
+                            log.warn("Could not resolve dependency '" + this + "'", e);
+                            return null;
+                        }
                         break;
                     }
                 }
@@ -145,7 +159,8 @@ public class MavenBasedPackageDependency {
                     throw new IOException("Specified dependency '" + this + "' was not found among the Maven dependencies of this project!");
                 }
             } else {
-                throw new IOException("Dependency '" + this + "' was given via Maven coordinates but there is no Maven project connect which allows to resolve those.");
+                log.warn("Dependency '" + this + "' was given via Maven coordinates but there is no Maven project connected which allows to resolve those.");
+                return null;
             }
         }
         if (StringUtils.isEmpty(group) || StringUtils.isEmpty(name)) {
@@ -156,7 +171,19 @@ public class MavenBasedPackageDependency {
     }
 
     public void readMetaData(File file, Log log) throws IOException {
-        PackageInfo info = DefaultPackageInfo.read(file);
+        PackageInfo info;
+        if (file.isDirectory()) {
+            log.info("Trying to extract package info from folder '" + file + "' as no package is availabe for the given dependency " + this);
+            info = DefaultPackageInfo.read(file);
+            if (info == null) {
+                // fallback to work dir
+                File fallbackDirectory = new File(file.getParent(), "vault-work");
+                log.info("Trying to extract package info from fallback folder '" + fallbackDirectory + "' as no package is availabe for the given dependency " + this);
+                info = DefaultPackageInfo.read(fallbackDirectory);
+            }
+        } else {
+            info = DefaultPackageInfo.read(file);
+        }
         if (info != null) {
             PackageId id = info.getId();
             group = id.getGroup();
@@ -167,9 +194,10 @@ public class MavenBasedPackageDependency {
             }
             this.info = info;
         } else {
-            throw new IOException("Specified dependency " + this + " is not a package.");
+            throw new IOException("Dependency at '" + file + "' does not contain mandatory metadata for a content-package");
         }
     }
+
     /**
      * Returns the package info or {@code null}.
      *

@@ -1,0 +1,1 @@
+[INFO] No explicit version range given for dependency 'Dependency{group='test', groupId='org.apache.jackrabbit.filevault', name='package-plugin-test-pkg-sub1', artifactId='package-plugin-test-pkg-sub1', version='null'}'. Using default version range derived from the Maven dependency

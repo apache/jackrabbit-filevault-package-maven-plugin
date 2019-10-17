@@ -44,6 +44,7 @@ import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.io.AccessControlHandling;
+import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageProperties;
 import org.apache.jackrabbit.vault.packaging.PackageType;
@@ -708,7 +709,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
     private String computeDependencies() throws IOException {
         String dependenciesString = null;
         if (dependencies.length > 0) {
-            dependenciesString = org.apache.jackrabbit.vault.packaging.Dependency.toString(MavenBasedPackageDependency.resolve(project, getLog(), dependencies));
+            dependenciesString = org.apache.jackrabbit.vault.packaging.Dependency.toString(MavenBasedPackageDependency.resolve(project, getLog(), dependencies).toArray(new Dependency[0]));
         }
         return dependenciesString;
     }
@@ -907,6 +908,81 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
         return fileMap;
     }
 
+    private Map<String, File> getSubPackages() throws MojoFailureException {
+        final String propsRelPath = Constants.META_DIR + "/" + Constants.PROPERTIES_XML;
+        Map<String, File> fileMap = new HashMap<>();
+        for (SubPackage pack : subPackages) {
+            final Collection<Artifact> artifacts = pack.getMatchingArtifacts(project);
+            if (artifacts.isEmpty()) {
+                getLog().warn("No matching artifacts for sub package " + pack);
+                continue;
+            }
+
+            // get the package path
+            getLog().info("Embedding --- " + pack + " ---");
+            for (Artifact artifact : artifacts) {
+                final Properties props = new Properties();
+
+                final File source = artifact.getFile();
+                if (source.isDirectory()) {
+                    File otherWorkDirectory = null;
+                    final MavenProject otherProject = findModuleForArtifact(artifact);
+                    if (otherProject != null) {
+                        final PluginDescriptor pluginDescriptor = (PluginDescriptor) this.getPluginContext().get("pluginDescriptor");
+                        if (pluginDescriptor != null) {
+                            Map<String, Object> otherContext = this.session.getPluginContext(pluginDescriptor, otherProject);
+                            otherWorkDirectory = getArtifactWorkDirectoryLookup(otherContext).get(getModuleArtifactKey(artifact));
+                        }
+                    }
+
+                    // if not identifiable as a filevault content-package dependency, assume a generic archive layout.
+                    if (otherWorkDirectory == null) {
+                        otherWorkDirectory = source; // points to "target/classes"
+                    }
+
+                    File propsXml = new File(otherWorkDirectory, propsRelPath);
+                    if (!propsXml.exists()) {
+                        // fallback to work dir (assuming the same folder name)
+                        propsXml = new File(otherWorkDirectory.getParent(), workDirectory.getName() + "/" + propsRelPath);
+                    }
+                    try (InputStream input = new FileInputStream(propsXml)) {
+                        props.loadFromXML(input);
+                    } catch (IOException e) {
+                        throw new MojoFailureException("Could not read META-INF/vault/properties.xml from directory '" +
+                                otherWorkDirectory + "' to extract metadata: " + e.getMessage(), e);
+                    }
+                } else {
+                    // load properties
+                    try (ZipFile zip = new ZipFile(source)) {
+                        ZipEntry e = zip.getEntry(propsRelPath);
+                        if (e == null) {
+                            throw new IOException("Package does not contain 'META-INF/vault/properties.xml'");
+                        }
+                        try (InputStream in = zip.getInputStream(e)) {
+                            props.loadFromXML(in);
+                        }
+                    } catch (IOException e) {
+                        throw new MojoFailureException("Could not open subpackage '" + source + "' to extract metadata: " + e.getMessage(), e);
+                    }
+                }
+                PackageId pid = new PackageId(
+                        props.getProperty(PackageProperties.NAME_GROUP),
+                        props.getProperty(PackageProperties.NAME_NAME),
+                        props.getProperty(PackageProperties.NAME_VERSION)
+                );
+                final String targetNodePathName = pid.getInstallationPath() + ".zip";
+                final String targetPathName = "jcr_root" + targetNodePathName;
+
+                getLog().info(String.format("Embedding %s (from %s) -> %s", artifact.getId(), source.getAbsolutePath(), targetPathName));
+                fileMap.put(targetPathName, source);
+                if (pack.isFilter()) {
+                    addWorkspaceFilter(targetNodePathName);
+                }
+            }
+        }
+        return fileMap;
+    }
+
     /**
      * Establishes a session-shareable workDirectory lookup map for the given pluginContext.
      *
@@ -953,77 +1029,6 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      */
     String getModuleArtifactKey(final Artifact artifact) {
         return this.embedArtifactLayout.pathOf(artifact);
-    }
-
-    private Map<String, File> getSubPackages() throws MojoFailureException {
-        final String propsRelPath = "META-INF/vault/properties.xml";
-        Map<String, File> fileMap = new HashMap<>();
-        for (SubPackage pack : subPackages) {
-            final Collection<Artifact> artifacts = pack.getMatchingArtifacts(project);
-            if (artifacts.isEmpty()) {
-                getLog().warn("No matching artifacts for sub package " + pack);
-                continue;
-            }
-
-            // get the package path
-            getLog().info("Embedding --- " + pack + " ---");
-            for (Artifact artifact : artifacts) {
-                final Properties props = new Properties();
-
-                final File source = artifact.getFile();
-                if (source.isDirectory()) {
-                    File otherWorkDirectory = null;
-                    final MavenProject otherProject = findModuleForArtifact(artifact);
-                    if (otherProject != null) {
-                        final PluginDescriptor pluginDescriptor = (PluginDescriptor) this.getPluginContext().get("pluginDescriptor");
-                        if (pluginDescriptor != null) {
-                            Map<String, Object> otherContext = this.session.getPluginContext(pluginDescriptor, otherProject);
-                            otherWorkDirectory = getArtifactWorkDirectoryLookup(otherContext).get(getModuleArtifactKey(artifact));
-                        }
-                    }
-
-                    // if not identifiable as a filevault content-package dependency, assume a generic archive layout.
-                    if (otherWorkDirectory == null) {
-                        otherWorkDirectory = source;
-                    }
-
-                    final File propsXml = new File(otherWorkDirectory, propsRelPath);
-                    try (InputStream input = new FileInputStream(propsXml)) {
-                        props.loadFromXML(input);
-                    } catch (IOException e) {
-                        throw new MojoFailureException("Could not read META-INF/vault/properties.xml from directory '" +
-                                otherWorkDirectory + "' to extract metadata: " + e.getMessage(), e);
-                    }
-                } else {
-                    // load properties
-                    try (ZipFile zip = new ZipFile(source)) {
-                        ZipEntry e = zip.getEntry(propsRelPath);
-                        if (e == null) {
-                            throw new IOException("Package does not contain 'META-INF/vault/properties.xml'");
-                        }
-                        try (InputStream in = zip.getInputStream(e)) {
-                            props.loadFromXML(in);
-                        }
-                    } catch (IOException e) {
-                        throw new MojoFailureException("Could not open subpackage '" + source + "' to extract metadata: " + e.getMessage(), e);
-                    }
-                }
-                PackageId pid = new PackageId(
-                        props.getProperty(PackageProperties.NAME_GROUP),
-                        props.getProperty(PackageProperties.NAME_NAME),
-                        props.getProperty(PackageProperties.NAME_VERSION)
-                );
-                final String targetNodePathName = pid.getInstallationPath() + ".zip";
-                final String targetPathName = "jcr_root" + targetNodePathName;
-
-                getLog().info(String.format("Embedding %s (from %s) -> %s", artifact.getId(), source.getAbsolutePath(), targetPathName));
-                fileMap.put(targetPathName, source);
-                if (pack.isFilter()) {
-                    addWorkspaceFilter(targetNodePathName);
-                }
-            }
-        }
-        return fileMap;
     }
 
     private void addWorkspaceFilter(final String filterRoot) {
