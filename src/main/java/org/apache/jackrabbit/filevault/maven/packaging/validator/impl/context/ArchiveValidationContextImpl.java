@@ -47,7 +47,7 @@ public class ArchiveValidationContextImpl extends PackagePropertiesImpl implemen
      * @param configuration
      * @throws IOException 
      */
-    public ArchiveValidationContextImpl(Archive archive, Path archivePath, DependencyResolver resolver, Collection<PackageInfo> resolvedDependencies, Log log) throws IOException {
+    public ArchiveValidationContextImpl(Archive archive, Path archivePath, DependencyResolver resolver, Log log) throws IOException {
         this.archivePath = archivePath;
         properties = archive.getMetaInf().getProperties();
         if (properties == null) {
@@ -57,7 +57,7 @@ public class ArchiveValidationContextImpl extends PackagePropertiesImpl implemen
         if (filter == null) {
             throw new IllegalStateException("Archive '" + archivePath + "' does not contain a filter.xml.");
         }
-        this.resolvedDependencies = resolver.resolve(getProperties().getDependencies(), resolvedDependencies, log);
+        this.resolvedDependencies = resolver.resolve(getProperties().getDependencies(), getProperties().getDependenciesLocations(), log);
     }
 
 

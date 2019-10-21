@@ -22,6 +22,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -30,6 +32,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -37,6 +40,7 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -215,7 +219,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * {@code ()} or excluded using brackets {@code []}
      */
     @Parameter(property = "vault.dependencies")
-    private MavenBasedPackageDependency[] dependencies = new MavenBasedPackageDependency[0];
+    private Collection<MavenBasedPackageDependency> dependencies = new LinkedList<>();
 
 
     /**
@@ -457,9 +461,10 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             setEmbeddedFilesMap(embeddedFiles);
 
             String dependenciesString = computeDependencies();
-
+            String dependenciesLocations = computeDependenciesLocations();
+            
             // generate properties.xml
-            final Properties vaultProperties = computeProperties(dependenciesString);
+            final Properties vaultProperties = computeProperties(dependenciesString, dependenciesLocations);
             try (FileOutputStream fos = new FileOutputStream(new File(vaultDir, Constants.PROPERTIES_XML))) {
                 vaultProperties.storeToXML(fos, project.getName());
             }
@@ -479,7 +484,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
 
             // generate manifest file
             MavenArchiver mavenArchiver = new MavenArchiver();
-            Manifest manifest = mavenArchiver.getManifest(session, project, getMavenArchiveConfiguration(vaultProperties, dependenciesString));
+            Manifest manifest = mavenArchiver.getManifest(session, project, getMavenArchiveConfiguration(vaultProperties, dependenciesString, dependenciesLocations));
             try (OutputStream out = new FileOutputStream(getGeneratedManifestFile())) {
                 manifest.write(out);
             }
@@ -705,13 +710,26 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
     /**
      * Computes the dependency string.
      * @return the dependency string
+     * @throws URISyntaxException 
      */
     private String computeDependencies() throws IOException {
         String dependenciesString = null;
-        if (dependencies.length > 0) {
-            dependenciesString = org.apache.jackrabbit.vault.packaging.Dependency.toString(MavenBasedPackageDependency.resolve(project, getLog(), dependencies).toArray(new Dependency[0]));
+        if (!dependencies.isEmpty()) {
+            MavenBasedPackageDependency.resolve(project, getLog(), dependencies);
+            Dependency[] vaultDependencies = dependencies.stream().map(MavenBasedPackageDependency::getPackageDependency).toArray(Dependency[]::new);
+            dependenciesString = Dependency.toString(vaultDependencies);
         }
         return dependenciesString;
+    }
+
+    private String computeDependenciesLocations() throws IOException {
+        String dependenciesLocations = null;
+        if (!dependencies.isEmpty()) {
+            MavenBasedPackageDependency.resolve(project, getLog(), dependencies);
+            // pid = uri
+            dependenciesLocations = dependencies.stream().map(a -> a.getInfo().getId().toString() + "=" + a.getLocation()).collect(Collectors.joining(","));
+        }
+        return dependenciesLocations;
     }
 
     /**
@@ -728,7 +746,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
                .replaceAll("\r(?!\n)", "\r ");  // only CR (not followed by LF)
     }
 
-    private MavenArchiveConfiguration getMavenArchiveConfiguration(Properties vaultProperties, String dependenciesString) throws IOException {
+    private MavenArchiveConfiguration getMavenArchiveConfiguration(Properties vaultProperties, String dependenciesString, String dependenciesLocations) throws IOException {
         if (archive == null) {
             archive = new MavenArchiveConfiguration();
             archive.setManifest(new ManifestConfiguration());
@@ -747,7 +765,11 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             archive.addManifestEntry(PackageProperties.MF_KEY_PACKAGE_DESC, escapeManifestValue(vaultProperties.getProperty("description", "")));
             if (dependenciesString != null && dependenciesString.length() > 0) {
                 archive.addManifestEntry(PackageProperties.MF_KEY_PACKAGE_DEPENDENCIES, escapeManifestValue(dependenciesString));
+                if (dependenciesLocations != null && dependenciesLocations.length() > 0) {
+                    archive.addManifestEntry(PackageProperties.MF_KEY_PACKAGE_DEPENDENCIES_LOCATIONS, escapeManifestValue(dependenciesLocations));
+                }
             }
+            
             // be sure to avoid duplicates
             Set<String> rts = new TreeSet<>();
             for (PathFilterSet p: filters.getFilterSets()) {
@@ -766,7 +788,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
         return archive;
     }
 
-    private Properties computeProperties(String dependenciesString) {
+    private Properties computeProperties(String dependenciesString, String dependenciesLocations) {
         final Properties props = new Properties();
 
         // find the description of the content package (bug #30546)
@@ -806,6 +828,9 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
         // dependencies
         if (dependenciesString != null && dependenciesString.length() > 0) {
             props.put(PackageProperties.NAME_DEPENDENCIES, dependenciesString);
+            if (dependenciesLocations != null && dependenciesLocations.length() > 0) {
+                props.put(PackageProperties.NAME_DEPENDENCIES_LOCATIONS, dependenciesLocations);
+            }
         }
 
         // creation stamp

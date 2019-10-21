@@ -31,7 +31,6 @@ import org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context.Su
 import org.apache.jackrabbit.vault.fs.io.Archive;
 import org.apache.jackrabbit.vault.fs.io.ZipArchive;
 import org.apache.jackrabbit.vault.fs.io.ZipStreamArchive;
-import org.apache.jackrabbit.vault.packaging.PackageInfo;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.validation.ValidationExecutor;
 import org.apache.jackrabbit.vault.validation.ValidationViolation;
@@ -62,16 +61,16 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     }
 
     @Override
-    public void doExecute(Collection<PackageInfo> resolvedDependencies) throws MojoExecutionException, MojoFailureException {
+    public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
-            validatePackage(packageFile, resolvedDependencies);
+            validatePackage(packageFile);
             validationHelper.failBuildInCaseOfViolations(failOnValidationWarnings);
         } catch (IOException | ParserConfigurationException | SAXException e) {
             throw new MojoExecutionException("Could not validate package '" + packageFile + "': " + e.getMessage(), e);
         }
     }
 
-    private void validatePackage(File file, Collection<PackageInfo> resolvedDependencies) throws IOException, ParserConfigurationException, SAXException, MojoExecutionException {
+    private void validatePackage(File file) throws IOException, ParserConfigurationException, SAXException, MojoExecutionException {
         getLog().info("Start validating package '" + file + "'...");
 
         // open file to extract the meta data for the validation context
@@ -79,7 +78,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         ValidationExecutor executor;
         try (Archive archive = new ZipArchive(file)) {
             archive.open(true);
-            context = new ArchiveValidationContextImpl(archive, file.toPath(), resolver, resolvedDependencies, getLog());
+            context = new ArchiveValidationContextImpl(archive, file.toPath(), resolver, getLog());
             executor = validationExecutorFactory.createValidationExecutor(context, false, enforceRecursiveSubpackageValidation, validatorsSettings);
             if (executor != null) {
                 validationHelper.printUsedValidators(getLog(), executor, context, true);
@@ -116,6 +115,10 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         if (entryPath.startsWith(Constants.META_INF)) {
             messages.addAll(executor.validateMetaInf(inputStream, Paths.get(Constants.META_INF).relativize(entryPath), packagePath.resolve(Constants.META_INF)));
         } else if (entryPath.startsWith(Constants.ROOT_DIR)) {
+            // strip off jcr_root
+            Path relativeJcrPath = Paths.get(Constants.ROOT_DIR).relativize(entryPath);
+            messages.addAll(executor.validateJcrRoot(inputStream, relativeJcrPath, packagePath.resolve(Constants.ROOT_DIR)));
+            
             // in case this is a subpackage
             if (entryPath.getFileName().toString().endsWith(VaultMojo.PACKAGE_EXT)) {
                 Path subPackagePath = context.getPackageRootPath().resolve(entryPath);
@@ -133,10 +136,6 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
                     getLog().debug("Skip validating sub package as no validator is interested in it.");
                 }
                 getLog().info("End validating sub package.");
-            } else {
-                // strip off jcr_root
-                Path relativeJcrPath = Paths.get(Constants.ROOT_DIR).relativize(entryPath);
-                messages.addAll(executor.validateJcrRoot(inputStream, relativeJcrPath, packagePath.resolve(Constants.ROOT_DIR)));
             }
         } else {
             messages.add(new ValidationViolation(ValidationMessageSeverity.WARN, "Found unexpected file outside of " + Constants.ROOT_DIR + " and " + Constants.META_INF, entryPath, packagePath, null, 0,0, null));

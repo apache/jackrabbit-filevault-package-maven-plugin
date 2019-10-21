@@ -95,21 +95,21 @@ public class SimpleEmbeddedTest {
         Assert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(4)));
     }
 
-    private final static class SimpleArtifact extends DefaultArtifact {
-        private SimpleArtifact(String groupId, String artifactId) {
+    public final static class SimpleArtifact extends DefaultArtifact {
+        SimpleArtifact(String groupId, String artifactId) {
             this(groupId, artifactId, null);
         }
 
-        private SimpleArtifact(String groupId, String artifactId, String scope) {
+        SimpleArtifact(String groupId, String artifactId, String scope) {
             this(groupId, artifactId, scope, null);
         }
 
-        private SimpleArtifact(String groupId, String artifactId, String scope, String type) {
+        SimpleArtifact(String groupId, String artifactId, String scope, String type) {
             this(groupId, artifactId, scope, type, null);
         }
         
-        private SimpleArtifact(String groupId, String artifactId, String scope, String type, String classifier) {
-            super(groupId, artifactId, "1.0", scope, type == null ? "jar" : type, classifier == null ? "" : classifier, null);
+        SimpleArtifact(String groupId, String artifactId, String scope, String type, String classifier) {
+            super(groupId, artifactId, "default", scope, type == null ? "jar" : type, classifier == null ? "" : classifier, null);
         }
     }
 }

@@ -120,7 +120,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
      * minimal version accepted. Otherwise, the version range defines a lower and upper bound of accepted versions, where the bounds are
      * either included using parentheses {@code ()} or excluded using brackets {@code []} */
     @Parameter(property = "vault.dependencies")
-    protected MavenBasedPackageDependency[] dependencies = new MavenBasedPackageDependency[0];
+    protected Collection<MavenBasedPackageDependency> dependencies = new LinkedList<>();
 
     /** Defines the packages that define the repository structure. For the format description look at {@link #dependencies}.
      * <p>
@@ -131,7 +131,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
      * So therefore this repository-structure packages serve as indicator packages that helps satisfy the structural dependencies, but are
      * not added as real dependencies to the package. */
     @Parameter(property = "vault.repository.structure.packages")
-    protected MavenBasedPackageDependency[] repositoryStructurePackages = new MavenBasedPackageDependency[0];
+    protected Collection<MavenBasedPackageDependency> repositoryStructurePackages = new LinkedList<>();
 
     /**
      * Mapping of package dependencies given via group and name to Maven identifiers for enhanced validation.
@@ -170,9 +170,6 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     }
     @Override 
     public void execute() throws MojoExecutionException, MojoFailureException {
-        // resolve mapping map
-        resolver = new DependencyResolver(DefaultRepositoryRequest.getRepositoryRequest(session, project), repositorySystem,
-                resolutionErrorHandler, resolveMap(mapPackageDependencyToMavenGa));
         translateLegacyParametersToValidatorParameters();
         final Collection<PackageInfo> resolvedDependencies = new LinkedList<>();
         if (project != null) {
@@ -214,10 +211,13 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
                     "Could not get meta information for dependencies '" + StringUtils.join(dependencies, ",") + "': " + e.getMessage(),
                     e);
         }
-        doExecute(resolvedDependencies);
+        // resolve mapping map
+        resolver = new DependencyResolver(DefaultRepositoryRequest.getRepositoryRequest(session, project), repositorySystem,
+                resolutionErrorHandler, resolveMap(mapPackageDependencyToMavenGa), resolvedDependencies);
+        doExecute();
     }
 
-    private Collection<PackageInfo> getPackageInfoFromMavenBasedDependencies(MavenBasedPackageDependency... dependencies) throws IOException {
+    private Collection<PackageInfo> getPackageInfoFromMavenBasedDependencies(Collection<MavenBasedPackageDependency> dependencies) throws IOException {
         Collection<PackageInfo> packageInfos = new LinkedList<>();
         // try to resolve from project artifacts (in case a project is given)
         MavenBasedPackageDependency.resolve(project, getLog(), dependencies);
@@ -249,5 +249,5 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
         }
     }
 
-    public abstract void doExecute(Collection<PackageInfo> resolvedDependencies) throws MojoExecutionException, MojoFailureException;
+    public abstract void doExecute() throws MojoExecutionException, MojoFailureException;
 }

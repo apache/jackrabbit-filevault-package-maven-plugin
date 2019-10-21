@@ -29,7 +29,6 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context.DirectoryValidationContext;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
-import org.apache.jackrabbit.vault.packaging.PackageInfo;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.validation.ValidationExecutor;
 import org.apache.jackrabbit.vault.validation.ValidationViolation;
@@ -54,6 +53,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.codehaus.plexus.util.AbstractScanner;
+import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.Scanner;
 
 /** Validates individual files with all registered validators. This is only active for incremental builds (i.e. inside m2e)
@@ -139,7 +140,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
     }
 
     @Override
-    public void doExecute(Collection<PackageInfo> resolvedDependencies) throws MojoExecutionException, MojoFailureException {
+    public void doExecute() throws MojoExecutionException, MojoFailureException {
         final List<String> allGoals;
         if (session != null) {
             allGoals = session.getGoals();
@@ -160,6 +161,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
             getLog().warn("Could not determine plugin executions", e1);
         }
         try {
+            // TODO: consider also embedded bundles and packages (never appear in the jcr source dir)
             File metaInfoVaultSourceDirectory = AbstractMetadataPackageMojo.getMetaInfVaultSourceDirectory(metaInfVaultDirectory, getLog());
             File metaInfRootDirectory = null;
             if (metaInfoVaultSourceDirectory != null) {
@@ -167,7 +169,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
             }
             File generatedMetaInfRootDirectory = new File(workDirectory, Constants.META_INF);
             getLog().info("Using generatedMetaInfRootDirectory: " + generatedMetaInfRootDirectory + " and metaInfRootDir: " + metaInfRootDirectory);
-            ValidationContext context = new DirectoryValidationContext(generatedMetaInfRootDirectory, metaInfRootDirectory, resolver, resolvedDependencies, getLog());
+            ValidationContext context = new DirectoryValidationContext(generatedMetaInfRootDirectory, metaInfRootDirectory, resolver, getLog());
             ValidationExecutor executor = validationExecutorFactory.createValidationExecutor(context, false, false, validatorsSettings);
             if (executor == null) {
                 throw new MojoExecutionException("No registered validators found!");
@@ -198,7 +200,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         for (String relativeFile : scanner.getIncludedFiles()) {
             File absoluteFile = new File(baseDir, relativeFile);
             validationHelper.clearPreviousValidationMessages(buildContext, absoluteFile);
-            getLog().info("Validating file '" + absoluteFile + "'...");
+            getLog().debug("Validating file '" + absoluteFile + "'...");
             try (InputStream input = new FileInputStream(absoluteFile)) {
                 final Collection<ValidationViolation> messages;
                 if (isMetaInf) {

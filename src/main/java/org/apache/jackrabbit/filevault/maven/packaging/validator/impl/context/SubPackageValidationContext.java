@@ -28,7 +28,7 @@ public class SubPackageValidationContext extends ArchiveValidationContextImpl {
     private final ValidationContext containerPackageContext;
 
     public SubPackageValidationContext(ArchiveValidationContextImpl containerPackageContext, Archive archive, Path archivePath, DependencyResolver resolver, Log log) throws IOException {
-        super(archive, archivePath, resolver, containerPackageContext.getDependenciesMetaInfo(), log);
+        super(archive, archivePath, resolver, log);
         this.containerPackageContext = containerPackageContext;
     }
 

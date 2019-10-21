@@ -54,7 +54,7 @@ public class DirectoryValidationContext implements ValidationContext {
     
     private static final Path RELATIVE_PROPERTIES_XML_PATH = Paths.get(Constants.VAULT_DIR, Constants.PROPERTIES_XML);
 
-    public DirectoryValidationContext(@Nonnull final File generatedMetaInfRootDirectory, final File metaInfRootDirectory, DependencyResolver resolver, Collection<PackageInfo> resolvedDependencies, @Nonnull final Log log) throws IOException, ConfigurationException {
+    public DirectoryValidationContext(@Nonnull final File generatedMetaInfRootDirectory, final File metaInfRootDirectory, DependencyResolver resolver, @Nonnull final Log log) throws IOException, ConfigurationException {
         Path propertiesPath = null;
         if (!Constants.META_INF.equals(generatedMetaInfRootDirectory.getName())) {
             throw new IllegalArgumentException("The workDir must end with 'META-INF' but is '" + generatedMetaInfRootDirectory+"'");
@@ -84,7 +84,7 @@ public class DirectoryValidationContext implements ValidationContext {
         }
         filter.load(filterFile);
         
-        this.resolvedDependencies = resolver.resolve(getProperties().getDependencies(), resolvedDependencies, log);
+        this.resolvedDependencies = resolver.resolve(getProperties().getDependencies(), getProperties().getDependenciesLocations(), log);
     }
 
     @Override
