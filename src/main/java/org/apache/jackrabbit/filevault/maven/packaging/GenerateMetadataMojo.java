@@ -89,7 +89,8 @@ import aQute.bnd.osgi.Processor;
 @Mojo(
         name = "generate-metadata",
         defaultPhase = LifecyclePhase.PROCESS_CLASSES,
-        requiresDependencyResolution = ResolutionScope.COMPILE
+        requiresDependencyResolution = ResolutionScope.COMPILE,
+        threadSafe = true
 )
 public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
 

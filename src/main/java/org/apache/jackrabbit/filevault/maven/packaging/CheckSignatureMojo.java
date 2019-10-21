@@ -51,7 +51,8 @@ import org.codehaus.mojo.animal_sniffer.maven.Signature;
 @Mojo(
         name = "check-signature",
         defaultPhase = LifecyclePhase.PROCESS_CLASSES,
-        requiresDependencyResolution = ResolutionScope.COMPILE
+        requiresDependencyResolution = ResolutionScope.COMPILE,
+        threadSafe = true
 )
 public class CheckSignatureMojo extends AbstractMojo {
 

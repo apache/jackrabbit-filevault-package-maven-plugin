@@ -46,7 +46,7 @@ import org.xml.sax.SAXException;
 
 /** Validates the whole package with all registered validators. This is only active for incremental builds (i.e. inside m2e) */
 @Mojo(
-        name = "validate-package", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = false)
+        name = "validate-package", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = false, threadSafe = true)
 public class ValidatePackageMojo extends AbstractValidateMojo {
 
     /** The package file to validate. By default will be the project's artifact (in case a project is given) */

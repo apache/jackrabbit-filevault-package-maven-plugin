@@ -41,7 +41,8 @@ import org.sonatype.plexus.build.incremental.BuildContext;
  */
 @Mojo(
         name = "format-xml",
-        defaultPhase = LifecyclePhase.PROCESS_SOURCES
+        defaultPhase = LifecyclePhase.PROCESS_SOURCES,
+        threadSafe = true
 )
 public class FormatDocviewXmlMojo extends AbstractMojo {
 

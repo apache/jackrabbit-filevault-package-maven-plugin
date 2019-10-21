@@ -56,7 +56,8 @@ import org.codehaus.plexus.util.StringUtils;
 @Mojo(
         name = "package",
         defaultPhase = LifecyclePhase.PACKAGE,
-        requiresDependencyResolution = ResolutionScope.COMPILE
+        requiresDependencyResolution = ResolutionScope.COMPILE,
+        threadSafe = true
 )
 public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
 

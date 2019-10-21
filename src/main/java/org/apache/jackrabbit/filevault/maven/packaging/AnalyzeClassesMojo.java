@@ -41,7 +41,8 @@ import aQute.bnd.osgi.Processor;
 @Mojo(
         name = "analyze-classes",
         defaultPhase = LifecyclePhase.PROCESS_CLASSES,
-        requiresDependencyResolution = ResolutionScope.COMPILE
+        requiresDependencyResolution = ResolutionScope.COMPILE,
+        threadSafe = true
 )
 public class AnalyzeClassesMojo extends AbstractMojo {
 

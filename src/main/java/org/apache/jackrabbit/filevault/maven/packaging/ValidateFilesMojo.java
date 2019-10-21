@@ -59,7 +59,7 @@ import org.codehaus.plexus.util.Scanner;
 
 /** Validates individual files with all registered validators. This is only active for incremental builds (i.e. inside m2e)
     or when mojo "validate-package" is not executed in the current Maven execution */
-@Mojo(name = "validate-files", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyResolution = ResolutionScope.COMPILE)
+@Mojo(name = "validate-files", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class ValidateFilesMojo extends AbstractValidateMojo {
 
     //-----
