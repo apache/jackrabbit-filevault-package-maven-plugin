@@ -21,7 +21,7 @@ You can build the plugin like this:
 
     mvn clean install
 
-You need Maven 3.2.5 (or higher) with Java 7 (or higher) for the build.
+You need Maven 3.3.9 (or higher) with Java 8 (or higher) for the build.
 For more instructions, please see the documentation at:
 
    http://jackrabbit.apache.org/building-jackrabbit.html
