@@ -24,6 +24,7 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +34,7 @@ import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.validation.ValidationExecutor;
 import org.apache.jackrabbit.vault.validation.ValidationViolation;
 import org.apache.jackrabbit.vault.validation.spi.ValidationContext;
+import org.apache.jackrabbit.vault.validation.spi.impl.AdvancedFilterValidatorFactory;
 import org.apache.maven.lifecycle.LifecycleExecutor;
 import org.apache.maven.lifecycle.LifecycleNotFoundException;
 import org.apache.maven.lifecycle.LifecyclePhaseNotFoundException;
@@ -139,6 +141,21 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
     public ValidateFilesMojo() {
     }
 
+    private void disableChecksOnlyWorkingForPackages() throws MojoExecutionException {
+        final ValidatorSettings filterValidatorSettings;
+        if (validatorsSettings == null) {
+            validatorsSettings = new HashMap<>();
+        }
+        if (validatorsSettings.containsKey(AdvancedFilterValidatorFactory.ID)) {
+            getLog().warn("Overwriting settings for validator " + AdvancedFilterValidatorFactory.ID + " as some checks do not work reliably for this mojo!"); 
+            filterValidatorSettings = validatorsSettings.get(AdvancedFilterValidatorFactory.ID);
+        } else {
+            filterValidatorSettings = new ValidatorSettings();
+        }
+        // orphaned filter rules cannot be realiably detected, as the package is not yet build
+        filterValidatorSettings.addOption(AdvancedFilterValidatorFactory.OPTION_SEVERITY_FOR_ORPHANED_FILTER_RULES, "debug");
+    }
+
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         final List<String> allGoals;
@@ -160,8 +177,8 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
                 | LifecyclePhaseNotFoundException | LifecycleNotFoundException | PluginManagerException e1) {
             getLog().warn("Could not determine plugin executions", e1);
         }
+        disableChecksOnlyWorkingForPackages();
         try {
-            // TODO: consider also embedded bundles and packages (never appear in the jcr source dir)
             File metaInfoVaultSourceDirectory = AbstractMetadataPackageMojo.getMetaInfVaultSourceDirectory(metaInfVaultDirectory, getLog());
             File metaInfRootDirectory = null;
             if (metaInfoVaultSourceDirectory != null) {
