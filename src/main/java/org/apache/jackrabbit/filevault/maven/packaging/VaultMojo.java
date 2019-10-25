@@ -126,6 +126,15 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
      */
     private Map<File, File> protectedFiles = new HashMap<>();
 
+
+    /**
+     * Timestamp for reproducible archive entries.
+     *
+     * @since 1.1.0
+     */
+    @Parameter( defaultValue = "${project.build.outputTimestamp}" )
+    private String outputTimestamp;
+
     /**
      * Creates a {@link FileSet} for the archiver
      * @param directory the directory
@@ -283,6 +292,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             MavenArchiver mavenArchiver = new MavenArchiver();
             mavenArchiver.setArchiver(contentPackageArchiver);
             mavenArchiver.setOutputFile(finalFile);
+            mavenArchiver.configureReproducible(outputTimestamp);
             mavenArchiver.createArchive(null, project, getMavenArchiveConfiguration(getGeneratedManifestFile()));
 
             // set the file for the project's artifact and ensure the

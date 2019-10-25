@@ -18,15 +18,28 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.filter.DefaultPathFilter;
+import org.apache.jackrabbit.vault.packaging.PackageType;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
+import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class GenerateMetadataMojoTest {
@@ -66,6 +79,38 @@ public class GenerateMetadataMojoTest {
         expectedPathFilter = new PathFilterSet("/etc/packages/some/weird/group");
         expectedPathFilter.addInclude(new DefaultPathFilter(Pattern.quote("name-") + ".*\\.zip(/.*)?"));
         Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/etc/packages/some/weird/group/name-1.0.zip", true));
+    }
+
+    @Test
+    public void testWriteManifest() throws FileNotFoundException, ManifestException, DependencyResolutionRequiredException, IOException {
+        GenerateMetadataMojo mojo = new GenerateMetadataMojo();
+        mojo.name = "mypackage";
+        mojo.group = "mygroup";
+        mojo.version = "1.4";
+        mojo.packageType = PackageType.APPLICATION;
+        mojo.project = new MavenProject();
+        Properties vaultProperties = new Properties();
+        File outputFile = File.createTempFile("filevault-test-", null);
+        String expectedManifest = 
+           "Manifest-Version: 1.0\r\n" + 
+           "Implementation-Title: empty-project\r\n" + 
+           "Content-Package-Roots: \r\n" + 
+           "Implementation-Version: 0\r\n" + 
+           "Content-Package-Dependencies: somegroup:dependency:1.0\r\n" + 
+           "Build-Jdk-Spec: 1.8\r\n" + 
+           "Content-Package-Type: application\r\n" + 
+           "Created-By: Apache Jackrabbit FileVault - Package Maven Plugin\r\n" + 
+           "Content-Package-Id: mygroup:mypackage:1.4\r\n" + 
+           "Content-Package-Description: \r\n" + 
+           "\r\n";
+        try {
+            mojo.writeManifest(outputFile, "somegroup:dependency:1.0", null, vaultProperties);
+            try (Reader reader = new InputStreamReader(new FileInputStream(outputFile), StandardCharsets.UTF_8)) {
+                Assert.assertEquals(expectedManifest, IOUtils.toString(reader));
+            }
+        } finally {
+            outputFile.delete();
+        }
     }
 
     private void assertEscapedValueWorksInManifest(String value) throws IOException {

@@ -1,3 +1,4 @@
+Content-Package-Dependencies-Locations:apache/jackrabbit:test.content.package:1.0.4=maven:com.apache.jackrabbit.filevault:test.content.package:1.0.0:zip,apache/jackrabbit:test.content.package:1.0.4=maven:com.apache.jackrabbit.filevault:test.content.package:1.0.0:zip
 Content-Package-Dependencies:apache/jackrabbit:test.content.package:0.1,apache/jackrabbit:test.content.package:1.0.4
 Content-Package-Description:This is an Example Project to verify that manifest generation is correct.
 Content-Package-Id:my/test/group:package-plugin-test-pkg:1.0.0-SNAPSHOT

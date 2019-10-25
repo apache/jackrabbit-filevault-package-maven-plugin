@@ -19,12 +19,19 @@ package org.apache.jackrabbit.filevault.maven.packaging.it;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
 import java.util.Calendar;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.jackrabbit.util.ISO8601;
 import org.apache.maven.it.VerificationException;
 import org.hamcrest.number.OrderingComparison;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class DefaultProjectIT {
@@ -53,6 +60,28 @@ public class DefaultProjectIT {
         assertThat(date, OrderingComparison.lessThan(dateAfterRun));
     }
 
+    @Test
+    public void generic_project_is_reproducible() throws Exception {
+        ProjectBuilder builder = verify("generic");
+        // MD5
+        MessageDigest md = MessageDigest.getInstance("MD5");
+        try (InputStream is = new FileInputStream(builder.getTestPackageFile());
+             DigestInputStream dis = new DigestInputStream(is, md)) 
+        {
+            IOUtils.copy(dis, new NullOutputStream());
+        }
+        byte[] digest1 = md.digest();
+        builder = verify("generic");
+        // MD5
+        md = MessageDigest.getInstance("MD5");
+        try (InputStream is = new FileInputStream(builder.getTestPackageFile());
+             DigestInputStream dis = new DigestInputStream(is, md)) {
+            IOUtils.copy(dis, new NullOutputStream());
+        }
+        byte[] digest2 = md.digest();
+        Assert.assertArrayEquals(digest1, digest2);
+    }
+ 
     @Test
     public void generic_project_package_with_metainf_contains_correct_files() throws Exception {
         verify("generic-with-metainf");

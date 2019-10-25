@@ -18,6 +18,7 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -130,7 +131,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             property = "vault.group",
             defaultValue="${project.groupId}",
             required = true)
-    private String group;
+     String group;
 
     /**
      * The name of the content package
@@ -139,7 +140,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             property = "vault.name",
             defaultValue="${project.artifactId}",
             required = true)
-    private String name;
+    String name;
 
     /**
      * The version of the content package.
@@ -148,7 +149,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             property = "vault.version",
             defaultValue = "${project.version}",
             required = true)
-    private String version;
+    String version;
 
     /**
      * Defines the content of the filter.xml file
@@ -493,16 +494,22 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
                 FileUtils.copyFile(thumbnailImage, new File(vaultDefinitionFolder, "thumbnail.png"));
             }
 
-            // generate manifest file
-            MavenArchiver mavenArchiver = new MavenArchiver();
-            Manifest manifest = mavenArchiver.getManifest(session, project, getMavenArchiveConfiguration(vaultProperties, dependenciesString, dependenciesLocations));
-            try (OutputStream out = new FileOutputStream(getGeneratedManifestFile())) {
-                manifest.write(out);
-            }
+            writeManifest(getGeneratedManifestFile(), dependenciesString, dependenciesLocations, vaultProperties);
         } catch (IOException | ManifestException | DependencyResolutionRequiredException | ConfigurationException e) {
             throw new MojoExecutionException(e.toString(), e);
         }
         buildContext.refresh(vaultDir);
+    }
+
+    void writeManifest(File file, String dependenciesString, String dependenciesLocations, final Properties vaultProperties)
+            throws ManifestException, DependencyResolutionRequiredException, IOException, FileNotFoundException {
+        // generate manifest file
+        MavenArchiver mavenArchiver = new MavenArchiver();
+        mavenArchiver.setCreatedBy("Apache Jackrabbit FileVault - Package Maven Plugin", "org.apache.jackrabbit", "filevault-package-maven-plugin");
+        Manifest manifest = mavenArchiver.getManifest(session, project, getMavenArchiveConfiguration(vaultProperties, dependenciesString, dependenciesLocations));
+        try (OutputStream out = new FileOutputStream(file)) {
+            manifest.write(out);
+        }
     }
     
     /**

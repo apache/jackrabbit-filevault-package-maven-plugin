@@ -1,1 +1,1 @@
-[INFO] No explicit version range given for dependency 'Dependency{group='test', groupId='org.apache.jackrabbit.filevault', name='package-plugin-test-pkg-sub1', artifactId='package-plugin-test-pkg-sub1', version='null'}'. Using default version range derived from the Maven dependency
+[WARNING] ValidationViolation: "jackrabbit-filter: Filter root's ancestor '/apps/bundles/install' is not covered by any of the specified dependencies nor a valid root.", filePath=target/vault-work/META-INF/vault/filter.xml
