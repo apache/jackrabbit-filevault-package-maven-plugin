@@ -361,7 +361,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     }
 
     private void addAncestors(ContentPackageArchiver contentPackageArchiver, File inputFile, File inputRootFile, String destFile) {
-        if (inputFile.equals(inputRootFile)) {
+        // include up to (including root)
+        if (!inputFile.getAbsolutePath().startsWith(inputRootFile.getAbsolutePath())) {
             return;
         }
         // is there an according .content.xml available? (ignore full-coverage files)
