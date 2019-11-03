@@ -16,6 +16,7 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -24,7 +25,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
@@ -50,14 +58,16 @@ public class DefaultProjectIT {
 
     @Test
     public void generic_project_package_contains_correct_files() throws Exception {
-        Calendar dateBeforeRun = Calendar.getInstance();
+        // the created date is fixed in the pom, as this is a reproducible build
         String createdDate = verify("generic").getPackageProperty("created");
-        Calendar dateAfterRun = Calendar.getInstance();
+        Calendar expectedDate = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+        DateFormat df = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssXXX" );
+        expectedDate.setTime(df.parse("2019-10-02T08:04:00Z"));
+        expectedDate.setLenient(false);
         Calendar date = ISO8601.parse(createdDate);
         assertNotNull("The created date is not compliant to the ISO8601 profile defined in https://www.w3.org/TR/NOTE-datetime", date);
         // check actual value
-        assertThat(date, OrderingComparison.greaterThan(dateBeforeRun));
-        assertThat(date, OrderingComparison.lessThan(dateAfterRun));
+        assertEquals(expectedDate, date);
     }
 
     @Test
@@ -66,8 +76,7 @@ public class DefaultProjectIT {
         // MD5
         MessageDigest md = MessageDigest.getInstance("MD5");
         try (InputStream is = new FileInputStream(builder.getTestPackageFile());
-             DigestInputStream dis = new DigestInputStream(is, md)) 
-        {
+             DigestInputStream dis = new DigestInputStream(is, md)) {
             IOUtils.copy(dis, new NullOutputStream());
         }
         byte[] digest1 = md.digest();
@@ -104,10 +113,18 @@ public class DefaultProjectIT {
 
     @Test
     public void generic_empty_directories() throws Exception {
-        new ProjectBuilder()
+        Calendar dateBeforeRun = Calendar.getInstance();
+        String createdDate = new ProjectBuilder()
                 .setTestProjectDir(TEST_PROJECT_NAME + "generic-empty-directories")
                 .build()
-                .verifyExpectedFiles();
+                .verifyExpectedFiles().getPackageProperty("created");
+        Calendar dateAfterRun = Calendar.getInstance();
+        Calendar date = ISO8601.parse(createdDate);
+        assertNotNull("The created date is not compliant to the ISO8601 profile defined in https://www.w3.org/TR/NOTE-datetime", date);
+        // check actual value
+        assertThat(date, OrderingComparison.greaterThan(dateBeforeRun));
+        assertThat(date, OrderingComparison.lessThan(dateAfterRun));
+    
     }
 
     @Test

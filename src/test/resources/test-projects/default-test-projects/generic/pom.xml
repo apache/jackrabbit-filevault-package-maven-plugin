@@ -26,6 +26,9 @@
     <packaging>content-package</packaging>
     <name>Packaging test</name>
 
+    <properties>
+        <project.build.outputTimestamp>2019-10-02T08:04:00Z</project.build.outputTimestamp>
+    </properties>
     <build>
         <plugins>
             <plugin>

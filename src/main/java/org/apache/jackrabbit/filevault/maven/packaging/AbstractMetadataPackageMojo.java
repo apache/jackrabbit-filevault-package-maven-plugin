@@ -83,6 +83,18 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
     @Parameter(property = "vault.prefix")
     String prefix = "";
 
+
+    /**
+     * Timestamp for reproducible output archive entries, either formatted as ISO 8601
+     * <code>yyyy-MM-dd'T'HH:mm:ssXXX</code> or as an int representing seconds since the epoch (like
+     * <a href="https://reproducible-builds.org/docs/source-date-epoch/">SOURCE_DATE_EPOCH</a>).
+     *
+     * @since 1.1.0
+     */
+    @Parameter( defaultValue = "${project.build.outputTimestamp}" )
+    protected String outputTimestamp;
+    
+    
     public void setPrefix(String prefix) {
         if (prefix == null) {
             prefix = "";

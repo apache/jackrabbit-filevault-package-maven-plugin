@@ -27,6 +27,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
@@ -36,6 +37,7 @@ import java.util.LinkedList;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
@@ -396,6 +398,13 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
 
     // take the first "-" followed by a digit as separator between version suffix and rest
     private static final Pattern FILENAME_PATTERN_WITHOUT_VERSION_IN_GROUP1 = Pattern.compile("((?!-\\d).*-)\\d.*");
+
+
+    public GenerateMetadataMojo() {
+        super();
+        // always emit dates in UTC timezone
+        iso8601DateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+    }
 
     /**
      * Sets the package type.
@@ -850,11 +859,12 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             }
         }
 
-        // creation stamp
-        if (!props.containsKey(PackageProperties.NAME_CREATED_BY)) {
-            props.put(PackageProperties.NAME_CREATED_BY, System.getProperty("user.name"));
+        MavenArchiver archiver = new MavenArchiver();
+        Date createdDate = archiver.parseOutputTimestamp(outputTimestamp);
+        if (createdDate == null) {
+            createdDate = new Date();
         }
-        props.put(PackageProperties.NAME_CREATED, iso8601DateFormat.format(new Date()));
+        props.put(PackageProperties.NAME_CREATED, iso8601DateFormat.format(createdDate));
 
         // configurable properties
         props.put(PackageProperties.NAME_REQUIRES_ROOT, String.valueOf(requiresRoot));
