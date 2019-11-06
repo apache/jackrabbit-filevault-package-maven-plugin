@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.util.PlatformNameFormat;
@@ -391,7 +392,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     private Collection<File> getUncoveredFiles(final File sourceDirectory, final String[] relativeSourceFileNames, final String prefix, final Collection<String> entryNames) {
         Collection<File> uncoveredFiles = new ArrayList<>();
         for (String relativeSourceFileName : relativeSourceFileNames) {
-            if (!entryNames.contains(prefix + relativeSourceFileName)) {
+            if (!entryNames.contains(prefix + FilenameUtils.separatorsToUnix(relativeSourceFileName))) {
                 uncoveredFiles.add(new File(sourceDirectory, relativeSourceFileName));
             }
         }
