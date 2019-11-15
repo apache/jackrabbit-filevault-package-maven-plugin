@@ -376,7 +376,7 @@ public class ProjectBuilder {
                     throw new IllegalArgumentException("At least " + placeholderIndex + " placeholder values need to be given, but only "+ placeholderValues.length + " received.");
                 }
                 // replace current item in iterator with the new value
-                expectedLogLine = matcher.replaceAll(placeholderValues[placeholderIndex]);
+                expectedLogLine = matcher.replaceAll(Matcher.quoteReplacement(placeholderValues[placeholderIndex]));
             }
             // update list
             assertThat("Could not find the expected log line in the output '" + logTxtFile +"'", actualLogLines, Matchers.hasItem(expectedLogLine));

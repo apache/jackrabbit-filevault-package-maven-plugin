@@ -1,1 +1,1 @@
-[WARNING] ValidationViolation: "jackrabbit-filter: Filter root's ancestor '/apps/bundles/install' is not covered by any of the specified dependencies nor a valid root.", filePath=target/vault-work/META-INF/vault/filter.xml
+[WARNING] ValidationViolation: "jackrabbit-filter: Filter root's ancestor '/apps/bundles/install' is not covered by any of the specified dependencies nor a valid root.", filePath=%0%

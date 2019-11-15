@@ -17,6 +17,7 @@
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 
 import org.apache.maven.it.VerificationException;
 import org.junit.Test;
@@ -30,7 +31,7 @@ public class ValidatePackageIT {
                 .setTestProjectDir(TEST_PROJECT_NAME + projectName)
                 .setBuildExpectedToFail(true)
                 .build()
-                .verifyExpectedLogLines("META-INF/vault/filter.xml");
+                .verifyExpectedLogLines(Paths.get("META-INF", "vault", "filter.xml").toString());
     }
 
     @Test
