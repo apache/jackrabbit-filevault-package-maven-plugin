@@ -19,6 +19,8 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -28,10 +30,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 
-import org.apache.commons.io.FilenameUtils;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.util.PlatformNameFormat;
@@ -270,9 +273,14 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                 }
 
                 // check for uncovered files (i.e. files from the source which are not even added to the content package)
-                Collection<File> uncoveredFiles = getUncoveredFiles(jcrSourceDirectory, Constants.ROOT_DIR + "/" + prefix, contentPackageArchiver.getFiles().keySet(), null);
+                
+                // entry name still have platform-dependent separators here (https://github.com/codehaus-plexus/plexus-archiver/issues/129)
+                Collection<Path> coveredFiles = contentPackageArchiver.getFiles().keySet().stream()
+                                             .map(Paths::get)
+                                             .collect(Collectors.toList());
+                Collection<Path> uncoveredFiles = getUncoveredFiles(jcrSourceDirectory, Paths.get(Constants.ROOT_DIR, prefix), coveredFiles, null);
                 if (!uncoveredFiles.isEmpty()) {
-                    for (File uncoveredFile : uncoveredFiles) {
+                    for (Path uncoveredFile : uncoveredFiles) {
                         getLog().warn("File " + uncoveredFile + " not covered by a filter rule and therefore not contained in the resulting package");
                     }
                     if (failOnUncoveredSourceFiles) {
@@ -364,15 +372,16 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         }
         addAncestors(contentPackageArchiver, inputFile.getParentFile(), inputRootFile, StringUtils.chomp(destFile, "/"));
     }
+
     /**
-     * 
-     * @param sourceDirectory
-     * @param prefix
-     * @param entryNames
-     * @param additionalExcludes
+     * Checks if some files (optionally prefixed) below the given source directory are not listed in coveredFiles
+     * @param sourceDirectory the source directory
+     * @param prefix the optional prefix to prepend to the relative file name before comparing with {@link coveredFiles}
+     * @param coveredFiles the covered files (should have relative file names)
+     * @param additionalExcludes the file name patterns to exclude from the source directory (in addition to the default excludes)
      * @return the absolute file names in the source directory which are not already listed in {@code entryNames}.
      */
-    private Collection<File> getUncoveredFiles(final File sourceDirectory, final String prefix, final Collection<String> entryNames,
+    private Collection<Path> getUncoveredFiles(final File sourceDirectory, Path prefix, final Collection<Path> coveredFiles,
                                                List<String> additionalExcludes) {
         /*
          *  similar method as in {@link org.codehaus.plexus.components.io.resources.PlexusIoFileResourceCollection#getResources();}
@@ -386,19 +395,24 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         scanner.setExcludes(excludes.toArray(new String[0]));
         scanner.addDefaultExcludes();
         scanner.scan();
-        return getUncoveredFiles(sourceDirectory, scanner.getIncludedFiles(), prefix, entryNames);
+        
+        Collection<Path> allFiles = Stream.of(scanner.getIncludedFiles())
+                .map(prefix::resolve)
+                .collect(Collectors.toList());
+        
+        return getUncoveredFiles(sourceDirectory.toPath(), allFiles, coveredFiles);
     }
 
-    private Collection<File> getUncoveredFiles(final File sourceDirectory, final String[] relativeSourceFileNames, final String prefix, final Collection<String> entryNames) {
-        Collection<File> uncoveredFiles = new ArrayList<>();
-        for (String relativeSourceFileName : relativeSourceFileNames) {
-            if (!entryNames.contains(prefix + FilenameUtils.separatorsToUnix(relativeSourceFileName))) {
-                uncoveredFiles.add(new File(sourceDirectory, relativeSourceFileName));
+    private Collection<Path> getUncoveredFiles(final Path sourceDirectory, final Collection<Path> allFiles,final Collection<Path> coveredFiles) {
+        Collection<Path> uncoveredFiles = new ArrayList<>();
+        for (Path file : allFiles) {
+            if (!coveredFiles.contains(file)) {
+                uncoveredFiles.add(sourceDirectory.resolve(file));
             }
         }
         return uncoveredFiles;
     }
-    
+
     private MavenArchiveConfiguration getMavenArchiveConfiguration(File manifestFile) {
         if (archive == null) {
             archive = new MavenArchiveConfiguration();
