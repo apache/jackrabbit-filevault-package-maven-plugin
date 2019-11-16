@@ -19,11 +19,13 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -34,12 +36,16 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
+import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.util.PlatformNameFormat;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.artifact.handler.manager.ArtifactHandlerManager;
+import org.apache.maven.execution.MavenSession;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
@@ -47,115 +53,237 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.shared.filtering.MavenFileFilter;
+import org.apache.maven.shared.filtering.MavenFilteringException;
+import org.apache.maven.shared.filtering.MavenResourcesExecution;
+import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.archiver.FileSet;
+import org.codehaus.plexus.archiver.jar.ManifestException;
+import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 
-/**
- * Build a content package.
- */
-@Mojo(
-        name = "package",
-        defaultPhase = LifecyclePhase.PACKAGE,
-        requiresDependencyResolution = ResolutionScope.COMPILE,
-        threadSafe = true
-)
+/** Build a content package. */
+@Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
 
     private static final String PACKAGE_TYPE = "zip";
 
     static final String PACKAGE_EXT = "." + PACKAGE_TYPE;
-    
-    private static final Collection<File> STATIC_META_INF_FILES = Arrays.asList(new File(Constants.META_DIR, Constants.CONFIG_XML), new File(Constants.META_DIR, Constants.SETTINGS_XML));
+
+    private static final Collection<File> STATIC_META_INF_FILES = Arrays.asList(new File(Constants.META_DIR, Constants.CONFIG_XML),
+            new File(Constants.META_DIR, Constants.SETTINGS_XML));
 
     @Component
     private ArtifactHandlerManager artifactHandlerManager;
 
-    /**
-     * Set to {@code true} to fail the build in case of files are being contained in the {@code jcrRootSourceDirectory} 
-     * which are not covered by the filter rules and therefore would not end up in the package.
-     */
-    @Parameter(
-            property = "vault.failOnUncoveredSourceFiles",
-            required = true,
-            defaultValue = "false"
-    )
+    /** Set to {@code true} to fail the build in case of files are being contained in the {@code jcrRootSourceDirectory} which are not
+     * covered by the filter rules and therefore would not end up in the package. */
+    @Parameter(property = "vault.failOnUncoveredSourceFiles", required = true, defaultValue = "false")
     private boolean failOnUncoveredSourceFiles;
 
-    /**
-     * Set to {@code false} to not fail the build in case of files/folders being added to the resulting 
-     * package more than once. Usually this indicates overlapping with embedded files or overlapping filter rules.
-     */
-    @Parameter(
-            property = "vault.failOnDuplicateEntries",
-            required = true,
-            defaultValue = "true"
-    )
+    /** Set to {@code false} to not fail the build in case of files/folders being added to the resulting package more than once. Usually
+     * this indicates overlapping with embedded files or overlapping filter rules. */
+    @Parameter(property = "vault.failOnDuplicateEntries", required = true, defaultValue = "true")
     private boolean failOnDuplicateEntries;
 
-    /**
-     * The name of the generated package ZIP file without the ".zip" file
-     * extension.
-     */
-    @Parameter(
-            property = "vault.finalName",
-            defaultValue = "${project.build.finalName}",
-            required = true)
+    /** The name of the generated package ZIP file without the ".zip" file extension. */
+    @Parameter(property = "vault.finalName", defaultValue = "${project.build.finalName}", required = true)
     private String finalName;
 
-    /**
-     * Directory in which the built content package will be output.
-     */
-    @Parameter(
-            defaultValue="${project.build.directory}",
-            required = true)
+    /** Directory in which the built content package will be output. */
+    @Parameter(property = "vault.outputDirectory", defaultValue = "${project.build.directory}", required = true)
     private File outputDirectory;
 
+    @Parameter(property = "vault.enableMetaInfFiltering", defaultValue = "false")
+    private boolean enableMetaInfFiltering;
+
+    @Parameter(property = "vault.enableJcrRootFiltering", defaultValue = "false") 
+    private boolean enableJcrRootFiltering;
+
     /**
-     * The archive configuration to use. See <a
-     * href="http://maven.apache.org/shared/maven-archiver/index.html">the
-     * documentation for Maven Archiver</a>.
+     * <p>
+     * Set of delimiters for expressions to filter within the resources. These delimiters are specified in the form 'beginToken*endToken'.
+     * If no '*' is given, the delimiter is assumed to be the same for start and end.
+     * </p>
+     * <p>
+     * So, the default filtering delimiters might be specified as:
+     * </p>
      * 
-     * All settings related to manifest are not relevant as this gets overwritten by the manifest in {@link AbstractMetadataPackageMojo#workDirectory}
+     * <pre>
+     * &lt;delimiters&gt;
+     *   &lt;delimiter&gt;${*}&lt;/delimiter&gt;
+     *   &lt;delimiter&gt;@&lt;/delimiter&gt;
+     * &lt;/delimiters&gt;
+     * </pre>
+     * <p>
+     * Since the '@' delimiter is the same on both ends, we don't need to specify '@*@' (though we can).
+     * </p>
+     *
+     * @since 1.1.0 */
+    @Parameter(property = "vault.delimiters")
+    private LinkedHashSet<String> delimiters;
+
+    /** Use default delimiters in addition to custom delimiters, if any.
+     *
+     * @since 1.1.0 
      */
+    @Parameter(property = "vault.useDefaultDelimiters", defaultValue = "true")
+    private boolean useDefaultDelimiters;
+
+    /** The character encoding scheme to be applied when filtering resources. */
+    @Parameter(property = "vault.resourceEncoding", defaultValue = "${project.build.sourceEncoding}")
+    private String resourceEncoding;
+
+    /** Filters (path to  property files) to include during the filtering of resources. The default value is the filter list under build
+     * specifying a filter will override the filter list under build.
+     * 
+     * @since 1.1.0 */
+    @Parameter(property="vault.filters")
+    private List<String> filterFiles;
+
+    /** Expression preceded with this String won't be interpolated. <code>\${foo}</code> will be replaced with <code>${foo}</code>.
+     *
+     * @since 1.1.0 */
+    @Parameter(property="vault.escapeString")
+    protected String escapeString;
+
+    /** To escape interpolated values with Windows path <code>c:\foo\bar</code> will be replaced with <code>c:\\foo\\bar</code>.
+     *
+     * @since 1.1.0 */
+    @Parameter(property="vault.escapedBackslashesInFilePath", defaultValue = "false")
+    private boolean escapedBackslashesInFilePath;
+
+    /** Additional list of file extensions that should not be filtered.
+     * (already defined are : jpg, jpeg, gif, bmp, png)
+     * @since 1.1.0 */
+    @Parameter(property="vault.nonFilteredFileExtensions")
+    private List<String> nonFilteredFileExtensions;
+
+    /** Stop searching endToken at the end of line when filtering is applied.
+     * 
+     * @since 1.1.0 */
+    @Parameter(property="vault.supportMultiLineFiltering", defaultValue = "false")
+    private boolean supportMultiLineFiltering;
+
+    @Parameter(defaultValue = "${session}", readonly = true, required = false)
+    protected MavenSession session;
+
+    /** The archive configuration to use. See <a href="http://maven.apache.org/shared/maven-archiver/index.html">the documentation for Maven
+     * Archiver</a>.
+     * 
+     * All settings related to manifest are not relevant as this gets overwritten by the manifest in
+     * {@link AbstractMetadataPackageMojo#workDirectory} */
     @Parameter
     private MavenArchiveConfiguration archive;
 
     /**
-     * All file names (relative to the zip root) which are supposed to not get overwritten in the package.
-     * The value is the source file.
      */
-    private Map<File, File> protectedFiles = new HashMap<>();
+    @Component(role = MavenFileFilter.class, hint = "default")
+    private MavenFileFilter mavenFileFilter;
 
     /**
-     * Creates a {@link FileSet} for the archiver
+     */
+    @Component(role = MavenResourcesFiltering.class, hint = "default") 
+    MavenResourcesFiltering mavenResourcesFiltering;
+
+    /** All file names (relative to the zip root) which are supposed to not get overwritten in the package. The value is the source file. */
+    private Map<File, File> protectedFiles = new HashMap<>();
+
+    /** Creates a {@link FileSet} for the archiver
+     * 
      * @param directory the directory
      * @param prefix the prefix
-     * @return the fileset
-     */
+     * @return the fileset */
     @Nonnull
-    private FileSet createFileSet(@Nonnull File directory, @Nonnull String prefix) {
+    protected DefaultFileSet createFileSet(@Nonnull File directory, @Nonnull String prefix) {
         return createFileSet(directory, prefix, null);
     }
 
-    /**
-     * Creates a {@link FileSet} for the archiver
+    /** Creates a {@link FileSet} for the archiver
+     * 
      * @param directory the directory
      * @param prefix the prefix
      * @param additionalExcludes excludes
-     * @return the fileset
-     */
+     * @return the fileset */
     @Nonnull
-    private FileSet createFileSet(@Nonnull File directory, @Nonnull String prefix, List<String> additionalExcludes) {
+    protected DefaultFileSet createFileSet(@Nonnull File directory, @Nonnull String prefix, List<String> additionalExcludes) {
         List<String> excludes = new LinkedList<>(this.excludes);
-        if(additionalExcludes != null) {
+        if (additionalExcludes != null) {
             excludes.addAll(additionalExcludes);
         }
-        return fileSet(directory)
+        DefaultFileSet fileSet = fileSet(directory)
                 .prefixed(prefix)
                 .includeExclude(null, excludes.toArray(new String[0]))
                 .includeEmptyDirs(true);
+        fileSet.setUsingDefaultExcludes(addDefaultExcludes);
+        return fileSet;
+    }
+
+    /**
+     * Adds a file to the archiver and optionally applies some filtering.
+     * @param mavenResourcesExecution
+     * @param archiver
+     * @param sourceFile
+     * @param destFileName
+     * @throws MavenFilteringException in case filtering failed
+     */
+    protected void addFileToArchive(MavenResourcesExecution mavenResourcesExecution, ContentPackageArchiver archiver, File sourceFile,
+            String destFileName) throws MavenFilteringException {
+        if ((destFileName.startsWith(Constants.ROOT_DIR) && enableJcrRootFiltering) ||
+            (destFileName.startsWith(Constants.ROOT_DIR) && enableMetaInfFiltering)) {
+            getLog().info("Apply filtering to " + sourceFile);
+            Resource resource = new Resource();
+            resource.setDirectory(sourceFile.getParent());
+            resource.setIncludes(Collections.singletonList(sourceFile.getName()));
+            resource.setFiltering(true);
+            File newTargetDirectory = applyFiltering(mavenResourcesExecution, resource);
+            sourceFile = new File(newTargetDirectory, sourceFile.getName());
+        }
+        archiver.addFile(sourceFile, destFileName);
+
+    }
+
+    /**
+     * Adds a fileSet to the archiver and optionally applies some filtering.
+     * @param mavenResourcesExecution
+     * @param archiver
+     * @param fileSet
+     * @throws MavenFilteringException in case filtering failed
+     */
+    protected void addFileSetToArchive(MavenResourcesExecution mavenResourcesExecution, ContentPackageArchiver archiver, DefaultFileSet fileSet) throws MavenFilteringException {
+        // TODO: what to do with file sets not having any prefix set (workDirectory)
+        if ((fileSet.getPrefix().startsWith(Constants.ROOT_DIR) && enableJcrRootFiltering) ||
+            (fileSet.getPrefix().startsWith(Constants.ROOT_DIR) && enableMetaInfFiltering)) {
+            
+            getLog().info("Apply filtering to FileSet below " + fileSet.getDirectory());
+            Resource resource = new Resource();
+            resource.setDirectory(fileSet.getDirectory().getPath());
+            if (fileSet.getIncludes() != null) {
+                resource.setIncludes(Arrays.asList(fileSet.getIncludes()));
+            }
+            if (fileSet.getExcludes() != null) {
+                resource.setExcludes(Arrays.asList(fileSet.getExcludes()));
+                // default exclude are managed via mavenResourcesExecution
+            }
+            resource.setFiltering(true);
+            File newTargetDirectory = applyFiltering(mavenResourcesExecution, resource);
+            fileSet.setDirectory(newTargetDirectory);
+        }
+
+        archiver.addFileSet(fileSet);
+    }
+
+    private @Nonnull File applyFiltering(MavenResourcesExecution mavenResourcesExecution, Resource resource) throws MavenFilteringException {
+        File targetPath = new File(project.getBuild().getDirectory(), "filteredFiles");
+        // which path to set as target (is a temporary path)
+        getLog().debug("Applying filtering to resource " + resource);
+        resource.setTargetPath(targetPath.getPath());
+        mavenResourcesExecution.setResources(Collections.singletonList(resource));
+        mavenResourcesExecution.setOutputDirectory(targetPath);
+        mavenResourcesFiltering.filterResources(mavenResourcesExecution);
+        return targetPath;
     }
 
     private boolean isOverwritingProtectedFile(File zipFile, File sourceFile, boolean isProtected) {
@@ -168,25 +296,28 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         return false;
     }
 
+    /** @param fileSet
+     * @param isProtected
+     * @return a map with key = file path in zip and value = absolute source file */
     private Map<File, File> getOverwrittenProtectedFiles(FileSet fileSet, boolean isProtected) {
         // copied from PlexusIoFileResourceCollection.getResources()
-        Map<File, File> overwrittenFiles = new HashMap<>(); 
+        Map<File, File> overwrittenFiles = new HashMap<>();
         final DirectoryScanner ds = new DirectoryScanner();
         final File dir = fileSet.getDirectory();
-        ds.setBasedir( dir );
+        ds.setBasedir(dir);
         final String[] inc = fileSet.getIncludes();
         if (inc != null && inc.length > 0) {
-            ds.setIncludes( inc );
+            ds.setIncludes(inc);
         }
         final String[] exc = fileSet.getExcludes();
         if (exc != null && exc.length > 0) {
-            ds.setExcludes( exc );
+            ds.setExcludes(exc);
         }
         if (fileSet.isUsingDefaultExcludes()) {
             ds.addDefaultExcludes();
         }
         ds.setCaseSensitive(fileSet.isCaseSensitive());
-        ds.setFollowSymlinks(false );
+        ds.setFollowSymlinks(false);
         ds.scan();
 
         String[] files = ds.getIncludedFiles();
@@ -200,13 +331,39 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         return overwrittenFiles;
     }
 
-    /**
-     * Executes this mojo
-     */
+    protected MavenResourcesExecution setupMavenResourcesExecution() {
+        MavenResourcesExecution mavenResourcesExecution = new MavenResourcesExecution();
+        mavenResourcesExecution.setEscapeString(escapeString);
+        mavenResourcesExecution.setSupportMultiLineFiltering(supportMultiLineFiltering);
+        mavenResourcesExecution.setMavenProject(project);
+
+        // if these are NOT set, just use the defaults, which are '${*}' and '@'.
+        mavenResourcesExecution.setDelimiters(delimiters, useDefaultDelimiters);
+
+        if (nonFilteredFileExtensions != null) {
+            mavenResourcesExecution.setNonFilteredFileExtensions(nonFilteredFileExtensions);
+        }
+
+        if (filterFiles == null) {
+            filterFiles = project.getBuild().getFilters();
+        }
+        mavenResourcesExecution.setFilters(filterFiles);
+        mavenResourcesExecution.setEscapedBackslashesInFilePath(escapedBackslashesInFilePath);
+        mavenResourcesExecution.setMavenSession(this.session);
+        mavenResourcesExecution.setEscapeString(this.escapeString);
+        mavenResourcesExecution.setSupportMultiLineFiltering(supportMultiLineFiltering);
+        mavenResourcesExecution.setAddDefaultExcludes(addDefaultExcludes);
+        mavenResourcesExecution.setOverwrite(true);
+        mavenResourcesExecution.setUseDefaultFilterWrappers(true);
+        return mavenResourcesExecution;
+    }
+
+    /** Executes this mojo */
     @Override
-    public void execute() throws MojoExecutionException {
+    public void execute() throws MojoExecutionException, MojoFailureException {
         final File finalFile = new File(outputDirectory, finalName + PACKAGE_EXT);
 
+        MavenResourcesExecution mavenResourcesExection = setupMavenResourcesExecution();
         try {
             // find the meta-inf source directory
             File metaInfDirectory = getMetaInfVaultSourceDirectory();
@@ -220,23 +377,27 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             Map<String, File> embeddedFiles = getEmbeddedFilesMap();
 
             ContentPackageArchiver contentPackageArchiver = new ContentPackageArchiver();
-            
+
+            // A map with key = relative file in zip and value = absolute source file name)
             Map<File, File> duplicateFiles = new HashMap<>();
             contentPackageArchiver.setIncludeEmptyDirs(true);
             if (metaInfDirectory != null) {
-                // first add the metadata from the metaInfDirectory (they should take precedence over the generated ones from workDirectory, 
+                // first add the metadata from the metaInfDirectory (they should take precedence over the generated ones from workDirectory,
                 // except for the filter.xml, which should always come from the work directory)
-                FileSet fileSet = createFileSet(metaInfDirectory, Constants.META_DIR + "/", Collections.singletonList(Constants.FILTER_XML));
+                DefaultFileSet fileSet = createFileSet(metaInfDirectory, Constants.META_DIR + "/",
+                        Collections.singletonList(Constants.FILTER_XML));
                 duplicateFiles.putAll(getOverwrittenProtectedFiles(fileSet, true));
-                contentPackageArchiver.addFileSet(fileSet);
+                addFileSetToArchive(mavenResourcesExection, contentPackageArchiver, fileSet);
             }
-            // then add all files from the workDirectory (they might overlap with the ones from metaInfDirectory, but the duplicates are just ignored in the package)
-            FileSet fileSet = createFileSet(workDirectory, "");
+            // then add all files from the workDirectory (they might overlap with the ones from metaInfDirectory, but the duplicates are
+            // just ignored in the package)
+            DefaultFileSet fileSet = createFileSet(workDirectory, "");
             // issue warning in case of overlaps
             Map<File, File> overwrittenWorkFiles = getOverwrittenProtectedFiles(fileSet, true);
             for (Entry<File, File> entry : overwrittenWorkFiles.entrySet()) {
-                String message = "Found duplicate file '" + entry.getKey() + "' from sources '" + protectedFiles.get(entry.getKey()) + "' and '" + entry.getValue() + "'.";
-                
+                String message = "Found duplicate file '" + entry.getKey() + "' from sources '" + protectedFiles.get(entry.getKey())
+                        + "' and '" + entry.getValue() + "'.";
+
                 // INFO for the static ones all others warn
                 if (STATIC_META_INF_FILES.contains(entry.getKey())) {
                     getLog().info(message);
@@ -244,21 +405,23 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                     getLog().warn(message);
                 }
             }
-            contentPackageArchiver.addFileSet(fileSet);
-            
+            addFileSetToArchive(mavenResourcesExection, contentPackageArchiver, fileSet);
+
             // add embedded files
             for (Map.Entry<String, File> entry : embeddedFiles.entrySet()) {
                 protectedFiles.put(new File(entry.getKey()), entry.getValue());
-                contentPackageArchiver.addFile(entry.getValue(), entry.getKey());
+                addFileToArchive(mavenResourcesExection, contentPackageArchiver, entry.getValue(), entry.getKey());
             }
-            
+
             // include content from build only if it exists
             if (jcrSourceDirectory != null && jcrSourceDirectory.exists()) {
-                duplicateFiles.putAll(addSourceDirectory(contentPackageArchiver, jcrSourceDirectory, filters, embeddedFiles));
+                Map<File, File> overwrittenFiles = addSourceDirectory(mavenResourcesExection, contentPackageArchiver, jcrSourceDirectory, filters, embeddedFiles);
+                duplicateFiles.putAll(overwrittenFiles);
 
                 if (!duplicateFiles.isEmpty()) {
                     for (Entry<File, File> entry : duplicateFiles.entrySet()) {
-                        String message = "Found duplicate file '" + entry.getKey() + "' from sources '" + protectedFiles.get(entry.getKey()) + "' and '" + entry.getValue() + "'.";
+                        String message = "Found duplicate file '" + entry.getKey() + "' from sources '" + protectedFiles.get(entry.getKey())
+                                + "' and '" + entry.getValue() + "'.";
                         if (failOnDuplicateEntries) {
                             getLog().error(message);
                         } else {
@@ -266,15 +429,18 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                         }
                     }
                     if (failOnDuplicateEntries) {
-                        throw new MojoFailureException("Found " + duplicateFiles.size() + " duplicate file(s) in content package, see above errors for details.");
+                        throw new MojoFailureException(
+                                "Found " + duplicateFiles.size() + " duplicate file(s) in content package, see above errors for details.");
                     }
                 }
 
                 // check for uncovered files (i.e. files from the source which are not even added to the content package)
-                Collection<File> uncoveredFiles = getUncoveredFiles(jcrSourceDirectory,  excludes, prefix, contentPackageArchiver.getFiles().keySet());
+                Collection<File> uncoveredFiles = getUncoveredFiles(jcrSourceDirectory, excludes, prefix,
+                        contentPackageArchiver.getFiles().keySet());
                 if (!uncoveredFiles.isEmpty()) {
                     for (File uncoveredFile : uncoveredFiles) {
-                        String message = "File '" + uncoveredFile + "' not covered by a filter rule and therefore not contained in the resulting package";
+                        String message = "File '" + uncoveredFile
+                                + "' not covered by a filter rule and therefore not contained in the resulting package";
                         if (failOnUncoveredSourceFiles) {
                             getLog().error(message);
                         } else {
@@ -282,7 +448,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                         }
                     }
                     if (failOnUncoveredSourceFiles) {
-                        throw new MojoFailureException("The following files are not covered by a filter rule: \n" + StringUtils.join(uncoveredFiles.iterator(), ",\n"));
+                        throw new MojoFailureException("The following files are not covered by a filter rule: \n"
+                                + StringUtils.join(uncoveredFiles.iterator(), ",\n"));
                     }
                 }
             }
@@ -300,21 +467,22 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             projectArtifact.setFile(finalFile);
             projectArtifact.setArtifactHandler(artifactHandlerManager.getArtifactHandler(PACKAGE_TYPE));
 
-        } catch (Exception e) {
+        } catch (IllegalStateException | ManifestException | IOException | DependencyResolutionRequiredException | ConfigurationException | MavenFilteringException e) {
             throw new MojoExecutionException(e.toString(), e);
         }
     }
 
-    private Map<File, File> addSourceDirectory(ContentPackageArchiver contentPackageArchiver, File jcrSourceDirectory, Filters filters, Map<String, File> embeddedFiles) {
+    private Map<File, File> addSourceDirectory(MavenResourcesExecution mavenResourcesExecution, ContentPackageArchiver contentPackageArchiver, File jcrSourceDirectory, Filters filters,
+            Map<String, File> embeddedFiles) throws MavenFilteringException {
         Map<File, File> duplicateFiles = new HashMap<>();
         // See GRANITE-16348
         // we want to build a list of all the root directories in the order they were specified in the filter
         // but ignore the roots that don't point to a directory
         List<PathFilterSet> filterSets = filters.getFilterSets();
         if (filterSets.isEmpty()) {
-            FileSet fileSet = createFileSet(jcrSourceDirectory, Constants.ROOT_DIR + prefix);
+            DefaultFileSet fileSet = createFileSet(jcrSourceDirectory, Constants.ROOT_DIR + prefix);
             duplicateFiles.putAll(getOverwrittenProtectedFiles(fileSet, false));
-            contentPackageArchiver.addFileSet(fileSet);
+            addFileSetToArchive(mavenResourcesExecution, contentPackageArchiver, fileSet);
         } else {
             for (PathFilterSet filterSet : filterSets) {
                 String relPath = PlatformNameFormat.getPlatformPath(filterSet.getRoot());
@@ -332,7 +500,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                     if (isOverwritingProtectedFile(new File(destPath), sourceFile, false)) {
                         duplicateFiles.put(new File(destPath), sourceFile);
                     }
-                    contentPackageArchiver.addFile(sourceFile, destPath);
+                    addFileToArchive(mavenResourcesExecution, contentPackageArchiver, sourceFile, destPath);
                     // root path for ancestors is the parent directory
                 } else {
                     sourceFile = new File(jcrSourceDirectory, relPath);
@@ -343,12 +511,12 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                         sourceFile = sourceFile.getParentFile();
                         relPath = StringUtils.chomp(relPath, "/");
                     }
-                    
+
                     if (!jcrSourceDirectory.equals(sourceFile)) {
                         destPath = FileUtils.normalize(Constants.ROOT_DIR + prefix + relPath);
-                        FileSet fileSet = createFileSet(sourceFile, destPath + "/");
+                        DefaultFileSet fileSet = createFileSet(sourceFile, destPath + "/");
                         duplicateFiles.putAll(getOverwrittenProtectedFiles(fileSet, false));
-                        contentPackageArchiver.addFileSet(fileSet);
+                        addFileSetToArchive(mavenResourcesExecution, contentPackageArchiver, fileSet);
                     }
                 }
                 // similar to AbstractExporter all ancestors should be contained as well (see AggregateImpl.prepare(...))
@@ -366,43 +534,44 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         // is there an according .content.xml available? (ignore full-coverage files)
         File genericAggregate = new File(inputFile, Constants.DOT_CONTENT_XML);
         if (genericAggregate.exists()) {
-            contentPackageArchiver.addFile(genericAggregate, destFile + "/" +  Constants.DOT_CONTENT_XML);
+            contentPackageArchiver.addFile(genericAggregate, destFile + "/" + Constants.DOT_CONTENT_XML);
         }
         addAncestors(contentPackageArchiver, inputFile.getParentFile(), inputRootFile, StringUtils.chomp(destFile, "/"));
     }
 
-    /**
-     * Checks if some files (optionally prefixed) below the given source directory are not listed in coveredFiles
+    /** Checks if some files (optionally prefixed) below the given source directory are not listed in coveredFiles
+     * 
      * @param sourceDirectory the source directory
      * @param prefix the optional prefix to prepend to the relative file name before comparing with {@link coveredFiles}
      * @param coveredFileNames the covered file names (should have relative file names), might have OS specific separators
      * @param additionalExcludes the file name patterns to exclude from the source directory (in addition to the default excludes)
-     * @return the absolute file names in the source directory which are not already listed in {@code entryNames}.
-     */
-    protected static Collection<File> getUncoveredFiles(final File sourceDirectory, Collection<String> excludes, String prefix, Collection<String> coveredFileNames) {
+     * @return the absolute file names in the source directory which are not already listed in {@code entryNames}. */
+    protected static Collection<File> getUncoveredFiles(final File sourceDirectory, Collection<String> excludes, String prefix,
+            Collection<String> coveredFileNames) {
         // check for uncovered files (i.e. files from the source which are not even added to the content package)
         // entry name still have platform-dependent separators here (https://github.com/codehaus-plexus/plexus-archiver/issues/129)
         Collection<File> coveredFiles = coveredFileNames.stream()
-                                     .map(File::new)
-                                     .collect(Collectors.toList());
-        
+                .map(File::new)
+                .collect(Collectors.toList());
+
         /*
-         *  similar method as in {@link org.codehaus.plexus.components.io.resources.PlexusIoFileResourceCollection#getResources();}
+         * similar method as in {@link org.codehaus.plexus.components.io.resources.PlexusIoFileResourceCollection#getResources();}
          */
         DirectoryScanner scanner = new DirectoryScanner();
         scanner.setBasedir(sourceDirectory);
         scanner.setExcludes(excludes.toArray(new String[0]));
         scanner.addDefaultExcludes();
         scanner.scan();
-        
+
         Collection<File> allFiles = Stream.of(scanner.getIncludedFiles())
                 .map(File::new)
                 .collect(Collectors.toList());
-        
+
         return getUncoveredFiles(sourceDirectory, prefix, allFiles, coveredFiles);
     }
 
-    private static Collection<File> getUncoveredFiles(final File sourceDirectory, String prefix, final Collection<File> allFiles,final Collection<File> coveredFiles) {
+    private static Collection<File> getUncoveredFiles(final File sourceDirectory, String prefix, final Collection<File> allFiles,
+            final Collection<File> coveredFiles) {
         Collection<File> uncoveredFiles = new ArrayList<>();
         for (File file : allFiles) {
             if (!coveredFiles.contains(new File(Constants.ROOT_DIR + prefix, file.getPath()))) {
@@ -422,7 +591,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         }
         // use the manifest being generated beforehand
         archive.setManifestFile(manifestFile);
-        
+
         return archive;
     }
 }

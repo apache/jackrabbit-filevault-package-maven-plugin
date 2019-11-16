@@ -213,13 +213,18 @@ public class ProjectBuilder {
         return this;
     }
 
+    public ProjectBuilder setExpectedFilesWithChecksumsFile(String expectedFilesWithChecksumsFile) {
+        this.expectedFilesWithChecksumsFile = new File(testProjectDir, expectedFilesWithChecksumsFile);
+        return this;
+    }
+
     public ProjectBuilder build() throws VerificationException, IOException {
         Verifier verifier = new Verifier(testProjectDir.getAbsolutePath());
         verifier.setSystemProperties(testProperties);
         verifier.setDebug(true);
         verifier.setAutoclean(false);
-        //verifier.setDebugJvm(true);
-
+        // verifier.setDebugJvm(true);
+        //verifier.setMavenDebug(true);
         try {
             verifier.executeGoals(Arrays.asList(testGoals));
             assertFalse("Build expected to fail in project " + testProjectDir.getAbsolutePath(), buildExpectedToFail);
@@ -328,7 +333,7 @@ public class ProjectBuilder {
                     fail("Could not find entry with name " + name + " in package " + testPackageFile);
                 }
                 long actualChecksum = entry.getCrc();
-                assertEquals("Checksum of entry with name " + name + " is not equal to the expected value", expectedChecksum, actualChecksum);
+                assertEquals("Checksum of entry with name " + name + " is not equal to the expected value", Long.toHexString(expectedChecksum), Long.toHexString(actualChecksum));
             }
         }
         return this;
