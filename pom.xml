@@ -87,6 +87,7 @@
     </mailingLists>
 
     <issueManagement>
+        <system>JIRA</system>
         <url>https://issues.apache.org/jira/browse/JCRVLT</url>
     </issueManagement>
 
