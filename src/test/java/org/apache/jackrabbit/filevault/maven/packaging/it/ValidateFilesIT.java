@@ -17,6 +17,7 @@
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 
 import org.apache.maven.it.VerificationException;
 import org.junit.Test;
@@ -31,7 +32,7 @@ public class ValidateFilesIT {
                 .setTestGoals("clean", "process-classes") // make sure the validate-files mojo is not skipped
                 .setBuildExpectedToFail(true)
                 .build()
-                .verifyExpectedLogLines("target/vault-work/META-INF/vault/filter.xml");
+                .verifyExpectedLogLines(Paths.get("target","vault-work","META-INF","vault","filter.xml").toString());
     }
 
     @Test

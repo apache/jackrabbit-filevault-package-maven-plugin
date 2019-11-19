@@ -22,9 +22,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -38,8 +41,8 @@ import org.apache.jackrabbit.vault.packaging.PackageType;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.jar.ManifestException;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class GenerateMetadataMojoTest {
@@ -91,23 +94,34 @@ public class GenerateMetadataMojoTest {
         mojo.project = new MavenProject();
         Properties vaultProperties = new Properties();
         File outputFile = File.createTempFile("filevault-test-", null);
-        String expectedManifest = 
-           "Manifest-Version: 1.0\r\n" + 
-           "Implementation-Title: empty-project\r\n" + 
-           "Content-Package-Roots: \r\n" + 
-           "Implementation-Version: 0\r\n" + 
-           "Content-Package-Dependencies: somegroup:dependency:1.0\r\n" + 
-           "Build-Jdk-Spec: 1.8\r\n" + 
-           "Content-Package-Type: application\r\n" + 
-           "Created-By: Apache Jackrabbit FileVault - Package Maven Plugin\r\n" + 
-           "Content-Package-Id: mygroup:mypackage:1.4\r\n" + 
-           "Content-Package-Description: \r\n" + 
-           "\r\n";
+        
+        Map<String, Pattern> expectedAttributes = new HashMap<>();
+        expectedAttributes.put("Manifest-Version", Pattern.compile("1\\.0"));
+        expectedAttributes.put("Implementation-Title", Pattern.compile("empty-project"));
+        expectedAttributes.put("Implementation-Version", Pattern.compile("0")); // project.version
+        expectedAttributes.put("Content-Package-Roots", Pattern.compile(""));
+        expectedAttributes.put("Content-Package-Dependencies", Pattern.compile("somegroup:dependency:1.0"));
+        expectedAttributes.put("Build-Jdk-Spec", Pattern.compile(".*"));
+        expectedAttributes.put("Content-Package-Type", Pattern.compile("application"));
+        // this includes the version in case the pom.properties is already created which shouldn't be the case here
+        expectedAttributes.put("Created-By", Pattern.compile("Apache Jackrabbit FileVault - Package Maven Plugin"));
+        expectedAttributes.put("Content-Package-Id", Pattern.compile("mygroup:mypackage:1\\.4"));
+        expectedAttributes.put("Content-Package-Description", Pattern.compile("")); 
         try {
             mojo.writeManifest(outputFile, "somegroup:dependency:1.0", null, vaultProperties);
-            try (Reader reader = new InputStreamReader(new FileInputStream(outputFile), StandardCharsets.UTF_8)) {
-                Assert.assertEquals(expectedManifest, IOUtils.toString(reader));
+            try (InputStream input = new FileInputStream(outputFile)) {
+                Manifest manifest = new Manifest(input);
+                Attributes attributes = manifest.getMainAttributes();
+                for (Map.Entry<Object, Object> attribute : attributes.entrySet()) {
+                    Pattern expectedAttributeValuePattern = expectedAttributes.get(attribute.getKey().toString());
+                    if (expectedAttributeValuePattern == null) {
+                        Assert.fail("Found unexpected attribute " + attribute.getKey() + " in Manifest");
+                    }
+                    Assert.assertThat("Found unexpected attribute value for " + attribute.getKey(), (String)attribute.getValue(), Matchers.matchesPattern(expectedAttributeValuePattern));
+                    expectedAttributes.remove(attribute.getKey().toString());
+                }
             }
+            Assert.assertThat("Not found expected attributes in manifest", expectedAttributes, Matchers.anEmptyMap());
         } finally {
             outputFile.delete();
         }

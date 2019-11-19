@@ -91,6 +91,11 @@
         <url>https://issues.apache.org/jira/browse/JCRVLT</url>
     </issueManagement>
 
+    <ciManagement>
+        <system>Travis</system>
+        <url>https://travis-ci.org/apache/jackrabbit-filevault-package-maven-plugin</url>
+    </ciManagement>
+
     <!-- ====================================================================== -->
     <!-- B U I L D   D E F I N I T I O N                                        -->
     <!-- ====================================================================== -->
@@ -247,6 +252,7 @@
                         <configuration>
                             <basedir>${project.basedir}</basedir>
                             <excludesFile>${project.basedir}/.ratignore</excludesFile>
+                            <consoleOutput>true</consoleOutput>
                         </configuration>
                     </execution>
                 </executions>

@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/apache/jackrabbit-filevault-package-maven-plugin.svg?branch=trunk)](https://travis-ci.org/apache/jackrabbit-filevault-package-maven-plugin)
+
 Welcome to Apache Jackrabbit FileVault Package Maven Plugin
 ===========================================================
 

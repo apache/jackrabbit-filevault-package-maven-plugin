@@ -16,6 +16,8 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
+import java.nio.file.Paths;
+
 import org.junit.Test;
 
 public class GenerateMetadataMultiModuleIT {
@@ -33,7 +35,7 @@ public class GenerateMetadataMultiModuleIT {
                 .setVerifyPackageContents(false)
                 .build()
                 .verifyExpectedFilterInWorkDirectory("container/target/vault-work")
-                .verifyExpectedLogLines(); // make sure validation runs
+                .verifyExpectedLogLines(Paths.get("target", "vault-work", "META-INF", "vault", "filter.xml").toString()); // make sure validation runs
     }
 
     /**
