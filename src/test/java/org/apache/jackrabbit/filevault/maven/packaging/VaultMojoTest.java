@@ -38,7 +38,7 @@ public class VaultMojoTest {
     }
 
     @Test
-    public void testUncoveredFilesWithNothingUncovered() {
+    public void testUncoveredFilesWithEverythingCovered() {
         Set<String> excludes = Collections.emptySet();
         File sourceDirectory = new File(ProjectBuilder.TEST_PROJECTS_ROOT, "filter-tests/filter-not-covering-all-files/jcr_root");
         Set<String> entryNames = Collections.singleton(new File("jcr_root/apps/.content.xml").getPath());
