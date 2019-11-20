@@ -79,8 +79,10 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
      * Adds a path prefix to all resources. Useful for shallower source trees.
      * This does not apply to files in {@link #workDirectory} nor {@link #metaInfVaultDirectory}
      * but e.g. is relevant for the default filter and for the jcr_root of the package.
+     * Must start with "/" if not empty. As separator only forward slashes are allowed.
+     * The trailing slash is automatically appended if not there.
      */
-    @Parameter(property = "vault.prefix")
+    @Parameter(property = "vault.prefix", defaultValue = "")
     String prefix = "";
 
 
@@ -96,9 +98,10 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
     
     
     public void setPrefix(String prefix) {
-        if (prefix == null) {
-            prefix = "";
-        } else if (!prefix.endsWith("/")) {
+        if (prefix.startsWith("/")) {
+            throw new IllegalArgumentException("Parameter 'prefix' must start with a slash!");
+        }
+        if (prefix.length() > 0 && !prefix.endsWith("/")) {
             prefix += "/";
         }
         this.prefix = prefix;

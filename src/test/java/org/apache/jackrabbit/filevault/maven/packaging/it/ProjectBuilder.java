@@ -73,7 +73,7 @@ public class ProjectBuilder {
 
     private static final Set<String> IGNORED_MANIFEST_ENTRIES = new HashSet<>(Arrays.asList("Build-Jdk-Spec", "Created-By"));
 
-    static final String TEST_PROJECTS_ROOT = "target/test-classes/test-projects";
+    public static final String TEST_PROJECTS_ROOT = "target/test-classes/test-projects";
 
     static final String TEST_PACKAGE_DEFAULT_NAME = "target/package-plugin-test-pkg-1.0.0-SNAPSHOT.zip";
 
@@ -170,6 +170,11 @@ public class ProjectBuilder {
 
     public ProjectBuilder setTestProjectDir(String relPath) {
         return setTestProjectDir(new File(testProjectsRoot, relPath));
+    }
+
+    
+    public File getTestProjectDir() {
+        return testProjectDir;
     }
 
     public ProjectBuilder setTestPackageFile(File testPackageFile) {

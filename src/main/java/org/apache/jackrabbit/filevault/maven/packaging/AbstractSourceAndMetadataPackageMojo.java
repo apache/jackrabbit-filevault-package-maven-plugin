@@ -17,6 +17,7 @@
 package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.io.File;
+import java.util.Set;
 
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -58,7 +59,7 @@ public abstract class AbstractSourceAndMetadataPackageMojo extends AbstractMetad
      * <a href="https://ant.apache.org/manual/dirtasks.html#patterns">Ant pattern</a>.
      */
     @Parameter(property = "vault.excludes", defaultValue = "**/.vlt,**/.vltignore", required = true)
-    protected String[] excludes;
+    protected Set<String> excludes;
 
     protected File getJcrSourceDirectory() {
         return getJcrSourceDirectory(jcrRootSourceDirectory, builtContentDirectory, getLog());
