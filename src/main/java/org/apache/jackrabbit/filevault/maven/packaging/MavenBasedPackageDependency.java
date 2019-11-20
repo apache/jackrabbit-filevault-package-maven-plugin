@@ -132,7 +132,6 @@ public class MavenBasedPackageDependency {
      * @param project the Maven project
      * @param log the Logger
      * @param dependencies The list of {@link MavenBasedPackageDependency} instances to convert.
-     * @return The Vault Packaging Dependency representing the resolved dependencies. Not all given items from the {@code dependencyList} can necessarily be resolved, therefore the the size of the collection might be less than the size of the collection given in {@code dependencyList} 
      * @throws IOException in case meta information could not be read from the project dependency or the 
      * dependency is not a content package.
      * @throws URISyntaxException 
@@ -144,7 +143,7 @@ public class MavenBasedPackageDependency {
     }
 
     /**
-     * Helper method for {@link #toString)} to convert an instance of this
+     * Helper method for {@link #toString} to convert an instance of this
      * class to a Vault Packaging Dependency for easy string conversion.
      * @throws IOException in case meta information could not be read from the project dependency or the 
      * dependency is not a content package.

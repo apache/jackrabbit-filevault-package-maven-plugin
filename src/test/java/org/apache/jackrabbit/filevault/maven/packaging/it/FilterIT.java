@@ -30,8 +30,8 @@ import static org.junit.Assert.assertTrue;
  */
 public class FilterIT {
 
-    private void verify(String projectName, boolean expectToFail, String ... goals) throws VerificationException, IOException {
-        new ProjectBuilder()
+    private ProjectBuilder verify(String projectName, boolean expectToFail, String ... goals) throws VerificationException, IOException {
+        return new ProjectBuilder()
                 .setTestProjectDir("filter-tests/" + projectName)
                 .setTestGoals(goals)
                 .setBuildExpectedToFail(expectToFail)
@@ -136,6 +136,7 @@ public class FilterIT {
     public void test_no_filter_container_in_execution() throws Exception {
         verify("no-filter-container-in-execution", false);
     }
+
     /**
      * Tests if a project with an inline filter executed twice works w/o clean
      */
@@ -157,9 +158,10 @@ public class FilterIT {
 
         assertTrue("Marker file still exists.", marker.exists());
     }
-    
+
     @Test 
     public void test_filter_not_covering_all_files() throws Exception {
-        verify("filter-not-covering-all-files", true);
+        ProjectBuilder builder = verify("filter-not-covering-all-files", true);
+        builder.verifyExpectedLogLines(new File(builder.getTestProjectDir(), "jcr_root/apps/.content.xml").getAbsolutePath());
     }
 }

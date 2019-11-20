@@ -250,7 +250,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
      * @throws LifecyclePhaseNotFoundException
      * @throws LifecycleNotFoundException
      * @throws PluginManagerException
-     * @see <a href=https://github.com/apache/maven/blob/master/maven-core/src/main/java/org/apache/maven/lifecycle/DefaultLifecycleExecutor.java">DefaultLifecycleExecutor</a>
+     * @see <a href="https://github.com/apache/maven/blob/master/maven-core/src/main/java/org/apache/maven/lifecycle/DefaultLifecycleExecutor.java">DefaultLifecycleExecutor</a>
      */
     private boolean isMojoGoalExecuted(LifecycleExecutor lifecycleExecutor, String mojoGoal, String... goals) throws PluginNotFoundException, PluginResolutionException, PluginDescriptorParsingException, MojoNotFoundException, NoPluginFoundForPrefixException, InvalidPluginDescriptorException, PluginVersionResolutionException, LifecyclePhaseNotFoundException, LifecycleNotFoundException, PluginManagerException {
         if (goals.length == 0) {

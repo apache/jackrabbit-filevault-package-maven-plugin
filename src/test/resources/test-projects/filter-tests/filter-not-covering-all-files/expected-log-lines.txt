@@ -1,0 +1,1 @@
+[ERROR] File '%0%' not covered by a filter rule and therefore not contained in the resulting package
