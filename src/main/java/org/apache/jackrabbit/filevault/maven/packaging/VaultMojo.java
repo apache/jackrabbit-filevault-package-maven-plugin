@@ -31,8 +31,6 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
-
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.util.PlatformNameFormat;
@@ -51,6 +49,7 @@ import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Build a content package.
@@ -134,8 +133,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
      * @param prefix the prefix
      * @return the fileset
      */
-    @Nonnull
-    private FileSet createFileSet(@Nonnull File directory, @Nonnull String prefix) {
+    @NotNull
+    private FileSet createFileSet(@NotNull File directory, @NotNull String prefix) {
         return createFileSet(directory, prefix, null);
     }
 
@@ -146,8 +145,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
      * @param additionalExcludes excludes
      * @return the fileset
      */
-    @Nonnull
-    private FileSet createFileSet(@Nonnull File directory, @Nonnull String prefix, List<String> additionalExcludes) {
+    @NotNull
+    private FileSet createFileSet(@NotNull File directory, @NotNull String prefix, List<String> additionalExcludes) {
         List<String> excludes = new LinkedList<>(this.excludes);
         if(additionalExcludes != null) {
             excludes.addAll(additionalExcludes);

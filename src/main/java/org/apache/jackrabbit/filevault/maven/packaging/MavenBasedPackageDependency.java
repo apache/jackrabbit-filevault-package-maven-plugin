@@ -22,9 +22,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 import org.apache.jackrabbit.vault.packaging.PackageId;
@@ -36,6 +33,8 @@ import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This class represents a dependency to another content package.
@@ -241,7 +240,7 @@ public class MavenBasedPackageDependency {
         return dependency;
     }
 
-    @CheckForNull
+    @Nullable
     public URI getLocation() {
         if (groupId != null && artifactId != null && mavenVersion != null) {
             // which version?
@@ -262,7 +261,7 @@ public class MavenBasedPackageDependency {
         return sb.toString();
     }
 
-    public static URI mavenCoordinatesToUri(@Nonnull String groupId, @Nonnull String artifactId, @Nonnull String version, String classifier) {
+    public static URI mavenCoordinatesToUri(@NotNull String groupId, @NotNull String artifactId, @NotNull String version, String classifier) {
         StringBuilder ssp = new StringBuilder();
         ssp.append(groupId).append(":").append(artifactId).append(":").append(version).append(":zip");
         if (StringUtils.isNotEmpty(classifier)) {

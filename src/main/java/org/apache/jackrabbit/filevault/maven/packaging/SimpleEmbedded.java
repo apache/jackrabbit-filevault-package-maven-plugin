@@ -21,14 +21,13 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import org.apache.jackrabbit.filevault.maven.packaging.impl.StringFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
 import org.apache.maven.project.MavenProject;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Abstract base class for all kinds of embeds (both OSGi bundles as well as subpackages)
@@ -140,7 +139,7 @@ public class SimpleEmbedded {
         return matches;
     }
 
-    @Nonnull
+    @NotNull
     public StringBuilder toString(@Nullable StringBuilder builder) {
         if (builder == null) {
             builder = new StringBuilder();
