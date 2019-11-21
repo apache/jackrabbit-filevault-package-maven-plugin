@@ -25,7 +25,6 @@ import java.util.Collection;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 
 import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageInfo;
@@ -72,37 +71,31 @@ public class MavenBasedPackageDependency {
     /**
      * The group name, required for package-id references
      */
-    @Inject
     private String group;
 
     /**
      * The group id, required for maven coordinate references
      */
-    @Inject
     private String groupId;
 
     /**
      * The package name, required for package-id references.
      */
-    @Inject
     private String name;
 
     /**
      * The artifact id, required for maven coordinate references
      */
-    @Inject
     private String artifactId;
 
     /**
      * The classifier, optional for maven coordinate references
      */
-    @Inject
     private String classifier;
 
     /**
      * The version range (optional)
      */
-    @Inject
     private String version;
 
     /**

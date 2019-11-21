@@ -19,18 +19,14 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.inject.Inject;
-
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
 
 public class ValidatorSettings implements org.apache.jackrabbit.vault.validation.spi.ValidatorSettings {
 
-    @Inject
     private final boolean isDisabled;
     
     private ValidationMessageSeverity defaultSeverity;
 
-    @Inject
     private final Map<String, String> options;
     
     public ValidatorSettings() {
@@ -43,7 +39,6 @@ public class ValidatorSettings implements org.apache.jackrabbit.vault.validation
         this.defaultSeverity = defaultSeverity;
     }
 
-    @Inject
     public void setDefaultSeverity(String defaultSeverity) {
         if (defaultSeverity != null) {
             this.defaultSeverity = ValidationMessageSeverity.valueOf(defaultSeverity.toUpperCase());
