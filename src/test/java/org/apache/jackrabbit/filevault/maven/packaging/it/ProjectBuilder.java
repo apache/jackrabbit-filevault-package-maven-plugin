@@ -27,6 +27,8 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -46,6 +48,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BoundedReader;
 import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
 import org.apache.maven.model.Model;
@@ -54,7 +58,10 @@ import org.apache.maven.shared.utils.StringUtils;
 import org.apache.maven.shared.utils.io.FileUtils;
 import org.apache.maven.shared.utils.io.IOUtil;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
+import org.hamcrest.Description;
 import org.hamcrest.Matchers;
+import org.hamcrest.TypeSafeMatcher;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -224,7 +231,7 @@ public class ProjectBuilder {
         verifier.setDebug(true);
         verifier.setAutoclean(false);
         // verifier.setDebugJvm(true);
-        //verifier.setMavenDebug(true);
+        verifier.setMavenDebug(true);
         try {
             verifier.executeGoals(Arrays.asList(testGoals));
             assertFalse("Build expected to fail in project " + testProjectDir.getAbsolutePath(), buildExpectedToFail);
@@ -332,13 +339,45 @@ public class ProjectBuilder {
                 if (entry == null) {
                     fail("Could not find entry with name " + name + " in package " + testPackageFile);
                 }
-                long actualChecksum = entry.getCrc();
-                assertEquals("Checksum of entry with name " + name + " is not equal to the expected value", Long.toHexString(expectedChecksum), Long.toHexString(actualChecksum));
+                Assert.assertThat(entry, new JarEntryMatcher(jar, expectedChecksum));
             }
         }
         return this;
     }
-    
+
+    private final static class JarEntryMatcher extends TypeSafeMatcher<JarEntry> {
+
+        private final long expectedCrc; 
+        private final JarFile jarFile;
+        public JarEntryMatcher(JarFile jarFile, long expectedCrc) {
+            this.jarFile = jarFile;
+            this.expectedCrc = expectedCrc;
+        }
+
+        @Override
+        protected void describeMismatchSafely(JarEntry item, Description mismatchDescription) {
+            mismatchDescription.appendText("was Jar entry with CRC '").appendText(Long.toHexString(item.getCrc())).appendText("'");
+            try (Reader reader = new BoundedReader(new InputStreamReader(jarFile.getInputStream(item), StandardCharsets.UTF_8), 8000)) {
+                String content = IOUtils.toString(reader);
+                // make new line visible
+                content = content.replaceAll("\r", Matcher.quoteReplacement("\r")).replaceAll("\n",  Matcher.quoteReplacement("\n"));
+                mismatchDescription.appendText("(").appendValue(content).appendText(")");
+            } catch (IOException e) {
+                mismatchDescription.appendText("(Could not extract value due to exception ").appendValue(e).appendText(")");
+            }
+        }
+
+        @Override
+        protected boolean matchesSafely(JarEntry item) {
+            return expectedCrc == item.getCrc();
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("having a crc ").appendText(Long.toHexString(expectedCrc));
+        }
+    }
+
     public ProjectBuilder verifyExpectedFilesOrder() throws IOException {
         List<String> expectedEntriesInOrder= Files.readAllLines(expectedOrderFile.toPath(), StandardCharsets.UTF_8);
         assertThat("Order of entries within package", pkgZipEntries, Matchers.containsInRelativeOrder(expectedEntriesInOrder.toArray()));
