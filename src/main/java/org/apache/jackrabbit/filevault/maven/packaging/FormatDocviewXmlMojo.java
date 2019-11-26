@@ -92,7 +92,7 @@ public class FormatDocviewXmlMojo extends AbstractMojo {
 
     /**
      * If set to {@code true} will also run on incremental builds (i.e. within Eclipse with m2e).
-     * Otherwise this goal is skipped in incremental builds on only runs on full builds.
+     * Otherwise this goal is skipped in incremental builds and only runs on full builds.
      */
     @Parameter(defaultValue = "false")
     private boolean enableForIncrementalBuild;
