@@ -1,0 +1,2 @@
+# properties files below ITs are checked for checksums, therefore ensure common line breaks
+*.properties text eol=lf

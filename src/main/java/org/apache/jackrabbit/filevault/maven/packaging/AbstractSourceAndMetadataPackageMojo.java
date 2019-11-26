@@ -21,7 +21,6 @@ import java.util.Set;
 
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.util.AbstractScanner;
 import org.codehaus.plexus.util.DirectoryScanner;
 
 /**
@@ -48,9 +47,9 @@ public abstract class AbstractSourceAndMetadataPackageMojo extends AbstractMetad
             + "${project.basedir}/src/content/jcr_root," + "${project.build.outputDirectory}")
     private File[] jcrRootSourceDirectory;
 
+    
     /**
-     * The file name patterns to exclude in addition to the ones listed in
-     * {@link AbstractScanner#DEFAULTEXCLUDES}. The format of each pattern is described in {@link DirectoryScanner}.
+     * The file name patterns to exclude (in addition to the default ones if {@link AbstractSourceAndMetadataPackageMojo#addDefaultExcludes}. The format of each pattern is described in {@link DirectoryScanner}.
      * The comparison is against the path relative to the according filter root.
      * Since this is hardly predictable it is recommended to use only filename/directory name patterns here 
      * but not take into account file system hierarchies!
@@ -60,6 +59,36 @@ public abstract class AbstractSourceAndMetadataPackageMojo extends AbstractMetad
      */
     @Parameter(property = "vault.excludes", defaultValue = "**/.vlt,**/.vltignore", required = true)
     protected Set<String> excludes;
+
+    /**
+     * By default files like {@code .gitignore}, {@code .cvsignore} etc. are excluded which means they will not being
+     * copied. If you need them for a particular reason you can do that by settings this to {@code false}. This means
+     * all files like the following will be copied.
+     * <ul>
+     * <li>Misc: &#42;&#42;/&#42;~, &#42;&#42;/#&#42;#, &#42;&#42;/.#&#42;, &#42;&#42;/%&#42;%, &#42;&#42;/._&#42;</li>
+     * <li>CVS: &#42;&#42;/CVS, &#42;&#42;/CVS/&#42;&#42;, &#42;&#42;/.cvsignore</li>
+     * <li>RCS: &#42;&#42;/RCS, &#42;&#42;/RCS/&#42;&#42;</li>
+     * <li>SCCS: &#42;&#42;/SCCS, &#42;&#42;/SCCS/&#42;&#42;</li>
+     * <li>VSSercer: &#42;&#42;/vssver.scc</li>
+     * <li>MKS: &#42;&#42;/project.pj</li>
+     * <li>SVN: &#42;&#42;/.svn, &#42;&#42;/.svn/&#42;&#42;</li>
+     * <li>GNU: &#42;&#42;/.arch-ids, &#42;&#42;/.arch-ids/&#42;&#42;</li>
+     * <li>Bazaar: &#42;&#42;/.bzr, &#42;&#42;/.bzr/&#42;&#42;</li>
+     * <li>SurroundSCM: &#42;&#42;/.MySCMServerInfo</li>
+     * <li>Mac: &#42;&#42;/.DS_Store</li>
+     * <li>Serena Dimension: &#42;&#42;/.metadata, &#42;&#42;/.metadata/&#42;&#42;</li>
+     * <li>Mercurial: &#42;&#42;/.hg, &#42;&#42;/.hg/&#42;&#42;</li>
+     * <li>GIT: &#42;&#42;/.git, &#42;&#42;/.gitignore, &#42;&#42;/.gitattributes, &#42;&#42;/.git/&#42;&#42;</li>
+     * <li>Bitkeeper: &#42;&#42;/BitKeeper, &#42;&#42;/BitKeeper/&#42;&#42;, &#42;&#42;/ChangeSet,
+     * &#42;&#42;/ChangeSet/&#42;&#42;</li>
+     * <li>Darcs: &#42;&#42;/_darcs, &#42;&#42;/_darcs/&#42;&#42;, &#42;&#42;/.darcsrepo,
+     * &#42;&#42;/.darcsrepo/&#42;&#42;&#42;&#42;/-darcs-backup&#42;, &#42;&#42;/.darcs-temp-mail
+     * </ul>
+     *
+     * @since 1.1.0
+     */
+    @Parameter(defaultValue = "true")
+    protected boolean addDefaultExcludes;
 
     protected File getJcrSourceDirectory() {
         return getJcrSourceDirectory(jcrRootSourceDirectory, builtContentDirectory, getLog());

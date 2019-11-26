@@ -21,6 +21,11 @@ import java.util.ArrayList;
 
 public class IncludeExcludeList extends ArrayList<String> {
 
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
+
     public boolean add(String entry) {
         return entry != null && super.add(entry);
     }

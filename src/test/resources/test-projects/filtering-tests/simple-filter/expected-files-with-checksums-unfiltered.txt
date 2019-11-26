@@ -1,0 +1,1 @@
+jcr_root/apps/foo/test.properties 34e5a01d
