@@ -90,6 +90,13 @@ public class FormatDocviewXmlMojo extends AbstractMojo {
     @Parameter(defaultValue = "false")
     private boolean validateOnly;
 
+    /**
+     * If set to {@code true} will also run on incremental builds (i.e. within Eclipse with m2e).
+     * Otherwise this goal is skipped in incremental builds on only runs on full builds.
+     */
+    @Parameter(defaultValue = "false")
+    private boolean enableForIncrementalBuild;
+
     @Component
     protected BuildContext buildContext;
 
@@ -98,8 +105,12 @@ public class FormatDocviewXmlMojo extends AbstractMojo {
            "(http://jackrabbit.apache.org/filevault/usage.html).";
  
     public void execute() throws MojoExecutionException, MojoFailureException {
-        File jcrSourceDirectory = AbstractSourceAndMetadataPackageMojo.getFirstExistingDirectory(jcrRootSourceDirectory);
-        executeInternal(jcrSourceDirectory);
+        if (buildContext.isIncremental() && !enableForIncrementalBuild) {
+            getLog().info("Skip executing mojo 'format-xml' for incremental builds as parameter 'enableForIncrementalBuilds' is set to 'false'");
+        } else {
+            File jcrSourceDirectory = AbstractSourceAndMetadataPackageMojo.getFirstExistingDirectory(jcrRootSourceDirectory);
+            executeInternal(jcrSourceDirectory);
+        }
     }
     
     protected void executeInternal(File sourceDirectory)
