@@ -24,8 +24,6 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 
-import javax.annotation.Nonnull;
-
 import org.apache.jackrabbit.filevault.maven.packaging.GenerateMetadataMojo;
 import org.apache.jackrabbit.vault.fs.api.WorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
@@ -38,6 +36,7 @@ import org.apache.jackrabbit.vault.packaging.impl.DefaultPackageProperties;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.validation.spi.ValidationContext;
 import org.apache.maven.plugin.logging.Log;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Validation context built from files in two directories:
@@ -54,7 +53,7 @@ public class DirectoryValidationContext implements ValidationContext {
     
     private static final Path RELATIVE_PROPERTIES_XML_PATH = Paths.get(Constants.VAULT_DIR, Constants.PROPERTIES_XML);
 
-    public DirectoryValidationContext(@Nonnull final File generatedMetaInfRootDirectory, final File metaInfRootDirectory, DependencyResolver resolver, @Nonnull final Log log) throws IOException, ConfigurationException {
+    public DirectoryValidationContext(@NotNull final File generatedMetaInfRootDirectory, final File metaInfRootDirectory, DependencyResolver resolver, @NotNull final Log log) throws IOException, ConfigurationException {
         Path propertiesPath = null;
         if (!Constants.META_INF.equals(generatedMetaInfRootDirectory.getName())) {
             throw new IllegalArgumentException("The workDir must end with 'META-INF' but is '" + generatedMetaInfRootDirectory+"'");

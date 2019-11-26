@@ -379,9 +379,9 @@
             <version>2.6</version>
         </dependency>
         <dependency>
-            <groupId>com.google.code.findbugs</groupId>
-            <artifactId>jsr305</artifactId>
-            <version>2.0.1</version>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>18.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>

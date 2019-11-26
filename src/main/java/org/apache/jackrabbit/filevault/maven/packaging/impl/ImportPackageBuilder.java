@@ -38,15 +38,14 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.artifact.resolver.filter.ArtifactFilter;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import aQute.bnd.header.Attrs;
 import aQute.bnd.header.Parameters;
@@ -133,7 +132,7 @@ public class ImportPackageBuilder {
      * @param classes the directory
      * @return this.
      */
-    @Nonnull
+    @NotNull
     public ImportPackageBuilder withClassFileDirectory(File classes) {
         classFileDirectory = classes;
         return this;
@@ -145,8 +144,8 @@ public class ImportPackageBuilder {
      * @param project the maven project
      * @return this
      */
-    @Nonnull
-    public ImportPackageBuilder withDependenciesFromProject(@Nonnull MavenProject project) {
+    @NotNull
+    public ImportPackageBuilder withDependenciesFromProject(@NotNull MavenProject project) {
         artifacts = new ArrayList<Artifact>();
         for (Artifact a : project.getDependencyArtifacts()) {
             if (!filter.include(a)) {
@@ -170,7 +169,7 @@ public class ImportPackageBuilder {
      * @param includeUnused {@code true} to include unused.
      * @return this
      */
-    @Nonnull
+    @NotNull
     public ImportPackageBuilder withIncludeUnused(boolean includeUnused) {
         this.includeUnused = includeUnused;
         return this;
@@ -181,8 +180,8 @@ public class ImportPackageBuilder {
      * @param filter the filter
      * @return this
      */
-    @Nonnull
-    public ImportPackageBuilder withFilter(@Nonnull ArtifactFilter filter) {
+    @NotNull
+    public ImportPackageBuilder withFilter(@NotNull ArtifactFilter filter) {
         this.filter = filter;
         return this;
     }
@@ -192,7 +191,7 @@ public class ImportPackageBuilder {
      * @return this
      * @throws IOException if an error occurrs.
      */
-    @Nonnull
+    @NotNull
     public ImportPackageBuilder analyze() throws IOException {
         initClassFiles();
         initAnalyzer();
@@ -207,7 +206,7 @@ public class ImportPackageBuilder {
      * returns the import parameter header. only available after {@link #analyze()}
      * @return the parameters
      */
-    @Nonnull
+    @NotNull
     public Map<String, Attrs> getImportParameters() {
         return importParameters;
     }
@@ -216,7 +215,7 @@ public class ImportPackageBuilder {
      * generates a package report
      * @return the report
      */
-    @Nonnull
+    @NotNull
     public String createExportPackageReport() {
         TreeSet<String> unusedBundles = new TreeSet<String>(bundles.keySet());
         StringBuilder report = new StringBuilder("Export package report:\n\n");
@@ -532,7 +531,7 @@ public class ImportPackageBuilder {
          * e.g. {@code /some/package/name/ClassFile.class}.
          * @return the paths.
          */
-        @Nonnull
+        @NotNull
         Collection<String> getClassFiles() throws IOException;
     }
 
@@ -556,7 +555,7 @@ public class ImportPackageBuilder {
         }
 
         @Override
-        @Nonnull
+        @NotNull
         public Collection<String> getClassFiles() throws IOException {
             List<String> fileNames = new LinkedList<>();
             try (JarFile jar = new JarFile(this.file)) {
@@ -602,7 +601,7 @@ public class ImportPackageBuilder {
         }
 
         @Override
-        @Nonnull
+        @NotNull
         public Collection<String> getClassFiles() throws IOException {
             Collection<File> files = listFiles(this.directory, new String[]{"class"}, true);
             String basePath = this.directory.getCanonicalPath();

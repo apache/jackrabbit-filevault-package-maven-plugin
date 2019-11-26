@@ -33,8 +33,6 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.Nonnull;
-
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.util.Constants;
@@ -63,6 +61,7 @@ import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 /** Build a content package. */
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
@@ -196,8 +195,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
      * @param directory the directory
      * @param prefix the prefix
      * @return the fileset */
-    @Nonnull
-    protected DefaultFileSet createFileSet(@Nonnull File directory, @Nonnull String prefix) {
+    @NotNull
+    protected DefaultFileSet createFileSet(@NotNull File directory, @NotNull String prefix) {
         return createFileSet(directory, prefix, null);
     }
 
@@ -207,8 +206,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
      * @param prefix the prefix
      * @param additionalExcludes excludes
      * @return the fileset */
-    @Nonnull
-    protected DefaultFileSet createFileSet(@Nonnull File directory, @Nonnull String prefix, List<String> additionalExcludes) {
+    @NotNull
+    protected DefaultFileSet createFileSet(@NotNull File directory, @NotNull String prefix, List<String> additionalExcludes) {
         List<String> excludes = new LinkedList<>(this.excludes);
         if (additionalExcludes != null) {
             excludes.addAll(additionalExcludes);
@@ -275,7 +274,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         archiver.addFileSet(fileSet);
     }
 
-    private @Nonnull File applyFiltering(MavenResourcesExecution mavenResourcesExecution, Resource resource) throws MavenFilteringException {
+    private @NotNull File applyFiltering(MavenResourcesExecution mavenResourcesExecution, Resource resource) throws MavenFilteringException {
         File targetPath = new File(project.getBuild().getDirectory(), "filteredFiles");
         // which path to set as target (is a temporary path)
         getLog().debug("Applying filtering to resource " + resource);

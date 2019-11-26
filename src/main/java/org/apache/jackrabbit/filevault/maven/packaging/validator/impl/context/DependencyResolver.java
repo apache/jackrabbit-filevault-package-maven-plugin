@@ -24,8 +24,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.CheckForNull;
-
 import org.apache.jackrabbit.filevault.maven.packaging.MavenBasedPackageDependency;
 import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageId;
@@ -40,6 +38,7 @@ import org.apache.maven.artifact.resolver.ArtifactResolutionResult;
 import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.repository.RepositorySystem;
+import org.jetbrains.annotations.Nullable;
 
 /** Allows to resolve a {@link Dependency} from the underlying Maven repository (first local, then remote). */
 public class DependencyResolver {
@@ -93,7 +92,7 @@ public class DependencyResolver {
         return packageInfos;
     }
 
-    public @CheckForNull PackageInfo resolve(Dependency dependency, Log log) throws IOException {
+    public @Nullable PackageInfo resolve(Dependency dependency, Log log) throws IOException {
         // resolving a version range is not supported with Maven API, but only with lower level Aether API (requires Maven 3.5 or newer)
         // https://github.com/eclipse/aether-demo/blob/master/aether-demo-snippets/src/main/java/org/eclipse/aether/examples/FindAvailableVersions.java
         // therefore do an best effort resolve instead
@@ -126,7 +125,7 @@ public class DependencyResolver {
         return info;
     }
 
-    private @CheckForNull PackageInfo resolve(String groupId, String artifactId, String version, Log log) throws IOException {
+    private @Nullable PackageInfo resolve(String groupId, String artifactId, String version, Log log) throws IOException {
         Artifact artifact = repositorySystem.createArtifact(groupId, artifactId, version, "zip");
         File file = resolve(artifact, log);
         if (file != null) {
@@ -136,7 +135,7 @@ public class DependencyResolver {
         }
     }
 
-    private @CheckForNull File resolve(Artifact artifact, Log log) {
+    private @Nullable File resolve(Artifact artifact, Log log) {
         ArtifactResolutionRequest resolutionRequest = new ArtifactResolutionRequest(repositoryRequest);
         resolutionRequest.setArtifact(artifact);
         ArtifactResolutionResult result = repositorySystem.resolve(resolutionRequest);
