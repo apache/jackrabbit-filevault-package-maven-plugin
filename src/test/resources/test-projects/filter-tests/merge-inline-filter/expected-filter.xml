@@ -7,4 +7,5 @@
         <include pattern="/libs/bar/b/.*"/>
         <exclude pattern="/libs/bar/foo(/.*)?"/>
     </filter>
+    <filter root="/libs/install/jcr-2.0.jar"/>
 </workspaceFilter>
