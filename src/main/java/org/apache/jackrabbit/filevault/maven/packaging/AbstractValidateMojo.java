@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -30,6 +31,7 @@ import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageInfo;
 import org.apache.jackrabbit.vault.validation.ValidationExecutorFactory;
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
+import org.apache.jackrabbit.vault.validation.spi.impl.AdvancedFilterValidator;
 import org.apache.jackrabbit.vault.validation.spi.impl.AdvancedFilterValidatorFactory;
 import org.apache.jackrabbit.vault.validation.spi.impl.DependencyValidatorFactory;
 import org.apache.maven.artifact.Artifact;
@@ -246,6 +248,13 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
             // do no fully disable but emit violations with level DEBUG
             ValidatorSettings dependencyValidatorSettings = new ValidatorSettings(ValidationMessageSeverity.DEBUG);
             validatorsSettings.put(DependencyValidatorFactory.ID, dependencyValidatorSettings);
+
+            ValidatorSettings filterValidatorSettings = validatorsSettings.containsKey(AdvancedFilterValidatorFactory.ID) ? validatorsSettings.get(AdvancedFilterValidatorFactory.ID) : new ValidatorSettings();
+            if (filterValidatorSettings.getOptions().containsKey(AdvancedFilterValidatorFactory.OPTION_SEVERITY_FOR_UNCOVERED_ANCESTOR_NODES)) {
+                throw new MojoExecutionException("Can not set parameters 'failOnDependencyErrors' and 'validationSettings' for '"
+                        + DependencyValidatorFactory.ID + "' with option'" +AdvancedFilterValidatorFactory.OPTION_SEVERITY_FOR_UNCOVERED_ANCESTOR_NODES + "' at the same time");
+            }
+            filterValidatorSettings.addOption(AdvancedFilterValidatorFactory.OPTION_SEVERITY_FOR_UNCOVERED_ANCESTOR_NODES, ValidationMessageSeverity.DEBUG.toString().toLowerCase(Locale.ROOT));
         }
     }
 
