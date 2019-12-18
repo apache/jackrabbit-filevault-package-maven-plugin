@@ -16,5 +16,5 @@
   limitations under the License.
   -->
 <workspaceFilter version="1.0">
-    <filter root="/sub1"/>
+    <filter root="/apps/sub1"/>
 </workspaceFilter>

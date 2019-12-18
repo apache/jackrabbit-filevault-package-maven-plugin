@@ -24,7 +24,7 @@
     <artifactId>package-plugin-test-pkg</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>content-package</packaging>
-    <name>Packaging test</name>
+    <name>Packaging test container</name>
 
     <build>
         <plugins>

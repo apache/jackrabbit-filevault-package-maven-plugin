@@ -40,7 +40,7 @@ public class GenerateMetadataMultiModuleIT {
 
     /**
      * Tests that the generate-manifest goal generates the expected filter.xml and
-     * runs validation successfully when run on when run on
+     * runs validation successfully when run on
      * inter-module dependencies in a multi-module setup for clean + package goals.
      */
     @Test
