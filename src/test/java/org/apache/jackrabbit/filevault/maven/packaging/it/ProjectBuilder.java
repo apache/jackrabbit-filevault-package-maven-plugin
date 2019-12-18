@@ -122,6 +122,8 @@ public class ProjectBuilder {
 
         testProperties.put("plugin.version", getPluginVersion());
         testProperties.put("testcontent.directory", new File("target/test-classes/test-content").getAbsolutePath());
+        testProperties.put("maven.compiler.source", "1.8");
+        testProperties.put("maven.compiler.target", "1.8");
     }
 
     /**
