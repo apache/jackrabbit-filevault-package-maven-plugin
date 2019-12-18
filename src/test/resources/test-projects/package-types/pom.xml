@@ -29,7 +29,12 @@
                 <extensions>true</extensions>
                 <configuration>
                     <packageType>${test.packageType}</packageType>
-                    <failOnEmptyFilter>false</failOnEmptyFilter>
+                    <skipValidation>true</skipValidation>
+                    <filters>
+                        <filter>
+                            <root>/some/path</root>
+                        </filter>
+                    </filters>
                 </configuration>
             </plugin>
         </plugins>

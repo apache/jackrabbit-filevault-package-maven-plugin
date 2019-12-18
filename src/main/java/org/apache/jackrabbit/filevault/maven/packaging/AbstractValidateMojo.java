@@ -31,7 +31,6 @@ import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageInfo;
 import org.apache.jackrabbit.vault.validation.ValidationExecutorFactory;
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
-import org.apache.jackrabbit.vault.validation.spi.impl.AdvancedFilterValidator;
 import org.apache.jackrabbit.vault.validation.spi.impl.AdvancedFilterValidatorFactory;
 import org.apache.jackrabbit.vault.validation.spi.impl.DependencyValidatorFactory;
 import org.apache.maven.artifact.Artifact;
@@ -53,6 +52,8 @@ import org.sonatype.plexus.build.incremental.BuildContext;
  * Common ancestor for all validation related mojos
  */
 public abstract class AbstractValidateMojo extends AbstractMojo {
+    @Parameter(property = "vault.skipValidation", defaultValue = "false", required = true)
+    boolean skipValidation;
 
     /** All validator settings in a map. The keys are the validator ids and the values
      * are a complex object of type ValdidatorSettings.
@@ -172,6 +173,10 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     }
     @Override 
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (skipValidation) {
+            getLog().info("Skipping validation");
+            return;
+        }
         translateLegacyParametersToValidatorParameters();
         final Collection<PackageInfo> resolvedDependencies = new LinkedList<>();
         if (project != null) {

@@ -37,12 +37,12 @@
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <failOnEmptyFilter>false</failOnEmptyFilter>
                     <embeddeds>
                         <embedded>
                             <groupId>${project.groupId}</groupId>
                             <artifactId>package-plugin-test-pkg-artifact</artifactId>
                             <target>/libs/install</target>
+                            <addFilter>true</addFilter>
                         </embedded>
                     </embeddeds>
                 </configuration>

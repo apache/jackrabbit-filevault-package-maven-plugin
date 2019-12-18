@@ -34,7 +34,11 @@
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <failOnEmptyFilter>false</failOnEmptyFilter>
+                    <filters>
+                        <filter>
+                            <root>/some/path</root>
+                        </filter>
+                    </filters>
 
                     <!-- these property can only bet set via plugin properties -->
                     <requiresRoot>true</requiresRoot>

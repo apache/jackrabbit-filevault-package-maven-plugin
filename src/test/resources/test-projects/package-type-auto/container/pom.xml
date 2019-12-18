@@ -29,8 +29,12 @@
                 <extensions>true</extensions>
                 <configuration>
                     <!-- TODO: implement auto detection -->
-                    <failOnEmptyFilter>false</failOnEmptyFilter>
                     <packageType>container</packageType>
+                    <filters>
+                        <filter>
+                            <root>/apps/packages/subpackage</root>
+                        </filter>
+                    </filters>
                 </configuration>
             </plugin>
         </plugins>

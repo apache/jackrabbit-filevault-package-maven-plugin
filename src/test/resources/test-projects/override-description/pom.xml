@@ -35,7 +35,11 @@
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <failOnEmptyFilter>false</failOnEmptyFilter>
+                    <filters>
+                        <filter>
+                            <root>/some/path</root>
+                        </filter>
+                    </filters>
                     <properties>
                         <description>Description from plugin</description>
                         <empty></empty>

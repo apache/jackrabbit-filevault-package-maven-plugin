@@ -48,14 +48,6 @@ public class FilterIT {
     }
 
     /**
-     * Tests if a pom with no filter definition but with a @{code failOnEmptyFilter} set to {@code false} works.
-     */
-    @Test
-    public void test_no_filter_with_prop_ok() throws Exception {
-        verify("no-filter-with-prop-ok", false);
-    }
-
-    /**
      * Tests if a project with an implicit filter defined with a resource based META-INF/vault/filter.xml is correctly built
      */
     @Test

@@ -34,7 +34,11 @@
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <failOnEmptyFilter>false</failOnEmptyFilter>
+                    <filters>
+                        <filter>
+                            <root>/some/path</root>
+                        </filter>
+                    </filters>
                     
                     <!-- properties set here should have higher precedence than in the properties map -->
                     <requiresRoot>true</requiresRoot>

@@ -153,7 +153,9 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
     String version;
 
     /**
-     * Defines the content of the filter.xml file
+     * Defines the content of the filter.xml file.
+     * Each filter consists of the mandatory element {@code root} and the optional {@code mode} and {@code type} elements. All those elements are simple strings.
+     * In addition optionally a number of {@code include} and {@code exclude} elements are supported below {@code includes}/{@code excludes} respectively.
      */
     @Parameter
     private final Filters filters = new Filters();
@@ -167,7 +169,9 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
 
     /**
      * Controls if empty workspace filter fails the build.
+     * @deprecated This is no longer evaluated as every package is supposed to come with a non-empty filter
      */
+    @Deprecated
     @Parameter(
             property = "vault.failOnEmptyFilter",
             defaultValue="true",
@@ -453,6 +457,9 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             }
         }
 
+        if (!failOnEmptyFilter) {
+            getLog().warn("The parameter 'failOnEmptyFilter' is no longer supported and ignored. Every package must have a non-empty filter!");
+        }
         final File vaultDir = getGeneratedVaultDir();
         vaultDir.mkdirs();
 
@@ -635,13 +642,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
     private void writeFilters(String sourceFilters) throws IOException, MojoExecutionException {
         // if no filter is defined at all, fail
         if (filters.getFilterSets().isEmpty()) {
-            if (failOnEmptyFilter) {
-                final String msg = "No workspace filter defined (failOnEmptyFilter=true)";
-                getLog().error(msg);
-                throw new MojoExecutionException(msg);
-            } else {
-                getLog().warn("No workspace filter defined. Package import might have unexpected results.");
-            }
+            throw new MojoExecutionException("No workspace filter defined!");
         }
 
         File filterFile = getGeneratedFilterFile();
