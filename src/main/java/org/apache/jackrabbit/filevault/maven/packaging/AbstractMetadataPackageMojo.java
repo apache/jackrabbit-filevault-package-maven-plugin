@@ -110,7 +110,7 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
 
     /**
      * Sets the map of embedded files as project properties as a helper to pass data between the goals
-     * @param embeddedFiles map of embedded files.
+     * @param embeddedFiles map of embedded files (key=destination file name, value = source file)
      */
     @SuppressWarnings("unchecked")
     void setEmbeddedFilesMap(Map<String, File> embeddedFiles) {
@@ -119,7 +119,7 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
 
     /**
      * Reads the map of embedded files from the project properties. This is a helper to pass data between the goals.
-     * @return the map of embedded files.
+     * @return the map of embedded files (key=destination file name, value = source file)
      */
     @SuppressWarnings("unchecked")
     Map<String, File> getEmbeddedFilesMap() {
@@ -166,6 +166,7 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
         }
         return metaInfDirectory;
     }
+
     Filters loadGeneratedFilterFile() throws IOException, ConfigurationException {
         // load filters for further processing
         Filters filters = new Filters();

@@ -37,6 +37,9 @@
                 <configuration>
                     <filters>
                         <filter>
+                            <root>/apps/bar</root>
+                        </filter>
+                        <filter>
                             <root>/apps/foo</root>
                         </filter>
                     </filters>

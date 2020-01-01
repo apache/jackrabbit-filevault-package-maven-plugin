@@ -49,6 +49,7 @@ import java.util.zip.ZipFile;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
+import org.apache.jackrabbit.vault.fs.api.WorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.filter.DefaultPathFilter;
@@ -627,7 +628,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
         return sourceFilters.getSourceAsString();
     }
 
-    private void mergeFilters(DefaultWorkspaceFilter dst, DefaultWorkspaceFilter src) {
+    private void mergeFilters(DefaultWorkspaceFilter dst, WorkspaceFilter src) {
         for (PathFilterSet fs: src.getFilterSets()) {
             // check for collision
             for (PathFilterSet mfs: dst.getFilterSets()) {

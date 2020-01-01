@@ -26,30 +26,45 @@ import org.junit.Test;
  */
 public class FilteringIT {
 
-    private ProjectBuilder verify(String projectName, String expectedFilesWithChecksumsFile, boolean enableJcrRootFiltering, boolean enableMetaInfFiltering, String ... goals) throws VerificationException, IOException {
+    private ProjectBuilder verify(String projectName, boolean enableJcrRootFiltering, boolean enableMetaInfFiltering, String ... goals) throws VerificationException, IOException {
         return new ProjectBuilder()
                 .setTestProjectDir("filtering-tests/" + projectName)
                 .setTestGoals(goals)
                 .setProperty("vault.enableMetaInfFiltering", Boolean.toString(enableMetaInfFiltering))
                 .setProperty("vault.enableJcrRootFiltering", Boolean.toString(enableJcrRootFiltering))
-                .setExpectedFilesWithChecksumsFile(expectedFilesWithChecksumsFile)
-                .build() 
-                .verifyExpectedFilesChecksum();
+                .build()
+                .verifyExpectedFiles();
     }
 
-    /**
-     * Tests if a pom with no filter definition at all fails.
-     */
     @Test
     public void test_simple_filter_with_filtering_enabled() throws Exception {
-        verify("simple-filter", "expected-files-with-checksums-filtered.txt", true, true);
+        verify("simple-filter", true, true)
+            .verifyExpectedFileChecksum("META-INF/vault/properties.xml", "d4c457e5")
+            .verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "10791371")
+            .verifyExpectedFileChecksum("jcr_root/apps/foo/test2.properties", "7563f01d");
     }
 
-    /**
-     * Tests if a pom with no filter definition at all fails.
-     */
     @Test
     public void test_simple_filter_with_filtering_disabled() throws Exception {
-        verify("simple-filter", "expected-files-with-checksums-unfiltered.txt", false, false);
+        verify("simple-filter", false, false)
+        .verifyExpectedFileChecksum("META-INF/vault/properties.xml", "e04970b0")
+        .verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "34e5a01d")
+        .verifyExpectedFileChecksum("jcr_root/apps/foo/test2.properties", "a41ae6f8");
+    }
+
+    @Test
+    public void test_simple_filter_with_filtering_partially_enabled() throws Exception {
+        verify("simple-filter", true, false)
+        .verifyExpectedFileChecksum("META-INF/vault/properties.xml", "e04970b0")
+        .verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "10791371")
+        .verifyExpectedFileChecksum("jcr_root/apps/foo/test2.properties", "7563f01d");
+    }
+
+    @Test
+    public void test_simple_filter_with_filtering_partially_enabled2() throws Exception {
+        verify("simple-filter", false, true)
+        .verifyExpectedFileChecksum("META-INF/vault/properties.xml", "d4c457e5")
+        .verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "34e5a01d")
+        .verifyExpectedFileChecksum("jcr_root/apps/foo/test2.properties", "a41ae6f8");
     }
 }

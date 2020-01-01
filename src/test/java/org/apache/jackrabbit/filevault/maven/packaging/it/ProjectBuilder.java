@@ -333,39 +333,45 @@ public class ProjectBuilder {
         for (String expectedEntryWithChecksum : expectedEntriesWithChecksums) {
             // split name and checksum
             String[] parts = expectedEntryWithChecksum.split(" ", 2);
-            final String name = parts[0];
-            // the second part must be a hexadecimal CRC32 checksum
-            final long expectedChecksum = Long.parseLong(parts[1], 16);
-            try (JarFile jar = new JarFile(testPackageFile)) {
-                JarEntry entry = jar.getJarEntry(name);
-                if (entry == null) {
-                    fail("Could not find entry with name " + name + " in package " + testPackageFile);
-                }
-                Assert.assertThat(entry, new JarEntryMatcher(jar, expectedChecksum));
+            verifyExpectedFileChecksum(parts[0], parts[1]);
+        }
+        return this;
+    }
+
+    public ProjectBuilder verifyExpectedFileChecksum(String name, String checksum) throws IOException {
+        // the second part must be a hexadecimal CRC32 checksum
+        final long expectedChecksum = Long.parseLong(checksum, 16);
+        try (JarFile jar = new JarFile(testPackageFile)) {
+            JarEntry entry = jar.getJarEntry(name);
+            if (entry == null) {
+                fail("Could not find entry with name " + name + " in package " + testPackageFile);
             }
+            Assert.assertThat(entry, new JarEntryMatcher(name, jar, expectedChecksum));
         }
         return this;
     }
 
     private final static class JarEntryMatcher extends TypeSafeMatcher<JarEntry> {
 
+        private final String name;
         private final long expectedCrc; 
         private final JarFile jarFile;
-        public JarEntryMatcher(JarFile jarFile, long expectedCrc) {
+        public JarEntryMatcher(String name, JarFile jarFile, long expectedCrc) {
+            this.name = name;
             this.jarFile = jarFile;
             this.expectedCrc = expectedCrc;
         }
 
         @Override
         protected void describeMismatchSafely(JarEntry item, Description mismatchDescription) {
-            mismatchDescription.appendText("was Jar entry with CRC '").appendText(Long.toHexString(item.getCrc())).appendText("'");
+            mismatchDescription.appendText("was Jar entry with name ").appendValue(item.getName()).appendText(" having the CRC ").appendValue(Long.toHexString(item.getCrc()));
             try (Reader reader = new BoundedReader(new InputStreamReader(jarFile.getInputStream(item), StandardCharsets.UTF_8), 8000)) {
                 String content = IOUtils.toString(reader);
                 // make new line visible
                 content = content.replaceAll("\r", Matcher.quoteReplacement("\r")).replaceAll("\n",  Matcher.quoteReplacement("\n"));
-                mismatchDescription.appendText("(").appendValue(content).appendText(")");
+                mismatchDescription.appendText(" (").appendValue(content).appendText(")");
             } catch (IOException e) {
-                mismatchDescription.appendText("(Could not extract value due to exception ").appendValue(e).appendText(")");
+                mismatchDescription.appendText(" (Could not extract value due to exception ").appendValue(e).appendText(")");
             }
         }
 
@@ -376,7 +382,7 @@ public class ProjectBuilder {
 
         @Override
         public void describeTo(Description description) {
-            description.appendText("having a crc ").appendText(Long.toHexString(expectedCrc));
+            description.appendText("Jar entry with name ").appendValue(name).appendText(" having the CRC ").appendValue(Long.toHexString(expectedCrc));
         }
     }
 

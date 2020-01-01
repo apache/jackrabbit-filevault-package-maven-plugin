@@ -20,6 +20,8 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -230,14 +232,15 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
      */
     protected void addFileToArchive(MavenResourcesExecution mavenResourcesExecution, ContentPackageArchiver archiver, File sourceFile,
             String destFileName) throws MavenFilteringException {
-        if ((destFileName.startsWith(Constants.ROOT_DIR) && enableJcrRootFiltering) ||
-            (destFileName.startsWith(Constants.ROOT_DIR) && enableMetaInfFiltering)) {
+        Path destFile = Paths.get(destFileName);
+        if ((destFile.startsWith(Constants.ROOT_DIR) && enableJcrRootFiltering) ||
+            (destFile.startsWith(Constants.META_INF) && enableMetaInfFiltering)) {
             getLog().info("Apply filtering to " + sourceFile);
             Resource resource = new Resource();
             resource.setDirectory(sourceFile.getParent());
             resource.setIncludes(Collections.singletonList(sourceFile.getName()));
             resource.setFiltering(true);
-            File newTargetDirectory = applyFiltering(mavenResourcesExecution, resource);
+            File newTargetDirectory = applyFiltering(destFile.getParent().toString(), mavenResourcesExecution, resource);
             sourceFile = new File(newTargetDirectory, sourceFile.getName());
         }
         archiver.addFile(sourceFile, destFileName);
@@ -252,9 +255,9 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
      * @throws MavenFilteringException in case filtering failed
      */
     protected void addFileSetToArchive(MavenResourcesExecution mavenResourcesExecution, ContentPackageArchiver archiver, DefaultFileSet fileSet) throws MavenFilteringException {
-        // TODO: what to do with file sets not having any prefix set (workDirectory)
+        // ignore directories added with no prefix (workDirectory)
         if ((fileSet.getPrefix().startsWith(Constants.ROOT_DIR) && enableJcrRootFiltering) ||
-            (fileSet.getPrefix().startsWith(Constants.ROOT_DIR) && enableMetaInfFiltering)) {
+            (fileSet.getPrefix().startsWith(Constants.META_INF) && enableMetaInfFiltering)) {
             
             getLog().info("Apply filtering to FileSet below " + fileSet.getDirectory());
             Resource resource = new Resource();
@@ -267,20 +270,20 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                 // default exclude are managed via mavenResourcesExecution
             }
             resource.setFiltering(true);
-            File newTargetDirectory = applyFiltering(mavenResourcesExecution, resource);
+            File newTargetDirectory = applyFiltering(fileSet.getPrefix(), mavenResourcesExecution, resource);
             fileSet.setDirectory(newTargetDirectory);
         }
-
         archiver.addFileSet(fileSet);
     }
 
-    private @NotNull File applyFiltering(MavenResourcesExecution mavenResourcesExecution, Resource resource) throws MavenFilteringException {
+    private @NotNull File applyFiltering(String prefix, MavenResourcesExecution mavenResourcesExecution, Resource resource) throws MavenFilteringException {
         File targetPath = new File(project.getBuild().getDirectory(), "filteredFiles");
+        mavenResourcesExecution.setOutputDirectory(targetPath);
+        targetPath = new File(targetPath, prefix);
         // which path to set as target (is a temporary path)
         getLog().debug("Applying filtering to resource " + resource);
         resource.setTargetPath(targetPath.getPath());
         mavenResourcesExecution.setResources(Collections.singletonList(resource));
-        mavenResourcesExecution.setOutputDirectory(targetPath);
         mavenResourcesFiltering.filterResources(mavenResourcesExecution);
         return targetPath;
     }
