@@ -19,40 +19,31 @@ package org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Properties;
 
 import org.apache.jackrabbit.vault.fs.api.WorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.io.Archive;
+import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageInfo;
 import org.apache.jackrabbit.vault.packaging.PackageProperties;
-import org.apache.jackrabbit.vault.packaging.impl.PackagePropertiesImpl;
+import org.apache.jackrabbit.vault.packaging.PackageType;
 import org.apache.jackrabbit.vault.validation.spi.ValidationContext;
 import org.apache.maven.plugin.logging.Log;
+import org.jetbrains.annotations.NotNull;
 
 
 /**
  * Implements a validation context based on a given {@link Archive}.
  */
-public class ArchiveValidationContextImpl extends PackagePropertiesImpl implements ValidationContext {
+public class ArchiveValidationContextImpl implements ValidationContext {
 
     private final WorkspaceFilter filter;
-    private final Properties properties;
+    private final PackageProperties properties;
     private final Path archivePath;
     private final Collection<PackageInfo> resolvedDependencies;
 
-    /**
-     * 
-     * @param archive
-     * @param archivePath
-     * @param configuration
-     * @throws IOException 
-     */
     public ArchiveValidationContextImpl(Archive archive, Path archivePath, DependencyResolver resolver, Log log) throws IOException {
         this.archivePath = archivePath;
-        properties = archive.getMetaInf().getProperties();
-        if (properties == null) {
-            throw new IllegalStateException("Archive '" + archivePath + "' does not contain a properties.xml.");
-        }
+        properties = archive.getMetaInf().getPackageProperties();
         this.filter = archive.getMetaInf().getFilter();
         if (filter == null) {
             throw new IllegalStateException("Archive '" + archivePath + "' does not contain a filter.xml.");
@@ -60,15 +51,9 @@ public class ArchiveValidationContextImpl extends PackagePropertiesImpl implemen
         this.resolvedDependencies = resolver.resolve(getProperties().getDependencies(), getProperties().getDependenciesLocations(), log);
     }
 
-
-    @Override
-    protected Properties getPropertiesMap() {
-        return properties;
-    }
-
     @Override
     public PackageProperties getProperties() {
-        return this;
+        return properties;
     }
 
     @Override
@@ -89,6 +74,16 @@ public class ArchiveValidationContextImpl extends PackagePropertiesImpl implemen
     @Override
     public Collection<PackageInfo> getDependenciesMetaInfo() {
         return this.resolvedDependencies;
+    }
+
+    @Override
+    public @NotNull PackageId getId() {
+       return properties.getId();
+    }
+
+    @Override
+    public @NotNull PackageType getPackageType() {
+        return properties.getPackageType();
     }
 
 }

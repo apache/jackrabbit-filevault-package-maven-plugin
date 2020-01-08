@@ -544,9 +544,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     /** Checks if some files (optionally prefixed) below the given source directory are not listed in coveredFiles
      * 
      * @param sourceDirectory the source directory
-     * @param prefix the optional prefix to prepend to the relative file name before comparing with {@link coveredFiles}
+     * @param prefix the optional prefix to prepend to the relative file name before comparing with {@code coveredFileNames}
      * @param coveredFileNames the covered file names (should have relative file names), might have OS specific separators
-     * @param additionalExcludes the file name patterns to exclude from the source directory (in addition to the default excludes)
      * @return the absolute file names in the source directory which are not already listed in {@code entryNames}. */
     protected static Collection<File> getUncoveredFiles(final File sourceDirectory, Collection<String> excludes, String prefix,
             Collection<String> coveredFileNames) {

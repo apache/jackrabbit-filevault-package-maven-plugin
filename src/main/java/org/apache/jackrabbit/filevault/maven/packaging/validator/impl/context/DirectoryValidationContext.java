@@ -24,7 +24,6 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.jackrabbit.filevault.maven.packaging.GenerateMetadataMojo;
 import org.apache.jackrabbit.vault.fs.api.WorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
@@ -118,8 +117,7 @@ public class DirectoryValidationContext implements ValidationContext {
 
     @Override
     public PackageType getPackageType() {
-        // TODO Auto-generated method stub
-        return null;
+        return properties.getPackageType();
     }
 
 }

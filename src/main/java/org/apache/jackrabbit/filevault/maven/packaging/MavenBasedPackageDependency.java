@@ -125,7 +125,6 @@ public class MavenBasedPackageDependency {
      * @param dependencies The list of {@link MavenBasedPackageDependency} instances to convert.
      * @throws IOException in case meta information could not be read from the project dependency or the 
      * dependency is not a content package.
-     * @throws URISyntaxException 
      */
     public static void resolve(final MavenProject project, final Log log, final Collection<MavenBasedPackageDependency> dependencies) throws IOException {
         for (MavenBasedPackageDependency dependency : dependencies) {
