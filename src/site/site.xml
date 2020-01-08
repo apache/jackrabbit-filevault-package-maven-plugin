@@ -25,6 +25,7 @@
             <item name="Introduction" href="index.html"/>
             <item name="Goals" href="plugin-info.html"/>
             <item name="Developing" href="dev.html"/>
+            <item name="Releasing" href="howto_release.html"/>
         </menu>
         <menu name="Documentation">
             <item name="Import-package Generation" href="import_package.html"/>
