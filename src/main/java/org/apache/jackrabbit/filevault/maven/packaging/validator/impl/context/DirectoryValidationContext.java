@@ -28,10 +28,8 @@ import org.apache.jackrabbit.filevault.maven.packaging.GenerateMetadataMojo;
 import org.apache.jackrabbit.vault.fs.api.WorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
-import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageInfo;
 import org.apache.jackrabbit.vault.packaging.PackageProperties;
-import org.apache.jackrabbit.vault.packaging.PackageType;
 import org.apache.jackrabbit.vault.packaging.impl.DefaultPackageProperties;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.validation.spi.ValidationContext;
@@ -107,18 +105,8 @@ public class DirectoryValidationContext implements ValidationContext {
     }
 
     @Override
-    public Collection<PackageInfo> getDependenciesMetaInfo() {
+    public Collection<PackageInfo> getDependenciesPackageInfo() {
         return resolvedDependencies;
-    }
-
-    @Override
-    public PackageId getId() {
-        return properties.getId();
-    }
-
-    @Override
-    public PackageType getPackageType() {
-        return properties.getPackageType();
     }
 
 }
