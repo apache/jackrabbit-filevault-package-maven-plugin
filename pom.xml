@@ -44,6 +44,7 @@
         <aether.version>1.0.2.v20150114</aether.version>
         <slf4j.version>1.7.5</slf4j.version>
         <jackrabbit.version>2.18.3</jackrabbit.version>
+        <filevault.version>3.4.1-SNAPSHOT</filevault.version>
         <oak.version>1.16.0</oak.version>
     </properties>
 
@@ -299,12 +300,12 @@
         <dependency>
             <groupId>org.apache.jackrabbit.vault</groupId>
             <artifactId>org.apache.jackrabbit.vault</artifactId>
-            <version>3.4.2</version>
+            <version>${filevault.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.jackrabbit.vault</groupId>
             <artifactId>vault-validation</artifactId>
-            <version>3.4.2</version>
+            <version>${filevault.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.jcr</groupId>
