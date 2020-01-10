@@ -22,13 +22,10 @@ import java.util.Collection;
 
 import org.apache.jackrabbit.vault.fs.api.WorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.io.Archive;
-import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageInfo;
 import org.apache.jackrabbit.vault.packaging.PackageProperties;
-import org.apache.jackrabbit.vault.packaging.PackageType;
 import org.apache.jackrabbit.vault.validation.spi.ValidationContext;
 import org.apache.maven.plugin.logging.Log;
-import org.jetbrains.annotations.NotNull;
 
 
 /**
@@ -70,20 +67,9 @@ public class ArchiveValidationContextImpl implements ValidationContext {
         return archivePath;
     }
 
-
     @Override
-    public Collection<PackageInfo> getDependenciesMetaInfo() {
+    public Collection<PackageInfo> getDependenciesPackageInfo() {
         return this.resolvedDependencies;
-    }
-
-    @Override
-    public @NotNull PackageId getId() {
-       return properties.getId();
-    }
-
-    @Override
-    public @NotNull PackageType getPackageType() {
-        return properties.getPackageType();
     }
 
 }

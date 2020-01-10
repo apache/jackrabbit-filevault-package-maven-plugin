@@ -15,14 +15,47 @@
    limitations under the License.
   -->
 
-Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.0.4
+Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.1.0
 ==================================================================================
 
 Introduction
 ------------
-The Apache Jackrabbit FileVault package maven plugin is an Apache maven plugin that simplifies the creation of
-content package maven artifacts. The content packages can later be used to install content into a JCR repository
+The Apache Jackrabbit FileVault package Maven plugin is an Apache Maven plugin that simplifies the creation of
+content package Maven artifacts. The content packages can later be used to install content into a JCR repository
 using the Apache Jackrabbit FileVault packaging runtime.
+
+
+Changes in Jackrabbit FileVault Package Maven Plugin 1.1.0
+----------------------------------------------------------
+
+#### Bug Fixes
+* [JCRVLT-342] - File leak in ProjectBuilder.getPluginVersion()
+* [JCRVLT-343] - Check for index definitions also considers ACL entries
+* [JCRVLT-351] - IOE thrown in case of no filter and <failOnEmptyFilter>false</failOnEmptyFilter>
+* [JCRVLT-354] - False warnings for files not being included in the package due to being outside of filter roots
+* [JCRVLT-355] - False error in case embedded file/subpackage is overwritten by jcrRootSourceDirectory
+* [JCRVLT-363] - .content.xml of ancestor nodes not included in package
+* [JCRVLT-381] - m2e Integration for goal "format-xml" might lead to endless loops
+* [JCRVLT-386] - Eclipse/m2e: Could not get metadata for dependencies which are resolved via m2e workspace resolution or for multimodule builds with phases < package
+* [JCRVLT-387] - Support reproducible builds
+
+#### New Features
+* [JCRVLT-232] - Enforce constraints for package types
+* [JCRVLT-345] - Support pluggable node/file/filter validators
+
+#### Improvements
+* [JCRVLT-350] - Make all goals support parallel builds (mark as threadSafe)
+* [JCRVLT-361] - Validate that all includes/excludes are below the filter root
+* [JCRVLT-365] - Migrate from JSR 305 to Jetbrains annotations
+* [JCRVLT-370] - New filter option below embeddeds and subpackages which removes other versions
+* [JCRVLT-371] - Include Maven groupId and artifactId of each dependency in the MANIFEST.MF and the properties.xml
+* [JCRVLT-373] - Log overlapping files from workDirectory and metaInf source directory
+* [JCRVLT-389] - Optionally support Maven Filtering during packaging
+* [JCRVLT-399] - Update to Jackrabbit 2.20.0  / Oak 1.20.0
+
+#### Tasks
+* [JCRVLT-392] - Support Matrix builds on Windows/Linux with Travis
+* [JCRVLT-393] - Java 13 Build Support
 
 
 Changes in Jackrabbit FileVault Package Maven Plugin 1.0.4
