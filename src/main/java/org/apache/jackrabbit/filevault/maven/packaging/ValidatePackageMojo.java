@@ -44,7 +44,10 @@ import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.xml.sax.SAXException;
 
 
-/** Validates the whole package with all registered validators. This is only active for incremental builds (i.e. inside m2e) */
+/** 
+ * Validates the whole package with all registered validators.
+ * @see <a href="https://jackrabbit.apache.org/filevault-package-maven-plugin/validators.html">Validators</a>
+ */
 @Mojo(
         name = "validate-package", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = false, threadSafe = true)
 public class ValidatePackageMojo extends AbstractValidateMojo {
@@ -79,7 +82,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         try (Archive archive = new ZipArchive(file)) {
             archive.open(true);
             context = new ArchiveValidationContextImpl(archive, file.toPath(), resolver, getLog());
-            executor = validationExecutorFactory.createValidationExecutor(context, false, enforceRecursiveSubpackageValidation, validatorsSettings);
+            executor = validationExecutorFactory.createValidationExecutor(context, false, enforceRecursiveSubpackageValidation, getValidatorSettingsForPackage(context.getProperties().getId(), false));
             if (executor != null) {
                 validationHelper.printUsedValidators(getLog(), executor, context, true);
                 validateArchive(archive, file.toPath(), context, executor);
@@ -128,7 +131,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
                 subArchive.open(true);
                 SubPackageValidationContext subPackageValidationContext = new SubPackageValidationContext(context, subArchive, subPackagePath, resolver, getLog());
                 ValidationExecutor subPackageValidationExecutor = validationExecutorFactory
-                        .createValidationExecutor(subPackageValidationContext, true, enforceRecursiveSubpackageValidation, validatorsSettings);
+                        .createValidationExecutor(subPackageValidationContext, true, enforceRecursiveSubpackageValidation, getValidatorSettingsForPackage(subPackageValidationContext.getProperties().getId(), true));
                 if (subPackageValidationExecutor != null) {
                     validationHelper.printUsedValidators(getLog(), executor, subPackageValidationContext, false);
                     validateArchive(subArchive, subPackagePath, subPackageValidationContext, subPackageValidationExecutor);
