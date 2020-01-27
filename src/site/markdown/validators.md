@@ -26,7 +26,7 @@ Look there on which validators are contained and what options they provide.
 
 Configuration
 --------
-It is possible to adjust every validator registered in the system (both default and external validators) with the parameter `validatorsSettings`. This is a map with the keys being the validator ids and the values being complex objects.
+It is possible to adjust every validator registered in the system (both default and external validators) with the parameter `validatorsSettings`. This is a map with the keys being the validator ids (and optionally suffixed by `:<package group>:<package name>` to restrict to only certain package ids) and the values being complex objects.
 Here is an example configuration
 
 ```
@@ -38,6 +38,10 @@ Here is an example configuration
       <options>
         <severityForUncoveredAncestorNodes>error</severityForUncoveredAncestorNodes>
       </options>
+    </jackrabbit-filter>
+    <!-- later items potentially overwrite earlier items -->
+    <jackrabbit-filter:mygroup:mypackage>
+      <isDisabled>true</isDisabled><!-- disable the validator for a specific package -->
     </jackrabbit-filter>
   </validatorsSettings>
 </configuration>

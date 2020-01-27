@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context.DependencyResolver;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.packaging.Dependency;
+import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageInfo;
 import org.apache.jackrabbit.vault.validation.ValidationExecutorFactory;
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
@@ -42,6 +43,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -55,19 +57,21 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     @Parameter(property = "vault.skipValidation", defaultValue = "false", required = true)
     boolean skipValidation;
 
-    /** All validator settings in a map. The keys are the validator ids and the values
-     * are a complex object of type ValdidatorSettings.
+    /** All validator settings in a map. The keys are the validator ids (optionally suffixed by {@code :<package group>:<package name>} to be restricted to certain packages).
+     * You can use {@code *} as wildcard value for {@code package group}.
+     * Alternatively you can use the suffix {@code :subpackages} to influence the settings for all sub packages only!
+     * The values are a complex object of type ValdidatorSettings.
      * An example configuration looks like
      * <pre>
      *  &lt;jackrabbit-filter&gt;
      *      &lt;options&gt;
-     *          &lt;
+     *          &lt;severityForUncoveredAncestorNodes&gt;error&lt;/severityForUncoveredAncestorNodes&gt;
      *      &lt;/options&gt;
      *  &lt;/jackrabbit-filter&gt;
      * </pre>
      */
     @Parameter
-    Map<String, ValidatorSettings> validatorsSettings;
+    private Map<String, ValidatorSettings> validatorsSettings;
 
     /** Controls if errors during dependency validation should fail the build. 
      *  
@@ -263,5 +267,69 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
         }
     }
 
+
+    protected void disableChecksOnlyWorkingForPackages() throws MojoExecutionException {
+        final ValidatorSettings filterValidatorSettings;
+        if (validatorsSettings == null) {
+            validatorsSettings = new HashMap<>();
+        }
+        if (validatorsSettings.containsKey(AdvancedFilterValidatorFactory.ID)) {
+            getLog().warn("Overwriting settings for validator " + AdvancedFilterValidatorFactory.ID + " as some checks do not work reliably for this mojo!"); 
+            filterValidatorSettings = validatorsSettings.get(AdvancedFilterValidatorFactory.ID);
+        } else {
+            filterValidatorSettings = new ValidatorSettings();
+        }
+        // orphaned filter rules cannot be realiably detected, as the package is not yet build
+        filterValidatorSettings.addOption(AdvancedFilterValidatorFactory.OPTION_SEVERITY_FOR_ORPHANED_FILTER_RULES, "debug");
+    }
+    
     public abstract void doExecute() throws MojoExecutionException, MojoFailureException;
+    
+    protected Map<String, ValidatorSettings> getValidatorSettingsForPackage(PackageId packageId, boolean isSubPackage) {
+        return getValidatorSettingsForPackage(getLog(), validatorsSettings, packageId, isSubPackage);
+    }
+        
+    static Map<String, ValidatorSettings> getValidatorSettingsForPackage(Log log, Map<String, ValidatorSettings> validatorsSettings, PackageId packageId, boolean isSubPackage) {
+        Map<String, ValidatorSettings> validatorSettingsById = new HashMap<>();
+        if (validatorsSettings == null) {
+            return validatorSettingsById;
+        }
+        for (Map.Entry<String, ValidatorSettings> validatorSettingByIdAndPackage : validatorsSettings.entrySet()) {
+            // does this setting belong to this package?
+            boolean shouldAdd = false;
+            String[] parts = validatorSettingByIdAndPackage.getKey().split(":", 3);
+            final String validatorId = parts[0];
+            
+            if (parts.length == 2) {
+                if (parts[1].equals("subpackage")) {
+                    shouldAdd = isSubPackage;
+                } else {
+                    log.warn("Invalid validatorSettings key '" + validatorSettingByIdAndPackage.getKey() +"'" );
+                    continue;
+                }
+            }
+            // does it contain a package id filter?
+            else if (parts.length == 3) {
+                String group = parts[1];
+                String name = parts[2];
+                if (group != "*") {
+                    if (!group.equals(packageId.getGroup())) {
+                        log.debug("Not applying validator settings with id '" + validatorSettingByIdAndPackage.getKey() +"' as it does not match the package " + packageId);
+                        continue;
+                    }
+                }
+                if (!name.equals(packageId.getName())) {
+                    log.debug("Not applying validator settings with id '" + validatorSettingByIdAndPackage.getKey() +"' as it does not match the package " + packageId);
+                    continue;
+                }
+                shouldAdd = true;
+            } else {
+                shouldAdd = true;
+            }
+            if (shouldAdd) {
+                validatorSettingsById.put(validatorId, validatorSettingByIdAndPackage.getValue());
+            }
+        }
+        return validatorSettingsById;
+    }
 }

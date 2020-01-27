@@ -285,8 +285,6 @@ Jackrabbit project logo are trademarks of The Apache Software Foundation.
 
 ```
 
-
-<!-- references -->
 [0]: http://www.apache.org/dev/release-signing.html#generate
 [1]: http://www.apache.org/dev/release-signing.html#apache-wot
 [2]: https://repository.apache.org/index.html#stagingRepositories

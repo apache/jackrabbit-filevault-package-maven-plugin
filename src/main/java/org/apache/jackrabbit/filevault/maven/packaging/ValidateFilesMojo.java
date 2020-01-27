@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +33,6 @@ import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.validation.ValidationExecutor;
 import org.apache.jackrabbit.vault.validation.ValidationViolation;
 import org.apache.jackrabbit.vault.validation.spi.ValidationContext;
-import org.apache.jackrabbit.vault.validation.spi.impl.AdvancedFilterValidatorFactory;
 import org.apache.maven.lifecycle.LifecycleExecutor;
 import org.apache.maven.lifecycle.LifecycleNotFoundException;
 import org.apache.maven.lifecycle.LifecyclePhaseNotFoundException;
@@ -59,8 +57,11 @@ import org.codehaus.plexus.util.AbstractScanner;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.Scanner;
 
-/** Validates individual files with all registered validators. This is only active for incremental builds (i.e. inside m2e)
-    or when mojo "validate-package" is not executed in the current Maven execution */
+/** 
+ * Validates individual files with all registered validators. This is only active for incremental builds (i.e. inside m2e)
+ * or when mojo "validate-package" is not executed in the current Maven execution
+ * @see <a href="https://jackrabbit.apache.org/filevault-package-maven-plugin/validators.html">Validators</a>
+ */
 @Mojo(name = "validate-files", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class ValidateFilesMojo extends AbstractValidateMojo {
 
@@ -141,20 +142,6 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
     public ValidateFilesMojo() {
     }
 
-    private void disableChecksOnlyWorkingForPackages() throws MojoExecutionException {
-        final ValidatorSettings filterValidatorSettings;
-        if (validatorsSettings == null) {
-            validatorsSettings = new HashMap<>();
-        }
-        if (validatorsSettings.containsKey(AdvancedFilterValidatorFactory.ID)) {
-            getLog().warn("Overwriting settings for validator " + AdvancedFilterValidatorFactory.ID + " as some checks do not work reliably for this mojo!"); 
-            filterValidatorSettings = validatorsSettings.get(AdvancedFilterValidatorFactory.ID);
-        } else {
-            filterValidatorSettings = new ValidatorSettings();
-        }
-        // orphaned filter rules cannot be realiably detected, as the package is not yet build
-        filterValidatorSettings.addOption(AdvancedFilterValidatorFactory.OPTION_SEVERITY_FOR_ORPHANED_FILTER_RULES, "debug");
-    }
 
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
@@ -187,7 +174,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
             File generatedMetaInfRootDirectory = new File(workDirectory, Constants.META_INF);
             getLog().info("Using generatedMetaInfRootDirectory: " + generatedMetaInfRootDirectory + " and metaInfRootDir: " + metaInfRootDirectory);
             ValidationContext context = new DirectoryValidationContext(generatedMetaInfRootDirectory, metaInfRootDirectory, resolver, getLog());
-            ValidationExecutor executor = validationExecutorFactory.createValidationExecutor(context, false, false, validatorsSettings);
+            ValidationExecutor executor = validationExecutorFactory.createValidationExecutor(context, false, false, getValidatorSettingsForPackage(context.getProperties().getId(), false));
             if (executor == null) {
                 throw new MojoExecutionException("No registered validators found!");
             }

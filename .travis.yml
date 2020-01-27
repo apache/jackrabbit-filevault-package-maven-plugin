@@ -64,4 +64,4 @@ cache:
     # This avoids re-downloading the JDK every time, but Travis recommends not to do it
     # - $HOME/.jabba/
     # Cache Maven repo
-    - $HOME/.m2
+    #- $HOME/.m2

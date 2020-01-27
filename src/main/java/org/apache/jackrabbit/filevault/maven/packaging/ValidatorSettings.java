@@ -39,14 +39,16 @@ public class ValidatorSettings implements org.apache.jackrabbit.vault.validation
         this.defaultSeverity = defaultSeverity;
     }
 
-    public void setDefaultSeverity(String defaultSeverity) {
+    public ValidatorSettings setDefaultSeverity(String defaultSeverity) {
         if (defaultSeverity != null) {
             this.defaultSeverity = ValidationMessageSeverity.valueOf(defaultSeverity.toUpperCase());
         }
+        return this;
     }
 
-    protected String addOption(String key, String value) {
-        return options.put(key, value);
+    protected ValidatorSettings addOption(String key, String value) {
+        options.put(key, value);
+        return this;
     }
 
     @Override
@@ -62,6 +64,44 @@ public class ValidatorSettings implements org.apache.jackrabbit.vault.validation
     @Override
     public boolean isDisabled() {
         return isDisabled;
+    }
+
+    @Override
+    public String toString() {
+        return "ValidatorSettings [isDisabled=" + isDisabled + ", "
+                + (defaultSeverity != null ? "defaultSeverity=" + defaultSeverity + ", " : "")
+                + (options != null ? "options=" + options : "") + "]";
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((defaultSeverity == null) ? 0 : defaultSeverity.hashCode());
+        result = prime * result + (isDisabled ? 1231 : 1237);
+        result = prime * result + ((options == null) ? 0 : options.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ValidatorSettings other = (ValidatorSettings) obj;
+        if (defaultSeverity != other.defaultSeverity)
+            return false;
+        if (isDisabled != other.isDisabled)
+            return false;
+        if (options == null) {
+            if (other.options != null)
+                return false;
+        } else if (!options.equals(other.options))
+            return false;
+        return true;
     }
 
 }
