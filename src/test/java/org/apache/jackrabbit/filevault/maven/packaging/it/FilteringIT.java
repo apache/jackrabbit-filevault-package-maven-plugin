@@ -39,7 +39,6 @@ public class FilteringIT {
     @Test
     public void test_simple_filter_with_filtering_enabled() throws Exception {
         verify("simple-filter", true, true)
-            .verifyExpectedFileChecksum("META-INF/vault/properties.xml", "d4c457e5")
             .verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "10791371")
             .verifyExpectedFileChecksum("jcr_root/apps/foo/test2.properties", "7563f01d");
     }
@@ -47,7 +46,6 @@ public class FilteringIT {
     @Test
     public void test_simple_filter_with_filtering_disabled() throws Exception {
         verify("simple-filter", false, false)
-        .verifyExpectedFileChecksum("META-INF/vault/properties.xml", "e04970b0")
         .verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "34e5a01d")
         .verifyExpectedFileChecksum("jcr_root/apps/foo/test2.properties", "a41ae6f8");
     }
@@ -55,7 +53,6 @@ public class FilteringIT {
     @Test
     public void test_simple_filter_with_filtering_partially_enabled() throws Exception {
         verify("simple-filter", true, false)
-        .verifyExpectedFileChecksum("META-INF/vault/properties.xml", "e04970b0")
         .verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "10791371")
         .verifyExpectedFileChecksum("jcr_root/apps/foo/test2.properties", "7563f01d");
     }
@@ -63,7 +60,6 @@ public class FilteringIT {
     @Test
     public void test_simple_filter_with_filtering_partially_enabled2() throws Exception {
         verify("simple-filter", false, true)
-        .verifyExpectedFileChecksum("META-INF/vault/properties.xml", "d4c457e5")
         .verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "34e5a01d")
         .verifyExpectedFileChecksum("jcr_root/apps/foo/test2.properties", "a41ae6f8");
     }
