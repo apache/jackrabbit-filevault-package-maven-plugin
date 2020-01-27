@@ -27,7 +27,7 @@ import org.junit.runners.Parameterized;
 @RunWith(Parameterized.class)
 public class DependencyCheckIT {
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name="{index}: project {0}")
     public static Collection<Object[]> data() {
         return Arrays.asList(new Object[][]{
                 {"fail-missing-deps", true},
@@ -39,7 +39,8 @@ public class DependencyCheckIT {
                 {"no-errors", false},
                 {"repo-structure-pkg", false},
                 {"no-error-cleanup", false},
-                {"no-error-cleanup-filter", false}
+                {"no-error-cleanup-filter", false},
+                {"no-error-unknown-dependency", false}
         });
     }
 

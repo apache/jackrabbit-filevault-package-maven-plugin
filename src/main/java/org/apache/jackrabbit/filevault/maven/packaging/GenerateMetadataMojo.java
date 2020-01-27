@@ -754,7 +754,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
         if (!dependencies.isEmpty()) {
             MavenBasedPackageDependency.resolve(project, getLog(), dependencies);
             // pid = uri
-            dependenciesLocations = dependencies.stream().map(a -> a.getInfo().getId().toString() + "=" + a.getLocation()).collect(Collectors.joining(","));
+            dependenciesLocations = dependencies.stream().filter(a -> a.getInfo() != null).map(a -> a.getInfo().getId().toString() + "=" + a.getLocation()).collect(Collectors.joining(","));
         }
         return dependenciesLocations;
     }
