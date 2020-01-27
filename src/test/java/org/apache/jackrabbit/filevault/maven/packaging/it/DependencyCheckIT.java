@@ -35,6 +35,7 @@ public class DependencyCheckIT {
                 {"fail-no-maven-deps", true},
                 {"fail-no-contains", true},
                 {"fail-no-cover", true},
+                {"fail-undeclared-dependency", true},
                 {"fail-repo-structure-pkg-subtree", true},
                 {"no-errors", false},
                 {"repo-structure-pkg", false},
