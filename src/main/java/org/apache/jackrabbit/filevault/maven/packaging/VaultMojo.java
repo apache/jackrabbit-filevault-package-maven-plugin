@@ -243,6 +243,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             File newTargetDirectory = applyFiltering(destFile.getParent().toString(), mavenResourcesExecution, resource);
             sourceFile = new File(newTargetDirectory, sourceFile.getName());
         }
+        getLog().debug("Adding file '" + sourceFile + "' to package at '" + destFileName + "'");
         archiver.addFile(sourceFile, destFileName);
 
     }
@@ -273,7 +274,17 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             File newTargetDirectory = applyFiltering(fileSet.getPrefix(), mavenResourcesExecution, resource);
             fileSet.setDirectory(newTargetDirectory);
         }
+        getLog().debug("Adding fileSet '" + getString(fileSet) + "' to package");
         archiver.addFileSet(fileSet);
+    }
+
+    private static String getString(FileSet fileSet) {
+        StringBuilder sb = new StringBuilder("FileSet [");
+        sb.append("directory=").append(fileSet.getDirectory());
+        sb.append(" prefix=").append(fileSet.getPrefix());
+        sb.append(" excludes=").append(StringUtils.join(fileSet.getExcludes(), ", "));
+        sb.append("]");
+        return sb.toString();
     }
 
     private @NotNull File applyFiltering(String prefix, MavenResourcesExecution mavenResourcesExecution, Resource resource) throws MavenFilteringException {
@@ -494,7 +505,6 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                 if (embeddedFiles.containsKey(destPath)) {
                     continue;
                 }
-
                 // check for full coverage aggregate
                 File sourceFile = new File(jcrSourceDirectory, relPath + ".xml");
                 if (sourceFile.isFile()) {
@@ -503,8 +513,10 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                         duplicateFiles.put(new File(destPath), sourceFile);
                     }
                     addFileToArchive(mavenResourcesExecution, contentPackageArchiver, sourceFile, destPath);
-                    // root path for ancestors is the parent directory
-                } else {
+                    // similar to AbstractExporter all ancestors should be contained as well (see AggregateImpl.prepare(...))
+                    addAncestors(contentPackageArchiver, sourceFile, jcrSourceDirectory, destPath);
+                } else { 
+                    // root path for ancestors is in one of the parent directories?
                     sourceFile = new File(jcrSourceDirectory, relPath);
 
                     // traverse the ancestors until we find a existing directory (see CQ-4204625)
@@ -519,10 +531,11 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                         DefaultFileSet fileSet = createFileSet(sourceFile, destPath + "/");
                         duplicateFiles.putAll(getOverwrittenProtectedFiles(fileSet, false));
                         addFileSetToArchive(mavenResourcesExecution, contentPackageArchiver, fileSet);
+                        // similar to AbstractExporter all ancestors should be contained as well (see AggregateImpl.prepare(...))
+                        addAncestors(contentPackageArchiver, sourceFile, jcrSourceDirectory, destPath);
                     }
                 }
-                // similar to AbstractExporter all ancestors should be contained as well (see AggregateImpl.prepare(...))
-                addAncestors(contentPackageArchiver, sourceFile, jcrSourceDirectory, destPath);
+                
             }
         }
         return duplicateFiles;
@@ -536,6 +549,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         // is there an according .content.xml available? (ignore full-coverage files)
         File genericAggregate = new File(inputFile, Constants.DOT_CONTENT_XML);
         if (genericAggregate.exists()) {
+            getLog().debug("Adding ancestor file '" + genericAggregate + "' to package at '" + destFile + "/" + Constants.DOT_CONTENT_XML +"'");
             contentPackageArchiver.addFile(genericAggregate, destFile + "/" + Constants.DOT_CONTENT_XML);
         }
         addAncestors(contentPackageArchiver, inputFile.getParentFile(), inputRootFile, StringUtils.chomp(destFile, "/"));
