@@ -62,12 +62,12 @@ public class GenerateMetadataMojoTest {
         PathFilterSet expectedPathFilter = new PathFilterSet("/apps/install/jcr-2.0.jar");
         Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/install/jcr-2.0.jar", false));
         expectedPathFilter = new PathFilterSet("/apps/install");
-        expectedPathFilter.addInclude(new DefaultPathFilter(Pattern.quote("jcr-") + ".*\\.jar(/.*)?"));
+        expectedPathFilter.addInclude(new DefaultPathFilter(Pattern.quote("/apps/install/jcr-") + ".*\\.jar(/.*)?"));
         Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/install/jcr-2.0.jar", true));
         Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/install/jcr-3.0.jar", true));
 
         expectedPathFilter = new PathFilterSet("/apps/some/other/install");
-        expectedPathFilter.addInclude(new DefaultPathFilter(Pattern.quote("jcr-") + ".*\\.jar(/.*)?"));
+        expectedPathFilter.addInclude(new DefaultPathFilter(Pattern.quote("/apps/some/other/install/jcr-") + ".*\\.jar(/.*)?"));
         Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/some/other/install/jcr-2.0-alpha1.jar", true));
 
         // then test against some sub package names
@@ -76,7 +76,7 @@ public class GenerateMetadataMojoTest {
         Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/etc/packages/some/weird/group/name-1.0.zip", false));
         
         expectedPathFilter = new PathFilterSet("/etc/packages/some/weird/group");
-        expectedPathFilter.addInclude(new DefaultPathFilter(Pattern.quote("name-") + ".*\\.zip(/.*)?"));
+        expectedPathFilter.addInclude(new DefaultPathFilter(Pattern.quote("/etc/packages/some/weird/group/name-") + ".*\\.zip(/.*)?"));
         Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/etc/packages/some/weird/group/name-1.0.zip", true));
     }
 

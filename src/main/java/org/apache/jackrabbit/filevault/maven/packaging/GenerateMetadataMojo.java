@@ -1106,9 +1106,9 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             }
 
             // create new pattern which matches the same artifacts in all versions
-            String pattern = Pattern.quote(matcher.group(1)) + ".*" + "\\." + extension + "(/.*)?";
-            if (!filename.matches(pattern)) {
-                throw new IllegalArgumentException("Detected pattern '" + pattern + "' does not even match given filename '" + filename
+            String pattern = Pattern.quote(rootName + "/" + matcher.group(1)) + ".*" + "\\." + extension + "(/.*)?";
+            if (!embeddedFile.matches(pattern)) {
+                throw new IllegalArgumentException("Detected pattern '" + pattern + "' does not even match given filename '" + embeddedFile
                         + "'. For this artifact you cannot use 'isAllVersionsFilter=true'");
             }
             pathFilterSet = new PathFilterSet(rootName);
