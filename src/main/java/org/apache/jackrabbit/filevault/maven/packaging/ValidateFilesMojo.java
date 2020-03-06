@@ -202,23 +202,46 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         scanner.scan();
         getLog().info("Scanning baseDir '" + baseDir + "'...");
         for (String relativeFile : scanner.getIncludedFiles()) {
-            File absoluteFile = new File(baseDir, relativeFile);
-            validationHelper.clearPreviousValidationMessages(buildContext, absoluteFile);
-            getLog().debug("Validating file '" + absoluteFile + "'...");
-            try (InputStream input = new FileInputStream(absoluteFile)) {
-                final Collection<ValidationViolation> messages;
-                if (isMetaInf) {
-                    messages = executor.validateMetaInf(input, Paths.get(relativeFile), baseDir.toPath());
-                } else {
-                    messages = executor.validateJcrRoot(input, Paths.get(relativeFile), baseDir.toPath());
-                }
-                validationHelper.printMessages(messages, getLog(), buildContext, project.getBasedir().toPath());
-            } catch (FileNotFoundException e) {
-                getLog().error("Could not find file " + absoluteFile, e);
-            } catch (IOException e) {
-                getLog().error("Could not validate file " + absoluteFile, e);
-            }
+            validateFile(executor, baseDir, isMetaInf, relativeFile);
         }
+        for (String relativeFile : scanner.getIncludedDirectories()) {
+            validateFolder(executor, baseDir, isMetaInf, relativeFile);
+        }
+    }
+
+
+    private void validateFile(ValidationExecutor executor, File baseDir, boolean isMetaInf, String relativeFile) {
+        File absoluteFile = new File(baseDir, relativeFile);
+        validationHelper.clearPreviousValidationMessages(buildContext, absoluteFile);
+        getLog().debug("Validating file '" + absoluteFile + "'...");
+        try (InputStream input = new FileInputStream(absoluteFile)) {
+            validateInputStream(executor, input, baseDir, isMetaInf, relativeFile);
+        } catch (FileNotFoundException e) {
+            getLog().error("Could not find file " + absoluteFile, e);
+        } catch (IOException e) {
+            getLog().error("Could not validate file " + absoluteFile, e);
+        }
+    }
+    
+    private void validateFolder(ValidationExecutor executor, File baseDir, boolean isMetaInf, String relativeFile) {
+        File absoluteFile = new File(baseDir, relativeFile);
+        validationHelper.clearPreviousValidationMessages(buildContext, absoluteFile);
+        getLog().debug("Validating folder '" + absoluteFile + "'...");
+        try {
+            validateInputStream(executor, null, baseDir, isMetaInf, relativeFile);
+        } catch (IOException e) {
+            getLog().error("Could not validate folder " + absoluteFile, e);
+        }
+    }
+    
+    private void validateInputStream(ValidationExecutor executor, InputStream input, File baseDir, boolean isMetaInf, String relativeFile) throws IOException {
+        final Collection<ValidationViolation> messages;
+        if (isMetaInf) {
+            messages = executor.validateMetaInf(input, Paths.get(relativeFile), baseDir.toPath());
+        } else {
+            messages = executor.validateJcrRoot(input, Paths.get(relativeFile), baseDir.toPath());
+        }
+        validationHelper.printMessages(messages, getLog(), buildContext, project.getBasedir().toPath());
     }
 
     /**

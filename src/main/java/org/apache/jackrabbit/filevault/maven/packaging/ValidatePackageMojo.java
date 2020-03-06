@@ -41,6 +41,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.jetbrains.annotations.Nullable;
 import org.xml.sax.SAXException;
 
 
@@ -103,6 +104,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException {
         for (Archive.Entry childEntry : entry.getChildren()) {
             if (childEntry.isDirectory()) {
+                validateInputStream(null, entryPath.resolve(childEntry.getName()), packagePath, context, executor);
                 validateEntry(archive, childEntry, entryPath.resolve(childEntry.getName()), packagePath, context, executor);
             } else {
                 try (InputStream input = archive.openInputStream(childEntry)) {
@@ -112,7 +114,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         }
     }
 
-    private void validateInputStream(InputStream inputStream, Path entryPath, Path packagePath, ArchiveValidationContextImpl context,
+    private void validateInputStream(@Nullable InputStream inputStream, Path entryPath, Path packagePath, ArchiveValidationContextImpl context,
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException {
         Collection<ValidationViolation> messages = new LinkedList<>();
         if (entryPath.startsWith(Constants.META_INF)) {
@@ -123,7 +125,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
             messages.addAll(executor.validateJcrRoot(inputStream, relativeJcrPath, packagePath.resolve(Constants.ROOT_DIR)));
             
             // in case this is a subpackage
-            if (entryPath.getFileName().toString().endsWith(VaultMojo.PACKAGE_EXT)) {
+            if (inputStream != null && entryPath.getFileName().toString().endsWith(VaultMojo.PACKAGE_EXT)) {
                 Path subPackagePath = context.getPackageRootPath().resolve(entryPath);
                 getLog().info("Start validating sub package '" + subPackagePath + "'...");
                 // can't use archive.getSubPackage because that holds the wrong metadata

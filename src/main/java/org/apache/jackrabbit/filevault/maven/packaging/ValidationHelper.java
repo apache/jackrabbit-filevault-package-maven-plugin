@@ -121,7 +121,7 @@ public class ValidationHelper {
         StringBuilder message = new StringBuilder("ValidationViolation: ");
         message.append("\"").append(getMessage(violation)).append("\"");
         if (violation.getFilePath() != null) {
-            message.append(", filePath=").append(baseDirectory.relativize(violation.getFilePath()));
+            message.append(", filePath=").append(baseDirectory.relativize(violation.getAbsoluteFilePath()));
         }
         if (violation.getNodePath() != null) {
             message.append(", nodePath=").append(violation.getNodePath());
