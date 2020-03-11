@@ -16,6 +16,9 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
+import static org.apache.commons.io.FileUtils.listFiles;
+import static org.apache.commons.io.FilenameUtils.normalize;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -55,11 +58,8 @@ import aQute.bnd.osgi.Constants;
 import aQute.bnd.osgi.Descriptors;
 import aQute.bnd.osgi.FileResource;
 import aQute.bnd.osgi.Processor;
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
-import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
-
-import static org.apache.commons.io.FileUtils.listFiles;
-import static org.apache.commons.io.FilenameUtils.normalize;
+import io.github.classgraph.ClassGraph;
+import io.github.classgraph.ScanResult;
 
 /**
  * The import package builder is used to analyze the classes and dependencies of the project and calculate the
@@ -330,7 +330,8 @@ public class ImportPackageBuilder {
      */
     private void scanClassPath() throws IOException {
         try {
-            scanResult = new FastClasspathScanner()
+            scanResult = new ClassGraph()
+                    .enableAllInfo()
                     .overrideClassLoaders(getClassLoader())
                     .scan();
 
@@ -403,12 +404,12 @@ public class ImportPackageBuilder {
                 }
 
                 // checking for super classes
-                io.github.lukehutch.fastclasspathscanner.scanner.ClassInfo clzInfo = scanResult.getClassNameToClassInfo().get(clazz.getFQN());
+                io.github.classgraph.ClassInfo clzInfo = scanResult.getClassInfo(clazz.getFQN());
                 if (clzInfo != null) {
-                    for (String name: clzInfo.getNamesOfImplementedInterfaces()) {
+                    for (String name: clzInfo.getInterfaces().getNames()) {
                         registerPackageReference(info, getPackageName(name));
                     }
-                    for (String name: clzInfo.getNamesOfSuperclasses()) {
+                    for (String name: clzInfo.getSuperclasses().getNames()) {
                         registerPackageReference(info, getPackageName(name));
                     }
                 }

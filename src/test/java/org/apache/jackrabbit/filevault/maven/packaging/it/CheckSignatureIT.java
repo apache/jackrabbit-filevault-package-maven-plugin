@@ -30,4 +30,15 @@ public class CheckSignatureIT {
                 .setTestProjectDir("/check-signature")
                 .build();
     }
+    
+    /**
+     * 
+     */
+    @Test
+    public void testJava9Module() throws Exception {
+            new ProjectBuilder()
+                    .setTestProjectDir("/check-signature2")
+                    .build();
+    }
+   
 }
