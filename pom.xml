@@ -195,7 +195,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
-                <version>3.7.1</version>
+                <version>3.9.0</version>
                 <configuration>
                     <generateReports>true</generateReports>
                     <relativizeDecorationLinks>false</relativizeDecorationLinks>
@@ -205,12 +205,12 @@
                     <dependency>
                         <groupId>org.apache.maven.doxia</groupId>
                         <artifactId>doxia-module-markdown</artifactId>
-                        <version>1.8</version>
+                        <version>1.9.1</version>
                     </dependency>
                     <dependency>
                         <groupId>org.apache.maven.skins</groupId>
                         <artifactId>maven-fluido-skin</artifactId>
-                        <version>1.7</version>
+                        <version>1.8</version>
                     </dependency>
                 </dependencies>
             </plugin>
