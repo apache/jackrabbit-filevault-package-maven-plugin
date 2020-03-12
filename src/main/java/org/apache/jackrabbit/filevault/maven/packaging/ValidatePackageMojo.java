@@ -61,6 +61,10 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     @Parameter(required = true, defaultValue = "false")
     private boolean enforceRecursiveSubpackageValidation;
 
+    /** If set to {@code true} will not validate any sub packages. This settings overwrites the parameter {@code enforceRecursiveSubpackageValidation}. */
+    @Parameter(required = true, defaultValue = "false")
+    private boolean skipSubPackageValidation;
+    
     public ValidatePackageMojo() {
     }
 
@@ -125,7 +129,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
             messages.addAll(executor.validateJcrRoot(inputStream, relativeJcrPath, packagePath.resolve(Constants.ROOT_DIR)));
             
             // in case this is a subpackage
-            if (inputStream != null && entryPath.getFileName().toString().endsWith(VaultMojo.PACKAGE_EXT)) {
+            if (inputStream != null && entryPath.getFileName().toString().endsWith(VaultMojo.PACKAGE_EXT) && !skipSubPackageValidation) {
                 Path subPackagePath = context.getPackageRootPath().resolve(entryPath);
                 getLog().info("Start validating sub package '" + subPackagePath + "'...");
                 // can't use archive.getSubPackage because that holds the wrong metadata
