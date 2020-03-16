@@ -15,7 +15,7 @@
    limitations under the License.
   -->
 
-Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.1.0
+Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.1.2
 ==================================================================================
 
 Introduction
@@ -23,6 +23,20 @@ Introduction
 The Apache Jackrabbit FileVault package Maven plugin is an Apache Maven plugin that simplifies the creation of
 content package Maven artifacts. The content packages can later be used to install content into a JCR repository
 using the Apache Jackrabbit FileVault packaging runtime.
+
+Changes in Jackrabbit FileVault Package Maven Plugin 1.1.2
+---------------------------------------------------
+
+#### Bug Fixes
+* [JCRVLT-405] - Potential NPE in GenerateMetadataMojo:computeDependenciesLocations
+* [JCRVLT-408] - Filter entries which are not covering anything may lead to the root's .content.xml being copied to the entry root
+* [JCRVLT-412] - Option "isAllVersionsFilter" does not generate a correct pattern
+* [JCRVLT-415] - jackrabbit-emptyelements validator reports error for nested folders
+* [JCRVLT-418] - Failed to scan the classpath Unknown constant pool tag for FastClasspathScanner for analyze-classes goal
+
+#### Improvements
+* [JCRVLT-404] - Allow to adjust validator settings for specific packages
+* [JCRVLT-420] - Allow to skip sub package validation
 
 
 Changes in Jackrabbit FileVault Package Maven Plugin 1.1.0
