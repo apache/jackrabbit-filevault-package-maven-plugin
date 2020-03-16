@@ -45,7 +45,7 @@
         <slf4j.version>1.7.5</slf4j.version>
         <jackrabbit.version>2.20.0</jackrabbit.version>
         <oak.version>1.20.0</oak.version>
-        <filevault.version>3.4.3-SNAPSHOT</filevault.version>
+        <filevault.version>3.4.4</filevault.version>
     </properties>
 
     <prerequisites>
@@ -605,11 +605,11 @@
                                         <echo file="${basedir}/target/vote.txt">
 From: ${username}@apache.org
 To: dev@jackrabbit.apache.org
-Subject: [VOTE] Release Apache Jackrabbit Filevault Package Maven Plugin ${project.version}
+Subject: [VOTE] Release Apache Jackrabbit FileVault Package Maven Plugin ${project.version}
 
 Hello,
 
-A candidate for the Jackrabbit Filevault Package Maven Plugin ${project.version} release is available at:
+A candidate for the Jackrabbit FileVault Package Maven Plugin ${project.version} release is available at:
 https://dist.apache.org/repos/dist/dev/jackrabbit/filevault-package-maven-plugin/${project.version}/
 
 The release candidate is a zip archive of the sources in:
@@ -624,12 +624,12 @@ $ sh check-release.sh filevault-plugin ${project.version} ${checksum}
 A staged Maven repository is available for review at:
 https://repository.apache.org/
 
-Please vote on releasing this package as Apache Jackrabbit Filevault Package Maven Plugin ${project.version}.
+Please vote on releasing this package as Apache Jackrabbit FileVault Package Maven Plugin ${project.version}.
 The vote is open for a minimum of 72 hours during business days and passes
 if a majority of at least three +1 Jackrabbit PMC votes are cast.
 The vote fails if not enough votes are cast after 1 week (5 business days).
 
-[ ] +1 Release this package as Apache Jackrabbit Filevault Package Maven Plugin ${project.version}
+[ ] +1 Release this package as Apache Jackrabbit FileVault Package Maven Plugin ${project.version}
 [ ] -1 Do not release this package because...${line.separator}
                                         </echo>
 
@@ -644,7 +644,7 @@ The vote fails if not enough votes are cast after 1 week (5 business days).
     cd /path/to/jackrabbit-dev/filevault-package-maven-plugin
     mv ${basedir}/target/${project.version} ${project.version}
     svn add ${project.version}
-    svn commit -m 'Apache Jackrabbit Filevault Package Maven Plugin
+    svn commit -m 'Apache Jackrabbit FileVault Package Maven Plugin
     ${project.version} release candidate' ${project.version}
 
     A release vote template has been generated for you:
