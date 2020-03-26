@@ -86,8 +86,8 @@ public class ValidationHelper {
             // only emit via build context inside eclipse, otherwise log from above is better!
             if (buildContextSeverity > 0 && !(buildContext instanceof DefaultBuildContext)) {
                 File file;
-                if (violation.getFilePath() != null) {
-                    file = violation.getFilePath().toFile();
+                if (violation.getAbsoluteFilePath() != null) {
+                    file = violation.getAbsoluteFilePath().toFile();
                 } else {
                     // take the base path
                     file = baseDirectory.toFile();
