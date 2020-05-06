@@ -180,6 +180,13 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     private MavenArchiveConfiguration archive;
 
     /**
+     * Classifier to add to the generated package. If given, the artifact will be attached
+     * as a supplemental artifact.
+     */
+    @Parameter
+    private String classifier;
+
+    /**
      */
     @Component(role = MavenFileFilter.class, hint = "default")
     private MavenFileFilter mavenFileFilter;
@@ -374,7 +381,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     /** Executes this mojo */
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        final File finalFile = new File(outputDirectory, finalName + PACKAGE_EXT);
+        final File finalFile = getZipFile(outputDirectory, finalName, classifier);
 
         MavenResourcesExecution mavenResourcesExection = setupMavenResourcesExecution();
         try {
@@ -483,6 +490,21 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         } catch (IllegalStateException | ManifestException | IOException | DependencyResolutionRequiredException | ConfigurationException | MavenFilteringException e) {
             throw new MojoExecutionException(e.toString(), e);
         }
+    }
+
+    private File getZipFile(File basedir, String resultFinalName, String classifier) {
+        if (basedir == null) {
+            throw new IllegalArgumentException("basedir is not allowed to be null");
+        }
+        if (resultFinalName == null) {
+            throw new IllegalArgumentException("finalName is not allowed to be null");
+        }
+        StringBuilder fileName = new StringBuilder(resultFinalName);
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(classifier)) {
+            fileName.append("-").append(classifier);
+        }
+        fileName.append("." + PACKAGE_TYPE);
+        return new File(basedir, fileName.toString());
     }
 
     private Map<File, File> addSourceDirectory(MavenResourcesExecution mavenResourcesExecution, ContentPackageArchiver contentPackageArchiver, File jcrSourceDirectory, Filters filters,

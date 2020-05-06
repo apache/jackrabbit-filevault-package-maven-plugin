@@ -23,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
@@ -35,17 +36,19 @@ import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.validation.ValidationExecutor;
 import org.apache.jackrabbit.vault.validation.ValidationViolation;
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.codehaus.plexus.util.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.SAXException;
 
 
-/** 
+/**
  * Validates the whole package with all registered validators.
  * @see <a href="https://jackrabbit.apache.org/filevault-package-maven-plugin/validators.html">Validators</a>
  */
@@ -64,14 +67,30 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     /** If set to {@code true} will not validate any sub packages. This settings overwrites the parameter {@code enforceRecursiveSubpackageValidation}. */
     @Parameter(required = true, defaultValue = "false")
     private boolean skipSubPackageValidation;
-    
+
+    /**
+     * If given, the classifier will be used to get the package to be verified from the attached artifacts from the project with the same
+     * classifier.
+     */
+    @Parameter
+    private String classifier;
+
     public ValidatePackageMojo() {
     }
 
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
-            validatePackage(packageFile);
+            if (StringUtils.isNotEmpty(classifier)) {
+                Artifact artifact = getArtifact(classifier);
+                if (artifact != null) {
+                    validatePackage(artifact.getFile());
+                } else {
+                    throw new IOException("Could not validate attached artifact with classifier " + classifier);
+                }
+            } else {
+                validatePackage(packageFile);
+            }
             validationHelper.failBuildInCaseOfViolations(failOnValidationWarnings);
         } catch (IOException | ParserConfigurationException | SAXException e) {
             throw new MojoExecutionException("Could not validate package '" + packageFile + "': " + e.getMessage(), e);
@@ -127,7 +146,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
             // strip off jcr_root
             Path relativeJcrPath = Paths.get(Constants.ROOT_DIR).relativize(entryPath);
             messages.addAll(executor.validateJcrRoot(inputStream, relativeJcrPath, packagePath.resolve(Constants.ROOT_DIR)));
-            
+
             // in case this is a subpackage
             if (inputStream != null && entryPath.getFileName().toString().endsWith(VaultMojo.PACKAGE_EXT) && !skipSubPackageValidation) {
                 Path subPackagePath = context.getPackageRootPath().resolve(entryPath);
@@ -150,6 +169,18 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
             messages.add(new ValidationViolation(ValidationMessageSeverity.WARN, "Found unexpected file outside of " + Constants.ROOT_DIR + " and " + Constants.META_INF, entryPath, packagePath, null, 0,0, null));
         }
         validationHelper.printMessages(messages, getLog(), buildContext, packageFile.toPath());
+    }
+
+    private Artifact getArtifact(String classifier) {
+        if (classifier != null) {
+            for (Artifact attachedArtifact : this.project.getAttachedArtifacts()) {
+                if (classifier.equals(attachedArtifact.getClassifier()) && attachedArtifact.getFile() != null
+                        && attachedArtifact.getFile().isFile()) {
+                    return attachedArtifact;
+                }
+            }
+        }
+        return null;
     }
 
 }
