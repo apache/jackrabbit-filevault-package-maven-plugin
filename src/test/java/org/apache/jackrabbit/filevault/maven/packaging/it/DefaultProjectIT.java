@@ -155,4 +155,11 @@ public class DefaultProjectIT {
                 .build()
                 .verifyExpectedFilesChecksum();
     }
+    
+    @Test
+    public void empty_package() throws VerificationException, IOException {
+        new ProjectBuilder()
+        .setTestProjectDir(TEST_PROJECT_NAME + "empty")
+        .build();
+    }
 }
