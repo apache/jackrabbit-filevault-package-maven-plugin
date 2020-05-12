@@ -47,7 +47,7 @@ import org.xml.sax.SAXException;
 
 
 /**
- * Validates the whole package with all registered validators.
+ * Validates all attached packages with all registered validators.
  * @see <a href="https://jackrabbit.apache.org/filevault-package-maven-plugin/validators.html">Validators</a>
  */
 @Mojo(
@@ -66,7 +66,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     @Parameter(required = true, defaultValue = "false")
     private boolean skipSubPackageValidation;
 
-    @Parameter(readonly = false, defaultValue = "${project.attachedArtifacts}")
+    @Parameter(readonly = true, defaultValue = "${project.attachedArtifacts}")
     private List<Artifact> attachedArtifacts;
 
     public ValidatePackageMojo() {
@@ -78,13 +78,14 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
             File packageFile = this.packageFile;
             if (packageFile != null && !packageFile.isDirectory()) {
                 validatePackage(packageFile);
-            }
-            if (!attachedArtifacts.isEmpty()) {
+            } else if (!attachedArtifacts.isEmpty()) {
                 for (Artifact attached : attachedArtifacts) {
                     if (attached.getFile().getName().endsWith(VaultMojo.PACKAGE_EXT)) {
                         validatePackage(attached.getFile());
                     }
                 }
+            } else {
+                getLog().warn("No packages found to validate.");
             }
             validationHelper.failBuildInCaseOfViolations(failOnValidationWarnings);
         } catch (IOException | ParserConfigurationException | SAXException e) {
