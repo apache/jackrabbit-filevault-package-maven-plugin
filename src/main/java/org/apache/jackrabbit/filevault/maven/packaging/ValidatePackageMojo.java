@@ -24,7 +24,6 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context.ArchiveValidationContextImpl;
@@ -43,7 +42,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.codehaus.plexus.util.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.SAXException;
 
@@ -68,12 +66,8 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     @Parameter(required = true, defaultValue = "false")
     private boolean skipSubPackageValidation;
 
-    /**
-     * If given, the classifier will be used to get the package to be verified from the attached artifacts from the project with the same
-     * classifier.
-     */
-    @Parameter
-    private String classifier;
+    @Parameter(readonly = false, defaultValue = "${project.attachedArtifacts}")
+    private List<Artifact> attachedArtifacts;
 
     public ValidatePackageMojo() {
     }
@@ -81,15 +75,16 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
-            if (StringUtils.isNotEmpty(classifier)) {
-                Artifact artifact = getArtifact(classifier);
-                if (artifact != null) {
-                    validatePackage(artifact.getFile());
-                } else {
-                    throw new IOException("Could not validate attached artifact with classifier " + classifier);
-                }
-            } else {
+            File packageFile = this.packageFile;
+            if (packageFile != null && !packageFile.isDirectory()) {
                 validatePackage(packageFile);
+            }
+            if (!attachedArtifacts.isEmpty()) {
+                for (Artifact attached : attachedArtifacts) {
+                    if (attached.getFile().getName().endsWith(VaultMojo.PACKAGE_EXT)) {
+                        validatePackage(attached.getFile());
+                    }
+                }
             }
             validationHelper.failBuildInCaseOfViolations(failOnValidationWarnings);
         } catch (IOException | ParserConfigurationException | SAXException e) {
@@ -170,17 +165,4 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         }
         validationHelper.printMessages(messages, getLog(), buildContext, packageFile.toPath());
     }
-
-    private Artifact getArtifact(String classifier) {
-        if (classifier != null) {
-            for (Artifact attachedArtifact : this.project.getAttachedArtifacts()) {
-                if (classifier.equals(attachedArtifact.getClassifier()) && attachedArtifact.getFile() != null
-                        && attachedArtifact.getFile().isFile()) {
-                    return attachedArtifact;
-                }
-            }
-        }
-        return null;
-    }
-
 }
