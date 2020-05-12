@@ -268,6 +268,8 @@ public class ProjectBuilder {
         }
         assertEquals("MANIFEST.MF must be first entry", "META-INF/MANIFEST.MF", first);
 
+        // ensure that there is a jcr_root directory
+        assertTrue("Package does not contain mandatory 'jcr_root' folder", pkgZipEntries.contains("jcr_root/"));
         return this;
     }
 

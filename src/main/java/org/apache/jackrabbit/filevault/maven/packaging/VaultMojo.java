@@ -35,6 +35,7 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.jackrabbit.filevault.maven.packaging.impl.util.PlexusIoNonExistingDirectoryResource;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.util.Constants;
@@ -467,6 +468,10 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                 }
             }
 
+            // add mandatory jcr_root folder
+            if (!contentPackageArchiver.getFiles().containsKey(Constants.ROOT_DIR + "/")) {
+                contentPackageArchiver.addResource(new PlexusIoNonExistingDirectoryResource(Constants.ROOT_DIR), Constants.ROOT_DIR, 0);
+            }
             MavenArchiver mavenArchiver = new MavenArchiver();
             mavenArchiver.setArchiver(contentPackageArchiver);
             mavenArchiver.setOutputFile(finalFile);
