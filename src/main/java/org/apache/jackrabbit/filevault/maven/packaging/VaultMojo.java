@@ -91,7 +91,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     @Parameter(property = "vault.failOnDuplicateEntries", required = true, defaultValue = "true")
     private boolean failOnDuplicateEntries;
 
-    /** The name of the generated package ZIP file without the ".zip" file extension. */
+    /** The name of the generated package ZIP file without the ".zip" file extension. The optional classifier parameter will be appended
+     * to the name of the package. */
     @Parameter(property = "vault.finalName", defaultValue = "${project.build.finalName}", required = true)
     private String finalName;
 

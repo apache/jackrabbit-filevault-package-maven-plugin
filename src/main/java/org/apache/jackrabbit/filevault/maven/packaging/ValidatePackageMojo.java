@@ -166,4 +166,5 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         }
         validationHelper.printMessages(messages, getLog(), buildContext, packageFile.toPath());
     }
+
 }
