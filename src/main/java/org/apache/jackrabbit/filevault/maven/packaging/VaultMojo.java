@@ -54,6 +54,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.shared.filtering.MavenFileFilter;
 import org.apache.maven.shared.filtering.MavenFilteringException;
 import org.apache.maven.shared.filtering.MavenResourcesExecution;
@@ -90,7 +91,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     @Parameter(property = "vault.failOnDuplicateEntries", required = true, defaultValue = "true")
     private boolean failOnDuplicateEntries;
 
-    /** The name of the generated package ZIP file without the ".zip" file extension. */
+    /** The name of the generated package ZIP file without the ".zip" file extension. The optional classifier parameter will be appended
+     * to the name of the package. */
     @Parameter(property = "vault.finalName", defaultValue = "${project.build.finalName}", required = true)
     private String finalName;
 
@@ -189,6 +191,9 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
      */
     @Component(role = MavenResourcesFiltering.class, hint = "default") 
     MavenResourcesFiltering mavenResourcesFiltering;
+
+    @Component
+    private MavenProjectHelper projectHelper;
 
     /** All file names (relative to the zip root) which are supposed to not get overwritten in the package. The value is the source file. */
     private Map<File, File> protectedFiles = new HashMap<>();
@@ -375,7 +380,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     /** Executes this mojo */
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
-        final File finalFile = new File(outputDirectory, finalName + PACKAGE_EXT);
+        final File finalFile = getZipFile(outputDirectory, finalName, classifier);
 
         MavenResourcesExecution mavenResourcesExection = setupMavenResourcesExecution();
         try {
@@ -476,18 +481,36 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             mavenArchiver.setArchiver(contentPackageArchiver);
             mavenArchiver.setOutputFile(finalFile);
             mavenArchiver.configureReproducible(outputTimestamp);
-            mavenArchiver.createArchive(null, project, getMavenArchiveConfiguration(getGeneratedManifestFile()));
+            mavenArchiver.createArchive(null, project, getMavenArchiveConfiguration(getGeneratedManifestFile(false)));
 
-            // set the file for the project's artifact and ensure the
-            // artifact is correctly handled with the "zip" handler
-            // (workaround for MNG-1682)
-            final Artifact projectArtifact = project.getArtifact();
-            projectArtifact.setFile(finalFile);
-            projectArtifact.setArtifactHandler(artifactHandlerManager.getArtifactHandler(PACKAGE_TYPE));
-
+            if (StringUtils.isNotEmpty(classifier)) {
+                projectHelper.attachArtifact(project, finalFile, classifier);
+            } else {
+                // set the file for the project's artifact and ensure the
+                // artifact is correctly handled with the "zip" handler
+                // (workaround for MNG-1682)
+                final Artifact projectArtifact = project.getArtifact();
+                projectArtifact.setFile(finalFile);
+                projectArtifact.setArtifactHandler(artifactHandlerManager.getArtifactHandler(PACKAGE_TYPE));
+            }
         } catch (IllegalStateException | ManifestException | IOException | DependencyResolutionRequiredException | ConfigurationException | MavenFilteringException e) {
             throw new MojoExecutionException(e.toString(), e);
         }
+    }
+
+    private File getZipFile(File basedir, String resultFinalName, String classifier) {
+        if (basedir == null) {
+            throw new IllegalArgumentException("basedir is not allowed to be null");
+        }
+        if (resultFinalName == null) {
+            throw new IllegalArgumentException("finalName is not allowed to be null");
+        }
+        StringBuilder fileName = new StringBuilder(resultFinalName);
+        if (org.apache.commons.lang3.StringUtils.isNotEmpty(classifier)) {
+            fileName.append("-").append(classifier);
+        }
+        fileName.append(PACKAGE_EXT);
+        return new File(basedir, fileName.toString());
     }
 
     private Map<File, File> addSourceDirectory(MavenResourcesExecution mavenResourcesExecution, ContentPackageArchiver contentPackageArchiver, File jcrSourceDirectory, Filters filters,

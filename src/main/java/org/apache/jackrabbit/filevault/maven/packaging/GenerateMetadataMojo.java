@@ -461,7 +461,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
         if (!failOnEmptyFilter) {
             getLog().warn("The parameter 'failOnEmptyFilter' is no longer supported and ignored. Every package must have a non-empty filter!");
         }
-        final File vaultDir = getGeneratedVaultDir();
+        final File vaultDir = getGeneratedVaultDir(true);
         vaultDir.mkdirs();
 
         // JCRVLT-331 share work directory to expose vault metadata between process-classes and package phases for
@@ -510,7 +510,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
                 FileUtils.copyFile(thumbnailImage, new File(vaultDefinitionFolder, "thumbnail.png"));
             }
 
-            writeManifest(getGeneratedManifestFile(), dependenciesString, dependenciesLocations, vaultProperties);
+            writeManifest(getGeneratedManifestFile(true), dependenciesString, dependenciesLocations, vaultProperties);
         } catch (IOException | ManifestException | DependencyResolutionRequiredException | ConfigurationException e) {
             throw new MojoExecutionException(e.toString(), e);
         }
@@ -545,7 +545,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      */
     private String computeFilters(File vaultMetaDir) throws IOException, MojoExecutionException {
         // backward compatibility: if implicit filter exists, use it. but check for conflicts
-        File filterFile = getGeneratedFilterFile();
+        File filterFile = getGeneratedFilterFile(true);
         if (filterFile.exists() && filterFile.lastModified() != 0) {
             // if both, a inline filter and a implicit filter is present, the build fails.
             if (!filters.getFilterSets().isEmpty()) {
@@ -646,7 +646,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             throw new MojoExecutionException("No workspace filter defined!");
         }
 
-        File filterFile = getGeneratedFilterFile();
+        File filterFile = getGeneratedFilterFile(true);
         // if the source filters and the generated filters are the same, copy the source file to retain the comments
         if (filterSource != null && filters.getSourceAsString().equals(sourceFilters)) {
             FileUtils.copyFile(filterSource, filterFile);

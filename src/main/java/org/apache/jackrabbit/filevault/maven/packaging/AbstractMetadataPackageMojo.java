@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.jar.JarFile;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.maven.plugin.AbstractMojo;
@@ -76,6 +77,15 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
     File workDirectory;
 
     /**
+     * Optional classifier to add to the generated package. If given, the artifact will be attached
+     * as a supplemental artifact having this classifier.
+     * Also all generated metadata will be pushed to {@code <workDirectory>-<classifier>} and will preferably
+     * be looked up from there. In addition the embedded file names will be exchanged leveraging a classifier specific property.
+     */
+    @Parameter(property = "vault.classifier")
+    protected String classifier = "";
+
+    /**
      * Adds a path prefix to all resources. Useful for shallower source trees.
      * This does not apply to files in {@link #workDirectory} nor {@link #metaInfVaultDirectory}
      * but e.g. is relevant for the default filter and for the jcr_root of the package.
@@ -109,46 +119,73 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
 
 
     /**
-     * Sets the map of embedded files as project properties as a helper to pass data between the goals
+     * Sets the map of embedded files as project properties as a helper to pass data between the goals.
+     * It will always use classifier specific project properties.
      * @param embeddedFiles map of embedded files (key=destination file name, value = source file)
      */
     @SuppressWarnings("unchecked")
     void setEmbeddedFilesMap(Map<String, File> embeddedFiles) {
-        getPluginContext().put(PROPERTIES_EMBEDDEDFILESMAP_KEY, embeddedFiles);
+        getPluginContext().put(PROPERTIES_EMBEDDEDFILESMAP_KEY + classifier, embeddedFiles);
     }
 
     /**
      * Reads the map of embedded files from the project properties. This is a helper to pass data between the goals.
+     * It will preferably use the embedded files from the classifier specific project properties.
      * @return the map of embedded files (key=destination file name, value = source file)
      */
-    @SuppressWarnings("unchecked")
     Map<String, File> getEmbeddedFilesMap() {
-        Object value = getPluginContext().get(PROPERTIES_EMBEDDEDFILESMAP_KEY);
+        Map<String, File> map = getEmbeddedFilesMap(PROPERTIES_EMBEDDEDFILESMAP_KEY + classifier);
+        if (map.isEmpty()) {
+            getLog().warn("Using regular embedded files map as classifier specific one does not exist!");
+            map = getEmbeddedFilesMap(PROPERTIES_EMBEDDEDFILESMAP_KEY);
+        }
+        return map;
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, File> getEmbeddedFilesMap(String key) {
+        Object value = getPluginContext().get(key);
         if (value == null) {
             return Collections.emptyMap();
         } else {
             if (value instanceof Map<?,?>) {
                 return (Map<String, File>) value;
             } else {
-                throw new IllegalStateException("The Maven property " + PROPERTIES_EMBEDDEDFILESMAP_KEY + " is not containing a Map but rather " + value.getClass());
+                throw new IllegalStateException("The Maven property " + key + " is not containing a Map but rather " + value.getClass());
             }
+        }
+    }
+
+    File getWorkDirectory(boolean isForWriting) {
+        if (StringUtils.isNotBlank(classifier)) {
+            File classifierWorkDirectory = new File(workDirectory.toString() + "-" + classifier);
+            if (!isForWriting) {
+                // fall back to regular work directory if work dir for classifier does not exist
+                if (!classifierWorkDirectory.exists()) {
+                    getLog().warn("Using regular workDirectory " + workDirectory + " as classifier specific workDirectory does not exist at " + classifierWorkDirectory);
+                    return workDirectory;
+                }
+            }
+            return classifierWorkDirectory;
+        } else {
+            return workDirectory;
         }
     }
 
     /**
      * 
-     * @return the META-INF/vault directory below the {@link #workDirectory}
+     * @return the META-INF/vault directory below the (classifier-specific) {@link #workDirectory}
      */
-    File getGeneratedVaultDir() {
-        return new File(workDirectory, Constants.META_DIR);
+    File getGeneratedVaultDir(boolean isForWriting) {
+        return new File(getWorkDirectory(isForWriting), Constants.META_DIR);
     }
 
-    File getGeneratedManifestFile() {
-        return new File(workDirectory, JarFile.MANIFEST_NAME);
+    File getGeneratedManifestFile(boolean isForWriting) {
+        return new File(getWorkDirectory(isForWriting), JarFile.MANIFEST_NAME);
     }
 
-    File getGeneratedFilterFile() {
-        return new File(getGeneratedVaultDir(), Constants.FILTER_XML);
+    File getGeneratedFilterFile(boolean isForWriting) {
+        return new File(getGeneratedVaultDir(isForWriting), Constants.FILTER_XML);
     }
 
     /**
@@ -170,7 +207,7 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
     Filters loadGeneratedFilterFile() throws IOException, ConfigurationException {
         // load filters for further processing
         Filters filters = new Filters();
-        filters.load(getGeneratedFilterFile());
+        filters.load(getGeneratedFilterFile(false));
         return filters;
     }
 

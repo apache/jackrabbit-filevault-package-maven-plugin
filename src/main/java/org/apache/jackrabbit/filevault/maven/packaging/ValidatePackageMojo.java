@@ -23,7 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.LinkedList;
-
+import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context.ArchiveValidationContextImpl;
@@ -35,6 +35,7 @@ import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.validation.ValidationExecutor;
 import org.apache.jackrabbit.vault.validation.ValidationViolation;
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
@@ -45,15 +46,15 @@ import org.jetbrains.annotations.Nullable;
 import org.xml.sax.SAXException;
 
 
-/** 
- * Validates the whole package with all registered validators.
+/**
+ * Validates a package (and optionally in addition all attached packages with the given classifiers) with all registered validators.
  * @see <a href="https://jackrabbit.apache.org/filevault-package-maven-plugin/validators.html">Validators</a>
  */
 @Mojo(
-        name = "validate-package", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = false, threadSafe = true)
+        name = "validate-package", defaultPhase = LifecyclePhase.VERIFY, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = false, threadSafe = true)
 public class ValidatePackageMojo extends AbstractValidateMojo {
 
-    /** The package file to validate. By default will be the project's artifact (in case a project is given) */
+    /** The mainn package file to validate. By default will be the project's main artifact (in case a project is given) */
     @Parameter(property = "vault.packageToValidate", defaultValue = "${project.artifact.file}", required=true)
     private File packageFile;
 
@@ -64,14 +65,39 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     /** If set to {@code true} will not validate any sub packages. This settings overwrites the parameter {@code enforceRecursiveSubpackageValidation}. */
     @Parameter(required = true, defaultValue = "false")
     private boolean skipSubPackageValidation;
-    
+
+    @Parameter(readonly = true, defaultValue = "${project.attachedArtifacts}")
+    private List<Artifact> attachedArtifacts;
+
+    /**
+     * If given validates all attached artifacts with one of the given classifiers in addition
+     */
+    @Parameter()
+    private List<String> classifiers;
+
     public ValidatePackageMojo() {
     }
 
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
-            validatePackage(packageFile);
+            boolean foundPackage = false;
+            if (packageFile != null && !packageFile.isDirectory()) {
+                validatePackage(packageFile);
+                foundPackage = true;
+            } 
+            if (!attachedArtifacts.isEmpty()) {
+                for (Artifact attached : attachedArtifacts) {
+                    // validate attached artifacts with given classifiers
+                    if (classifiers.contains(attached.getClassifier())) {
+                        validatePackage(attached.getFile());
+                        foundPackage = true;
+                    }
+                }
+            } 
+            if (!foundPackage) {
+                getLog().warn("No packages found to validate.");
+            }
             validationHelper.failBuildInCaseOfViolations(failOnValidationWarnings);
         } catch (IOException | ParserConfigurationException | SAXException e) {
             throw new MojoExecutionException("Could not validate package '" + packageFile + "': " + e.getMessage(), e);
@@ -127,7 +153,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
             // strip off jcr_root
             Path relativeJcrPath = Paths.get(Constants.ROOT_DIR).relativize(entryPath);
             messages.addAll(executor.validateJcrRoot(inputStream, relativeJcrPath, packagePath.resolve(Constants.ROOT_DIR)));
-            
+
             // in case this is a subpackage
             if (inputStream != null && entryPath.getFileName().toString().endsWith(VaultMojo.PACKAGE_EXT) && !skipSubPackageValidation) {
                 Path subPackagePath = context.getPackageRootPath().resolve(entryPath);
