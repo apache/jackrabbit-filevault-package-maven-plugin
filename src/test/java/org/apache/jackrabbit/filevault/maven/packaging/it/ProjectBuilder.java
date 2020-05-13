@@ -233,7 +233,7 @@ public class ProjectBuilder {
         verifier.setDebug(true);
         verifier.setAutoclean(false);
         // verifier.setDebugJvm(true);
-        // verifier.setMavenDebug(true);
+        //verifier.setMavenDebug(true);
         try {
             verifier.executeGoals(Arrays.asList(testGoals));
             assertFalse("Build expected to fail in project " + testProjectDir.getAbsolutePath(), buildExpectedToFail);
@@ -251,11 +251,16 @@ public class ProjectBuilder {
             return this;
         }
 
-        assertTrue("Project generates package file", testPackageFile.exists());
-
         // read zip
-        pkgZipEntries = new ArrayList<>();
-        try (JarFile jar = new JarFile(testPackageFile)) {
+        pkgZipEntries = verifyPackageZipEntries(testPackageFile);
+        return this;
+    }
+
+    static List<String> verifyPackageZipEntries(File packageFile) throws IOException {
+        assertTrue("Project generates package file at " + packageFile, packageFile.exists());
+
+        List<String> pkgZipEntries = new ArrayList<>();
+        try (JarFile jar = new JarFile(packageFile)) {
             Enumeration<JarEntry> e = jar.entries();
             while (e.hasMoreElements()) {
                 pkgZipEntries.add(e.nextElement().getName());
@@ -266,13 +271,12 @@ public class ProjectBuilder {
         if ("META-INF/".equals(first)) {
             first = pkgZipEntries.get(1);
         }
-        assertEquals("MANIFEST.MF must be first entry", "META-INF/MANIFEST.MF", first);
+        assertEquals("MANIFEST.MF must be first entry in package " + packageFile, "META-INF/MANIFEST.MF", first);
 
         // ensure that there is a jcr_root directory
-        assertTrue("Package does not contain mandatory 'jcr_root' folder", pkgZipEntries.contains("jcr_root/"));
-        return this;
+        assertTrue("Package does not contain mandatory 'jcr_root' folder in package " + packageFile, pkgZipEntries.contains("jcr_root/"));
+        return pkgZipEntries;
     }
-
     public ProjectBuilder verifyPackageProperty(String key, String value) throws IOException {
         if (buildExpectedToFail) {
             return this;
@@ -322,6 +326,11 @@ public class ProjectBuilder {
     }
 
     public ProjectBuilder verifyExpectedFiles() throws IOException {
+        verifyExpectedFiles(expectedFilesFile, pkgZipEntries);
+        return this;
+    }
+
+    public ProjectBuilder verifyExpectedFiles(File expectedFilesFile, List<String> pkgZipEntries) throws IOException {
         // first check that only the expected entries are there in the package (regardless of the order)
         List<String> expectedEntries = Files.readAllLines(expectedFilesFile.toPath(), StandardCharsets.UTF_8);
         assertEquals("Package contains the expected entry names",

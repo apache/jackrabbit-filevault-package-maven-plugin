@@ -47,14 +47,14 @@ import org.xml.sax.SAXException;
 
 
 /**
- * Validates all attached packages with all registered validators.
+ * Validates a package (and optionally in addition all attached packages with the given classifiers) with all registered validators.
  * @see <a href="https://jackrabbit.apache.org/filevault-package-maven-plugin/validators.html">Validators</a>
  */
 @Mojo(
-        name = "validate-package", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = false, threadSafe = true)
+        name = "validate-package", defaultPhase = LifecyclePhase.VERIFY, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = false, threadSafe = true)
 public class ValidatePackageMojo extends AbstractValidateMojo {
 
-    /** The package file to validate. By default will be the project's artifact (in case a project is given) */
+    /** The mainn package file to validate. By default will be the project's main artifact (in case a project is given) */
     @Parameter(property = "vault.packageToValidate", defaultValue = "${project.artifact.file}", required=true)
     private File packageFile;
 
@@ -69,22 +69,33 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     @Parameter(readonly = true, defaultValue = "${project.attachedArtifacts}")
     private List<Artifact> attachedArtifacts;
 
+    /**
+     * If given validates all attached artifacts with one of the given classifiers in addition
+     */
+    @Parameter()
+    private List<String> classifiers;
+
     public ValidatePackageMojo() {
     }
 
     @Override
     public void doExecute() throws MojoExecutionException, MojoFailureException {
         try {
-            File packageFile = this.packageFile;
+            boolean foundPackage = false;
             if (packageFile != null && !packageFile.isDirectory()) {
                 validatePackage(packageFile);
-            } else if (!attachedArtifacts.isEmpty()) {
+                foundPackage = true;
+            } 
+            if (!attachedArtifacts.isEmpty()) {
                 for (Artifact attached : attachedArtifacts) {
-                    if (attached.getFile().getName().endsWith(VaultMojo.PACKAGE_EXT)) {
+                    // validate attached artifacts with given classifiers
+                    if (classifiers.contains(attached.getClassifier())) {
                         validatePackage(attached.getFile());
+                        foundPackage = true;
                     }
                 }
-            } else {
+            } 
+            if (!foundPackage) {
                 getLog().warn("No packages found to validate.");
             }
             validationHelper.failBuildInCaseOfViolations(failOnValidationWarnings);

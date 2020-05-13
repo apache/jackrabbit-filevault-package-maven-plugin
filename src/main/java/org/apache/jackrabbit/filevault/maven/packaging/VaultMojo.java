@@ -183,13 +183,6 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     private MavenArchiveConfiguration archive;
 
     /**
-     * Classifier to add to the generated package. If given, the artifact will be attached
-     * as a supplemental artifact.
-     */
-    @Parameter
-    private String classifier;
-
-    /**
      */
     @Component(role = MavenFileFilter.class, hint = "default")
     private MavenFileFilter mavenFileFilter;
@@ -488,7 +481,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             mavenArchiver.setArchiver(contentPackageArchiver);
             mavenArchiver.setOutputFile(finalFile);
             mavenArchiver.configureReproducible(outputTimestamp);
-            mavenArchiver.createArchive(null, project, getMavenArchiveConfiguration(getGeneratedManifestFile()));
+            mavenArchiver.createArchive(null, project, getMavenArchiveConfiguration(getGeneratedManifestFile(false)));
 
             if (StringUtils.isNotEmpty(classifier)) {
                 projectHelper.attachArtifact(project, finalFile, classifier);
@@ -516,7 +509,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         if (org.apache.commons.lang3.StringUtils.isNotEmpty(classifier)) {
             fileName.append("-").append(classifier);
         }
-        fileName.append("." + PACKAGE_TYPE);
+        fileName.append(PACKAGE_EXT);
         return new File(basedir, fileName.toString());
     }
 
