@@ -20,51 +20,32 @@ Developing
 
 Latest development
 ------------------
-The latest FileVault Package Maven Plugin source code is available via Subversion at
+The latest FileVault Package Maven Plugin source code is available at
 
-* https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/trunk
-
-or with ViewVC at
-
-* https://svn.apache.org/viewvc/jackrabbit/commons/filevault-package-maven-plugin/trunk
-
-or on GitHub at
-
-* https://github.com/apache/jackrabbit-filevault-package-maven-plugin
-
-
-To checkout the main Jackrabbit source tree, run
-
-    svn checkout https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/trunk jackrabbit-filevault
-    
-or
-
-    git clone https://github.com/apache/jackrabbit-filevault-package-maven-plugin.git
+   <https://github.com/apache/jackrabbit-filevault-package-maven-plugin>
 
 
 Building FileVault Package Maven Plugin
 ------------------
-You can build FileVault Package Maven Plugin using maven:
+You can build FileVault Package Maven Plugin using Maven:
 
-    cd filevault-package-maven-plugin
+    cd jackrabbit-filevault-package-maven-plugin
     mvn clean install
 
-You need Maven 3.2.5 (or higher) with Java 7 (or higher) for the build.
-For more instructions, please see the documentation at:
-
-*  http://jackrabbit.apache.org/building-jackrabbit.html
+You need Maven 3.3.9 (or higher) with Java 8 (or higher) for the build.
+For more instructions, please see the documentation at <https://jackrabbit.apache.org/building-jackrabbit.html>
 
 Issue Tracker
 -------------
 Apache Jackrabbit FileVault uses Jira for tracking bug reports and requests for improvements, new features, 
 and other changes.
 
-The issue tracker is available at https://issues.apache.org/jira/browse/JCRVLT and is readable by everyone. 
+The issue tracker is available at <https://issues.apache.org/jira/browse/JCRVLT> and is readable by everyone. 
 A Jira account is needed to create new issues and to comment on existing issues. Use the
 [registration form](https://issues.apache.org/jira/secure/Signup!default.jspa) to request an account if you 
 do not already have one.
 
-See the [Jackrabbit Issue Tracker Page](http://jackrabbit.apache.org/issue-tracker.html) for more information.
+See the [Jackrabbit Issue Tracker Page](https://jackrabbit.apache.org/issue-tracker.html) for more information.
 
 
 Mailing Lists
@@ -73,7 +54,7 @@ To get involved with the Apache Jackrabbit project, start by having a
 look at our website and joining our mailing lists. For more details about
 Jackrabbit mailing lists as well as links to list archives, please see:
 
-* http://jackrabbit.apache.org/mailing-lists.html
+* https://jackrabbit.apache.org/mailing-lists.html
 
 Releasing
 ---------

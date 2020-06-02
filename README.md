@@ -3,7 +3,7 @@
 Welcome to Apache Jackrabbit FileVault Package Maven Plugin
 ===========================================================
 
-The Apache Jackrabbit FileVault package maven plugin is an Apache Maven Plugin 
+The Apache Jackrabbit FileVault Package Maven Plugin is an Apache Maven Plugin 
 that simplifies the creation of content package Maven artifacts. The content 
 packages can later be used to install content into a JCR repository using the 
 Apache Jackrabbit FileVault packaging runtime.
@@ -62,17 +62,10 @@ Jackrabbit mailing lists as well as links to list archives, please see:
 Latest development
 ==================
 
-The latest FileVault package plugin source code is available via Subversion at
+The latest FileVault package plugin source code is available at
 
-   https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/trunk/
+   <https://github.com/apache/jackrabbit-filevault-package-maven-plugin>
 
-or with ViewVC at
-
-   https://svn.apache.org/viewvc/jackrabbit/commons/filevault-package-maven-plugin/trunk/
-
-To checkout the main source tree, run
-
-   svn checkout https://svn.apache.org/repos/asf/commons/filevault-package-maven-plugin/trunk filevault-package-maven-plugin
 
 Credits
 =======
