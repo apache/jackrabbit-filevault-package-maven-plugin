@@ -46,6 +46,7 @@ Note: Every committer should be able to deploy the site. No fiddling with
 credentials needed since deployment is done via svn commit to
 `https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault-package-maven-plugin`.
 
+
 Update Documentation After Release
 ==================================
 
