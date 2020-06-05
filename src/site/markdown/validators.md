@@ -18,6 +18,8 @@
 Validators
 ===================================================
 
+<!-- MACRO{toc} -->
+
 Overview
 --------
 With the goals [`validate-package`](validate-package-mojo.html) and [`validate-files`](validate-files-mojo.html) it is possible to run validation on top of the given package or the package source files.

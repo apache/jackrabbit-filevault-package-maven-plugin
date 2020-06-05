@@ -18,6 +18,8 @@
 Developing
 ==========
 
+<!-- MACRO{toc} -->
+
 Latest development
 ------------------
 The latest FileVault Package Maven Plugin source code is available at

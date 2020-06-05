@@ -17,9 +17,9 @@
 
 How To Create A Release
 =======================
-
 <!-- line width set to 120 characters. please break lines so that this file also looks good in vi -->
 
+<!-- MACRO{toc} -->
 
 Prerequisites for release managers
 ----------------------------------

@@ -20,6 +20,8 @@ Generating import-package MANIFEST entries
 
 The Filevault content package maven plugin can analyze the classpath of the compiled classes, derived from the content and create an `import-package` MANIFEST entry. Although this is rather something to be expected in the OSGi world, declaring the java packages that the content potentially needs can help detecting deployment errors early.
 
+<!-- MACRO{toc} -->
+
 How it works
 ------------
 _(todo: add more detailed explanation)_
