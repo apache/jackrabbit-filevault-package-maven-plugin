@@ -22,7 +22,7 @@
     name="Jackrabbit FileVault Package Maven Plugin">
     <body>
         <breadcrumbs>
-            <item name="Jackrabbit FileVault Package Maven Plugin" href="http://maven.apache.org/plugins/maven-release-plugin/index.html" />
+            <item name="Jackrabbit FileVault Package Maven Plugin" href="https://jackrabbit.apache.org/filevault-package-maven-plugin" />
         </breadcrumbs>
         <menu name="Overview">
             <item name="Introduction" href="index.html"/>
