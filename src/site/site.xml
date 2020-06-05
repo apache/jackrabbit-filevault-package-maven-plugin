@@ -17,12 +17,13 @@
     limitations under the License.
 -->
 
-<project xmlns="http://maven.apache.org/DECORATION/1.3.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/DECORATION/1.3.0 http://maven.apache.org/xsd/decoration-1.3.0.xsd"
+<project xmlns="http://maven.apache.org/DECORATION/1.8.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/DECORATION/1.8.0 http://maven.apache.org/xsd/decoration-1.8.0.xsd"
     name="Jackrabbit FileVault Package Maven Plugin">
-    
-    <edit>${project.scm.url}</edit>
     <body>
+        <breadcrumbs>
+            <item name="Jackrabbit FileVault Package Maven Plugin" href="http://maven.apache.org/plugins/maven-release-plugin/index.html" />
+        </breadcrumbs>
         <menu name="Overview">
             <item name="Introduction" href="index.html"/>
             <item name="Goals" href="plugin-info.html"/>
@@ -49,19 +50,11 @@
             <item href="http://jackrabbit.apache.org/filevault-package-maven-plugin-archives/1.0.1" name="1.0.1"/>
             <item href="http://jackrabbit.apache.org/filevault-package-maven-plugin-archives/1.0.0" name="1.0.0"/>
         </menu>
+        
     </body>
-
-    <skin>
-        <groupId>org.apache.maven.skins</groupId>
-        <artifactId>maven-fluido-skin</artifactId>
-        <version>1.9</version>
-    </skin>
 
     <custom>
         <fluidoSkin>
-            <sourceLineNumbersEnabled>true</sourceLineNumbersEnabled>
-            <topBarEnabled>true</topBarEnabled>
-            <sideBarEnabled>true</sideBarEnabled>
             <gitHub>
                 <projectId>apache/jackrabbit-filevault-package-maven-plugin</projectId>
                 <ribbonOrientation>right</ribbonOrientation>
@@ -69,7 +62,6 @@
             <ohloh>
                 <projectId>jackrabbit-filevault-package-maven-plugin</projectId>
             </ohloh>
-            <googlePlusOne/>
         </fluidoSkin>
     </custom>
 </project>

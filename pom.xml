@@ -21,10 +21,10 @@
     <!-- P A R E N T  P R O J E C T  D E S C R I P T I O N                      -->
     <!-- ====================================================================== -->
     <parent>
-        <groupId>org.apache</groupId>
-        <artifactId>apache</artifactId>
-        <version>23</version>
-        <relativePath />
+        <groupId>org.apache.jackrabbit.vault</groupId>
+        <artifactId>parent</artifactId>
+        <relativePath></relativePath>
+        <version>3.4.5-SNAPSHOT</version>
     </parent>
 
     <!-- ====================================================================== -->
@@ -39,14 +39,10 @@
     <description>Maven Plugin supporting creation of content packages.</description>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.version>3.3.9</maven.version> <!-- required for https://issues.apache.org/jira/browse/MNG-5440 -->
         <aether.version>1.0.2.v20150114</aether.version>
         <slf4j.version>1.7.5</slf4j.version>
-        <jackrabbit.version>2.20.0</jackrabbit.version>
-        <oak.version>1.20.0</oak.version>
-        <filevault.version>3.4.5-SNAPSHOT</filevault.version>
-        <surefire.version>2.22.2</surefire.version>
+        <filevault.version>${project.parent.version}</filevault.version> <!-- must be equal to parent version -->
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <project.build.outputTimestamp>2020-01-22T15:10:38Z</project.build.outputTimestamp>
@@ -66,32 +62,6 @@
         <tag>trunk</tag>
     </scm>
 
-    <!-- ====================================================================== -->
-    <!-- P R O J E C T  I N F O                                                 -->
-    <!-- ====================================================================== -->
-    <mailingLists>
-        <mailingList>
-            <name>Jackrabbit Developer List</name>
-            <subscribe>dev-subscribe@jackrabbit.apache.org</subscribe>
-            <unsubscribe>dev-unsubscribe@jackrabbit.apache.org</unsubscribe>
-            <post>mailto:dev@jackrabbit.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/jackrabbit-dev/</archive>
-        </mailingList>
-
-        <mailingList>
-            <name>Jackrabbit User List</name>
-            <subscribe>users-subscribe@jackrabbit.apache.org</subscribe>
-            <unsubscribe>users-unsubscribe@jackrabbit.apache.org</unsubscribe>
-            <post>mailto:users@jackrabbit.apache.org</post>
-            <archive>http://mail-archives.apache.org/mod_mbox/jackrabbit-users/</archive>
-        </mailingList>
-    </mailingLists>
-
-    <issueManagement>
-        <system>JIRA</system>
-        <url>https://issues.apache.org/jira/browse/JCRVLT</url>
-    </issueManagement>
-
     <ciManagement>
         <system>Travis</system>
         <url>https://travis-ci.org/apache/jackrabbit-filevault-package-maven-plugin</url>
@@ -106,14 +76,6 @@
                 <plugin>
                     <artifactId>maven-plugin-plugin</artifactId>
                     <version>3.6.0</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <version>3.9.0</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-project-info-reports-plugin</artifactId>
-                    <version>3.1.0</version>
                 </plugin>
                 <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
                 <plugin>
@@ -144,18 +106,6 @@
             </plugins>
         </pluginManagement>
         <plugins>
-            <!-- ====================================================================== -->
-            <!-- C O M P I L E R   P L U G I N                                          -->
-            <!-- ====================================================================== -->
-            <plugin>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <debug>true</debug>
-                    <showDeprecation>false</showDeprecation>
-                    <showWarnings>true</showWarnings>
-                    <optimize>false</optimize>
-                </configuration>
-            </plugin>
             <!-- ====================================================================== -->
             <!-- M A V E N   P L U G I N                                                -->
             <!-- ====================================================================== -->
@@ -332,18 +282,15 @@
         <dependency>
             <groupId>javax.jcr</groupId>
             <artifactId>jcr</artifactId>
-            <version>2.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.jackrabbit</groupId>
             <artifactId>jackrabbit-jcr-commons</artifactId>
-            <version>${jackrabbit.version}</version>
         </dependency>
         <!-- only a transitive dependency but must be declared due to https://issues.apache.org/jira/browse/JCRVLT-394 -->
         <dependency>
             <groupId>org.apache.jackrabbit</groupId>
             <artifactId>oak-jackrabbit-api</artifactId>
-            <version>${oak.version}</version>
         </dependency>
         <!-- Maven Plugin stuff -->
         <dependency>

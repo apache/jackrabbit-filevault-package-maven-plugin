@@ -1,3 +1,6 @@
+[![ASF Jira](https://img.shields.io/badge/ASF%20JIRA-JCRVLT-orange)](https://issues.apache.org/jira/projects/JCRVLT/summary)
+![GitHub](https://img.shields.io/github/license/apache/jackrabbit-filevault-package-maven-plugin)
+[![Maven Central](https://img.shields.io/maven-central/v/org.apache.jackrabbit/filevault-package-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/artifact/org.apache.jackrabbit/filevault-package-maven-plugin)
 [![Build Status](https://travis-ci.org/apache/jackrabbit-filevault-package-maven-plugin.svg?branch=trunk)](https://travis-ci.org/apache/jackrabbit-filevault-package-maven-plugin)
 
 Welcome to Apache Jackrabbit FileVault Package Maven Plugin
@@ -13,7 +16,7 @@ Apache Jackrabbit FileVault is a project of the Apache Software Foundation.
 Documentation
 =============
 Please refer to the plugin documentation at 
-http://jackrabbit.apache.org/filevault-package-maven-plugin/index.html
+<https://jackrabbit.apache.org/filevault-package-maven-plugin/index.html>
 
 
 Building the FileVault Package Maven Plugin
@@ -26,7 +29,7 @@ You can build the plugin like this:
 You need Maven 3.3.9 (or higher) with Java 8 (or higher) for the build.
 For more instructions, please see the documentation at:
 
-   http://jackrabbit.apache.org/building-jackrabbit.html
+   <https://jackrabbit.apache.org/building-jackrabbit.html>
 
 License (see also LICENSE)
 ==============================
@@ -57,7 +60,7 @@ To get involved with the Apache Jackrabbit project, start by having a
 look at our website and joining our mailing lists. For more details about
 Jackrabbit mailing lists as well as links to list archives, please see:
 
-   http://jackrabbit.apache.org/mailing-lists.html
+   <https://jackrabbit.apache.org/mailing-lists.html>
 
 Latest development
 ==================
@@ -70,5 +73,5 @@ The latest FileVault package plugin source code is available at
 Credits
 =======
 
-See http://jackrabbit.apache.org/jackrabbit-team.html for the list of
+See <https://jackrabbit.apache.org/jackrabbit-team.html> for the list of
 Jackrabbit committers and main contributors.
