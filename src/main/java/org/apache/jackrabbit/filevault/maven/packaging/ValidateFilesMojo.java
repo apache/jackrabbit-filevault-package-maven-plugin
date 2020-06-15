@@ -22,6 +22,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -201,8 +202,10 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         scanner.addDefaultExcludes();
         scanner.scan();
         getLog().info("Scanning baseDir '" + baseDir + "'...");
-        for (String relativeFile : scanner.getIncludedFiles()) {
-            validateFile(executor, baseDir, isMetaInf, relativeFile);
+        List<String> sortedFileNames = Arrays.asList(scanner.getIncludedFiles());
+        sortedFileNames.sort(new DotContentXmlFirstComparator());
+        for (String fileName : sortedFileNames) {
+            validateFile(executor, baseDir, isMetaInf, fileName);
         }
         for (String relativeFile : scanner.getIncludedDirectories()) {
             validateFolder(executor, baseDir, isMetaInf, relativeFile);

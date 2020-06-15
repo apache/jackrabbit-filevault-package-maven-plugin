@@ -18,6 +18,7 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Locale;
@@ -30,6 +31,7 @@ import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageInfo;
+import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.validation.ValidationExecutorFactory;
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
 import org.apache.jackrabbit.vault.validation.spi.impl.AdvancedFilterValidatorFactory;
@@ -331,5 +333,20 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
             }
         }
         return validatorSettingsById;
+    }
+
+    /** 
+     * Comparator on file names which makes sure that the {@code .content.xml} files come first. 
+     */
+    static final class DotContentXmlFirstComparator implements Comparator<String> {
+        @Override
+        public int compare(String s1, String s2) {
+            if (Constants.DOT_CONTENT_XML.equals(s1)) {
+                return -1;
+            } else if (Constants.DOT_CONTENT_XML.equals(s2)) {
+                return 1;
+            }
+            return 0;
+        }
     }
 }

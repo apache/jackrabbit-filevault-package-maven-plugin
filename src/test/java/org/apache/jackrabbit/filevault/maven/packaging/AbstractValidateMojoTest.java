@@ -16,8 +16,11 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import static org.junit.Assert.assertThat;
+
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.jackrabbit.vault.packaging.Dependency;
@@ -74,5 +77,12 @@ public class AbstractValidateMojoTest {
         actualValidatorSettings = AbstractValidateMojo.getValidatorSettingsForPackage(new SystemStreamLog(), null, PackageId.fromString("mygroup:myname:1.0.0"), true);
         expectedValidatorSettings.clear();
         Assert.assertThat(actualValidatorSettings, Matchers.equalTo(expectedValidatorSettings));
+    }
+
+    @Test
+    public void testDotContentXmlFirstComparator() {
+        List<String> list = Arrays.asList("someEntryA", ".content.xml", "someEntryB", ".content.xml");
+        list.sort(new AbstractValidateMojo.DotContentXmlFirstComparator());
+        assertThat(list, Matchers.contains(".content.xml", ".content.xml", "someEntryA", "someEntryB"));
     }
 }

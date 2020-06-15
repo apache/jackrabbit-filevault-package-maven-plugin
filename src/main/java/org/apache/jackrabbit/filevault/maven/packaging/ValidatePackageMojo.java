@@ -21,7 +21,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
@@ -44,7 +46,6 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.SAXException;
-
 
 /**
  * Validates a package (and optionally in addition all attached packages with the given classifiers) with all registered validators.
@@ -132,7 +133,11 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
 
     private void validateEntry(Archive archive, Archive.Entry entry, Path entryPath, Path packagePath, ArchiveValidationContextImpl context,
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException {
-        for (Archive.Entry childEntry : entry.getChildren()) {
+        // sort children to make sure that .content.xml comes first!
+        List<Archive.Entry> sortedEntryList = new ArrayList<Archive.Entry>(entry.getChildren());
+        sortedEntryList.sort(Comparator.comparing(Archive.Entry::getName, new DotContentXmlFirstComparator()));
+        
+        for (Archive.Entry childEntry : sortedEntryList) {
             if (childEntry.isDirectory()) {
                 validateInputStream(null, entryPath.resolve(childEntry.getName()), packagePath, context, executor);
                 validateEntry(archive, childEntry, entryPath.resolve(childEntry.getName()), packagePath, context, executor);
