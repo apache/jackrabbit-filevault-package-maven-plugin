@@ -24,6 +24,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.jackrabbit.filevault.maven.packaging.AbstractValidateMojo;
 import org.apache.jackrabbit.filevault.maven.packaging.MavenBasedPackageDependency;
 import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageId;
@@ -100,6 +101,10 @@ public class DependencyResolver {
         final String groupId;
         final String artifactId;
         Artifact artifact = mapPackageDependencyToMavenArtifact.get(dependency);
+        // is it special artifact which is supposed to be ignored?
+        if (artifact == AbstractValidateMojo.IGNORE_ARTIFACT) {
+            return null;
+        }
         // is it part of the mapping table?
         if (artifact != null) {
             groupId = artifact.getGroupId();

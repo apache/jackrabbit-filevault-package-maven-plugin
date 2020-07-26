@@ -56,6 +56,8 @@ import org.sonatype.plexus.build.incremental.BuildContext;
  * Common ancestor for all validation related mojos
  */
 public abstract class AbstractValidateMojo extends AbstractMojo {
+    public static final String IGNORE_GAV = "ignore";
+
     @Parameter(property = "vault.skipValidation", defaultValue = "false", required = true)
     boolean skipValidation;
 
@@ -144,7 +146,9 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
 
     /**
      * Mapping of package dependencies given via group and name to Maven identifiers for enhanced validation.
-     * Each entry must have the format {@code <group>:<name>=<groupId>:<artifactId>}
+     * Each entry must have the format {@code <group>:<name>=<groupId>:<artifactId>}.
+     * To disable lookup (e.g. because referenced artifact is not available in a Maven repository) use {@code <group>:<name>=ignore}.
+     * This will also prevent the WARNING which would be otherwise be emitted.
      */
     @Parameter(property = "vault.package.dependency.to.maven.ga")
     protected Collection<String> mapPackageDependencyToMavenGa;
@@ -163,6 +167,11 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     protected final ValidationHelper validationHelper;
 
     protected DependencyResolver resolver;
+    
+    /**
+     * Artificial Maven artifact which indicates that it should not be considered for further lookup!
+     */
+    public static final Artifact IGNORE_ARTIFACT = new DefaultArtifact("ignore", "ignore", "1.0", "", "", "", null);
 
     public AbstractValidateMojo() {
         super();
@@ -175,7 +184,8 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
         return mapPackageDependencyToMavenGa.stream()
                 .map(s -> s.split("=", 2))
                 .peek((p) -> { if(p.length != 2) { throw new IllegalArgumentException("Could not parse value"); } })
-                .collect(Collectors.toMap(a -> Dependency.fromString(a[0]), a -> { String[] mavenGA = a[1].split(":", 2); if(mavenGA.length != 2) { throw new IllegalArgumentException("Could not parse Maven group Id and artifact Id (must be separated by ':')"); } return new DefaultArtifact(mavenGA[0], mavenGA[1], "", "", "", "", null);} ));
+                // cannot use null values due to https://bugs.openjdk.java.net/browse/JDK-8148463 therefore rely on artificial IGNORE_ARTIFACT
+                .collect(Collectors.toMap(a -> Dependency.fromString(a[0]), a -> { if (a[1].equalsIgnoreCase(IGNORE_GAV)) { return IGNORE_ARTIFACT; } String[] mavenGA = a[1].split(":", 2); if(mavenGA.length != 2) { throw new IllegalArgumentException("Could not parse Maven group Id and artifact Id (must be separated by ':')"); } return new DefaultArtifact(mavenGA[0], mavenGA[1], "", "", "", "", null);} ));
     }
     @Override 
     public void execute() throws MojoExecutionException, MojoFailureException {

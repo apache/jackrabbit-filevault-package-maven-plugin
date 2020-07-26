@@ -35,6 +35,15 @@ import org.junit.Test;
 public class AbstractValidateMojoTest {
 
     @Test
+    public void testValidMapWithIgnoredArtifacts() {
+        Assert.assertThat(AbstractValidateMojo.resolveMap(Arrays.asList("group1:name1=ignore", "group2:name2=groupId2:artifactId2")), 
+                Matchers.allOf(
+                    Matchers.hasEntry(Dependency.fromString("group1:name1"), AbstractValidateMojo.IGNORE_ARTIFACT),
+                    Matchers.hasEntry(Dependency.fromString("group2:name2"), new DefaultArtifact("groupId2", "artifactId2", "", "", "", "", null)),
+                    Matchers.aMapWithSize(2)));
+    }
+
+    @Test
     public void testValidMap() {
         Assert.assertThat(AbstractValidateMojo.resolveMap(Arrays.asList("group1:name1=groupId1:artifactId1", "group2:name2=groupId2:artifactId2")), 
                 Matchers.allOf(
