@@ -187,8 +187,20 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
                 // cannot use null values due to https://bugs.openjdk.java.net/browse/JDK-8148463 therefore rely on artificial IGNORE_ARTIFACT
                 .collect(Collectors.toMap(a -> Dependency.fromString(a[0]), a -> { if (a[1].equalsIgnoreCase(IGNORE_GAV)) { return IGNORE_ARTIFACT; } String[] mavenGA = a[1].split(":", 2); if(mavenGA.length != 2) { throw new IllegalArgumentException("Could not parse Maven group Id and artifact Id (must be separated by ':')"); } return new DefaultArtifact(mavenGA[0], mavenGA[1], "", "", "", "", null);} ));
     }
+    
+    /**
+     * 
+     * @return {@code true} to skip execution of the mojo. Default is {@code false}.
+     */
+    protected boolean shouldSkip() {
+        return false;
+    }
+    
     @Override 
     public void execute() throws MojoExecutionException, MojoFailureException {
+        if (shouldSkip()) {
+            return;
+        }
         if (skipValidation) {
             getLog().info("Skipping validation");
             return;

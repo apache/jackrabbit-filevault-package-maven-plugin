@@ -143,9 +143,8 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
     public ValidateFilesMojo() {
     }
 
-
     @Override
-    public void doExecute() throws MojoExecutionException, MojoFailureException {
+    protected boolean shouldSkip() {
         final List<String> allGoals;
         if (session != null) {
             allGoals = session.getGoals();
@@ -158,13 +157,18 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         try {
             if (!buildContext.isIncremental() && isMojoGoalExecuted(lifecycleExecutor, "validate-package", allGoals.toArray(new String[0]))) { // how to detect that "install" contains "package"? how to resolve the given goals?
                 getLog().info("Skip this mojo as this is not an incremental build and 'validate-package' is executed later on!");
-                return;
+                return true;
             }
         } catch (PluginNotFoundException | PluginResolutionException | PluginDescriptorParsingException | MojoNotFoundException
                 | NoPluginFoundForPrefixException | InvalidPluginDescriptorException | PluginVersionResolutionException
                 | LifecyclePhaseNotFoundException | LifecycleNotFoundException | PluginManagerException e1) {
             getLog().warn("Could not determine plugin executions", e1);
         }
+        return false;
+    }
+
+    @Override
+    public void doExecute() throws MojoExecutionException, MojoFailureException {
         disableChecksOnlyWorkingForPackages();
         try {
             File metaInfoVaultSourceDirectory = AbstractMetadataPackageMojo.getMetaInfVaultSourceDirectory(metaInfVaultDirectory, getLog());
