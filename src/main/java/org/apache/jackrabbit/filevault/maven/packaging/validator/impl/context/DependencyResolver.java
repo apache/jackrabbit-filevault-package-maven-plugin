@@ -83,7 +83,6 @@ public class DependencyResolver {
                 }
             }
             if (packageInfo == null) {
-                log.info("Trying to resolve dependency '" + packageDependency + "' from Maven repository");
                 packageInfo = resolve(packageDependency, log);
             }
             if (packageInfo != null) {
@@ -100,11 +99,13 @@ public class DependencyResolver {
 
         final String groupId;
         final String artifactId;
-        Artifact artifact = mapPackageDependencyToMavenArtifact.get(dependency);
+        // strip version for retrieving entry from mapping table
+        Artifact artifact = mapPackageDependencyToMavenArtifact.get(new Dependency(dependency.getGroup(), dependency.getName(), null));
         // is it special artifact which is supposed to be ignored?
         if (artifact == AbstractValidateMojo.IGNORE_ARTIFACT) {
             return null;
         }
+        log.info("Trying to resolve dependency '" + dependency + "' from Maven repository");
         // is it part of the mapping table?
         if (artifact != null) {
             groupId = artifact.getGroupId();
