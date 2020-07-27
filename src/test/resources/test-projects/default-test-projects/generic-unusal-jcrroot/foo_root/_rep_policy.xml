@@ -25,5 +25,5 @@
     <allow0
             jcr:primaryType="rep:GrantACE"
             rep:principalName="workflow-process-service"
-            rep:privileges="{Name}[jcr:read,rep:write,jcr:versionManagement,jcr:lockManagement,crx:replicate]"/>
+            rep:privileges="{Name}[jcr:read,rep:write,jcr:versionManagement,jcr:lockManagement]"/>
 </jcr:root>

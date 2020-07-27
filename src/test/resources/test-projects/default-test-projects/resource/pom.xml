@@ -51,7 +51,7 @@
                             <root>/etc/designs/some-thirdparty-libs</root>
                         </filter>
                         <filter>
-                            <root>/etc/cloudservices/ooyala</root>
+                            <root>/etc/cloudservices</root>
                         </filter>
                         <filter>
                             <root>/etc/packages/apache/consulting</root>

@@ -1,6 +1,6 @@
 Content-Package-Description:Packaging test
 Content-Package-Id:org.apache.jackrabbit.filevault:package-plugin-test-pkg:1.0.0-SNAPSHOT
-Content-Package-Roots:/apps/install/org.apache.jackrabbit.vault-3.1.40.jar,/apps/some-thirdparty-libs,/apps/wcm/core/content,/etc/cloudservices/ooyala,/etc/designs/some-thirdparty-libs,/etc/packages/apache/consulting,/libs/install/jcr-2.0.jar,/rep:policy
+Content-Package-Roots:/apps/install/org.apache.jackrabbit.vault-3.1.40.jar,/apps/some-thirdparty-libs,/apps/wcm/core/content,/etc/cloudservices,/etc/designs/some-thirdparty-libs,/etc/packages/apache/consulting,/libs/install/jcr-2.0.jar,/rep:policy
 Content-Package-Type:mixed
 Implementation-Title:Packaging test
 Implementation-Version:1.0.0-SNAPSHOT
