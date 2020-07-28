@@ -15,7 +15,7 @@
    limitations under the License.
   -->
 
-Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.1.2
+Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.1.4
 ==================================================================================
 
 Introduction
@@ -23,6 +23,20 @@ Introduction
 The Apache Jackrabbit FileVault package Maven plugin is an Apache Maven plugin that simplifies the creation of
 content package Maven artifacts. The content packages can later be used to install content into a JCR repository
 using the Apache Jackrabbit FileVault packaging runtime.
+
+Changes in Jackrabbit FileVault Package Maven Plugin 1.1.4
+---------------------------------------------------
+
+#### Bug Fixes
+* [JCRVLT-425] - m2e integration emits all errors on the pom.xml
+
+#### Improvements
+* [JCRVLT-398] - Migrate Filevault to Git
+* [JCRVLT-434] - Allow classifier option for filevault-maven-plugin
+* [JCRVLT-435] - Allow creating cleanup packages only
+* [JCRVLT-442] - Validate Mojos: Make sure that .content.xml files are processed before any other siblings
+* [JCRVLT-455] - Validation goals: Allow to hide warning due to unresolvable package dependencies
+
 
 Changes in Jackrabbit FileVault Package Maven Plugin 1.1.2
 ---------------------------------------------------
@@ -98,7 +112,7 @@ Changes in Jackrabbit FileVault Package Maven Plugin 1.0.3
 #### New Features
 * [JCRVLT-288] Support XML Docview formatting in a dedicated goal
 
-#### Improvement
+#### Improvements
 * [JCRVLT-246] Generate metadata like filter.xml and properties.xml in dedicated goal
 * [JCRVLT-274] Package Maven Plugin: Support multiple types and classifiers as filter within embedded/subpackage section
 * [JCRVLT-315] Improve error message in case of embedding invalid sub packages
