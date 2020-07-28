@@ -32,7 +32,7 @@
     <!-- ====================================================================== -->
     <groupId>org.apache.jackrabbit</groupId>
     <artifactId>filevault-package-maven-plugin</artifactId>
-    <version>1.1.4</version>
+    <version>1.1.5-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>Apache Jackrabbit FileVault - Package Maven Plugin</name>
@@ -45,7 +45,7 @@
         <filevault.version>${project.parent.version}</filevault.version> <!-- must be equal to parent version -->
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <project.build.outputTimestamp>2020-07-28T06:43:13Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2020-07-28T06:47:27Z</project.build.outputTimestamp>
     </properties>
 
     <prerequisites>
@@ -59,7 +59,7 @@
         <connection>scm:git:https://gitbox.apache.org/repos/asf/jackrabbit-filevault-package-maven-plugin.git</connection>
         <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/jackrabbit-filevault-package-maven-plugin.git</developerConnection>
         <url>https://github.com/apache/jackrabbit-filevault-package-maven-plugin/tree/${project.scm.tag}</url>
-        <tag>filevault-package-maven-plugin-1.1.4</tag>
+        <tag>master</tag>
     </scm>
 
     <ciManagement>
