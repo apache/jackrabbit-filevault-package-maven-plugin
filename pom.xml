@@ -56,10 +56,10 @@
     <!-- S C M  D E F I N I T I O N                                             -->
     <!-- ====================================================================== -->
     <scm>
-        <connection>scm:git:https://gitbox.apache.org/repos/asf/jackrabbit-filevault-package-maven.git</connection>
-        <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/jackrabbit-filevault-package-maven.git</developerConnection>
+        <connection>scm:git:https://gitbox.apache.org/repos/asf/jackrabbit-filevault-package-maven-plugin.git</connection>
+        <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/jackrabbit-filevault-package-maven-plugin.git</developerConnection>
         <url>https://github.com/apache/jackrabbit-filevault-package-maven-plugin/tree/${project.scm.tag}</url>
-        <tag>trunk</tag>
+        <tag>master</tag>
     </scm>
 
     <ciManagement>
@@ -568,7 +568,7 @@ A candidate for the Jackrabbit FileVault Package Maven Plugin ${project.version}
 https://dist.apache.org/repos/dist/dev/jackrabbit/filevault-package-maven-plugin/${project.version}/
 
 The release candidate is a zip archive of the sources in:
-https://svn.apache.org/repos/asf/jackrabbit/commons/filevault-package-maven-plugin/tags/filevault-package-maven-plugin-${project.version}/
+https://github.com/apache/jackrabbit-filevault-package-maven-plugin/tree/filevault-package-maven-plugin-${project.version}/
 
 The SHA1 checksum of the archive is
 ${checksum}
