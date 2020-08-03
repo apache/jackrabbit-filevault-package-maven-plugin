@@ -50,14 +50,18 @@ credentials needed since deployment is done via svn commit to
 Update Documentation After Release
 ==================================
 
-1. Deploy the site of the released version as described above
+1. Adjust the links to the site versions in `src/site/site.xml`
 
-2. copy the released version to the current one:
+2. Deploy the site of the released version as described above (by switching to the release tag)
+
+3. Copy the released version to the current one:
 
   ```
   $ svn rm https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault-package-maven-plugin
-  $ svn cp https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault-package-maven-plugin-archives/${project.version| \
+  $ svn cp https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault-package-maven-plugin-archives/${project.version} \
            https://svn.apache.org/repos/asf/jackrabbit/site/live/filevault-package-maven-plugin
   ```
-  
-3. deploy the snapshot site
+
+4. Commit the changes from 1.
+
+5. deploy the snapshot site
