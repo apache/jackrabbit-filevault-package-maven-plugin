@@ -273,11 +273,30 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         if (goals.length == 0) {
             return false;
         }
-        MavenExecutionPlan executionPlan = lifecycleExecutor.calculateExecutionPlan(session, goals);
-        for (MojoExecution mojoExecution : executionPlan.getMojoExecutions()) {
-            if (PLUGIN_KEY.equals(mojoExecution.getPlugin().getKey()) && mojoGoal.equals(mojoExecution.getGoal())) {
-                return true;
+        
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            MavenExecutionPlan executionPlan = lifecycleExecutor.calculateExecutionPlan(session, goals);
+            for (MojoExecution mojoExecution : executionPlan.getMojoExecutions()) {
+                if (isMojoGoalExecuted(mojoExecution, mojoGoal)) {
+                    return true;
+                }
+                lifecycleExecutor.calculateForkedExecutions(mojoExecution, session);
+                // also evaluate forked execution goals
+                if (mojoExecution.getForkedExecutions().values().stream().flatMap(Collection::stream).anyMatch( t -> isMojoGoalExecuted(t, mojoGoal))) {
+                    return true;
+                }
             }
+            return false;
+        } finally {
+            // restore old classloader as calculate execution plan modifies it
+            Thread.currentThread().setContextClassLoader(classLoader);
+        }
+    }
+    
+    private static boolean isMojoGoalExecuted(MojoExecution mojoExecution, String mojoGoal) {
+        if (PLUGIN_KEY.equals(mojoExecution.getPlugin().getKey()) && mojoGoal.equals(mojoExecution.getGoal())) {
+            return true;
         }
         return false;
     }
