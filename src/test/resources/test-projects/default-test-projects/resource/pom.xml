@@ -61,6 +61,7 @@
                         </filter>
                     </filters>
                     <embeddedTarget>/apps/some-thirdparty-libs/install</embeddedTarget>
+                    <accessControlHandling>overwrite</accessControlHandling>
                 </configuration>
             </plugin>
         </plugins>
