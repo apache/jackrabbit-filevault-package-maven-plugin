@@ -336,7 +336,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
             else if (parts.length == 3) {
                 String group = parts[1];
                 String name = parts[2];
-                if (group != "*") {
+                if (!"*".equals(group)) {
                     if (!group.equals(packageId.getGroup())) {
                         log.debug("Not applying validator settings with id '" + validatorSettingByIdAndPackage.getKey() +"' as it does not match the package " + packageId);
                         continue;
