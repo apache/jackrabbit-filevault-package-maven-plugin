@@ -49,6 +49,7 @@
                         </embedded>
                     </embeddeds>
                     <embeddedTarget>/apps/install</embeddedTarget>
+                    <accessControlHandling>overwrite</accessControlHandling>
                 </configuration>
             </plugin>
         </plugins>

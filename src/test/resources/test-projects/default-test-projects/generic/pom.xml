@@ -53,7 +53,7 @@
                             <root>/apps/some-thirdparty-libs</root>
                         </filter>
                     </filters>
-
+                    <accessControlHandling>overwrite</accessControlHandling>
                     <embeddeds>
                         <embedded>
                             <groupId>javax.jcr</groupId>

@@ -43,6 +43,21 @@ env:
     - JDK="adopt@1.8"
     - JDK="adopt@1.11"
     - JDK="adopt@1.14"
+jobs:
+  # for Java11 with linux include only one job which does sonar analysis as well as regular build
+  include:
+  - os: linux
+    env:
+       - JDK="adopt@1.11"
+       - SONARQUBE_EXECUTION=true
+  exclude:
+  - os: linux
+    env: JDK="adopt@1.11"
+addons:
+  sonarcloud:
+    organization: "apache"
+    token:
+      secure: "ftYinXGsk1HWv4lo6Iy/xIVO6ez/LYTF8Wv4VTPPsoJOU39Q78g9XusWqIiBSi3bKimrRD7U1oP5mVUGUafE2/8gaPSEnIHnAmUGdhQTMhtV1Ly97HOZfxj74vAb5gqXkT08GTaU0Juy1kcoLvG6AbxlQJEpqezgP/+yHley8VyFxx8b7y74xTJreZoD/LP1VM/rqXPA0q7199A7SnDteYtXLhHzib+GJ/xfOfwXzova3xIy24cThd15ZrOb18LYWrjs+21S049gQFXRFplKS1+fONz/khLpRrM2KeU+nMn8WWHkgjD7pZzP2hsT8eU7xN2XI3l821Dtbey715oyJhkqJwrt1qb0faPSstWANF74PB9HOeE13h+cUGTp+T0gGgsgXtkbvIQX2wC6I80k73GDwIMYrjjSfaBwtqfLOdHL9qm3fBBoq8f7ZYJjiOCcFgdbKWlo5APa0rIon4kkLzrQPgZtwiSKcW9GSVqEl6iQvxAZaLfgFuxLa7LP56HNz4uSPeXRXn737vUdMoNXIFGflA2P3zRFUcIXRAmfzqAU4w3EIYnYbTTpAOHEkjIg/SmRvxJ5I9zmzhCpIsEQIUFI4bSfzA8BrejhSU230hcvdsfWSBZbPbal4nrSFeUVliXciBLgcvfbPRam6Yv+nL0KGaZn0NZPwzngFh9tcM8="
 before_install:
   # Download the script
   - curl "${GRAVIS}.install-jdk-travis.sh" --output ~/.install-jdk-travis.sh
@@ -53,8 +68,12 @@ before_install:
   - source ~/.install-maven.sh
 # This is your main script
 script:
-  # Just an example. Do what you deem useful
-  - mvn verify -B
+  - | 
+    if [ "$SONARQUBE_EXECUTION" == "true" ]; then
+        mvn clean verify sonar:sonar -B -Pjacoco-report -Dsonar.projectKey=apache_jackrabbit-filevault-package-maven-plugin
+    else
+      mvn clean verify -B
+    fi
 # If you use Gradle, cleanup the build cache from lock/temporary files
 before_cache:
   #- curl "${GRAVIS}.clean_gradle_cache.sh" --output ~/.clean_gradle_cache.sh

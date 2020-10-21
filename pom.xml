@@ -24,7 +24,7 @@
         <groupId>org.apache.jackrabbit.vault</groupId>
         <artifactId>parent</artifactId>
         <relativePath />
-        <version>3.4.6</version>
+        <version>3.4.7-SNAPSHOT</version>
     </parent>
 
     <!-- ====================================================================== -->
@@ -52,6 +52,8 @@
         <maven>${maven.version}</maven>
     </prerequisites>
 
+    <url>https://jackrabbit.apache.org/filevault-package-maven-plugin/</url>
+    
     <!-- ====================================================================== -->
     <!-- S C M  D E F I N I T I O N                                             -->
     <!-- ====================================================================== -->
