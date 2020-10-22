@@ -233,7 +233,12 @@ public class ProjectBuilder {
         verifier.setDebug(true);
         verifier.setAutoclean(false);
         // verifier.setDebugJvm(true);
-        //verifier.setMavenDebug(true);
+        // verifier.setMavenDebug(true);
+        // propagate jacoco agent settings
+        String jacocoAgentSettings = System.getProperty("jacoco.command");
+        if (StringUtils.isNotBlank(jacocoAgentSettings)) {
+            verifier.setEnvironmentVariable("MAVEN_OPTS", jacocoAgentSettings);
+        }
         try {
             verifier.executeGoals(Arrays.asList(testGoals));
             assertFalse("Build expected to fail in project " + testProjectDir.getAbsolutePath(), buildExpectedToFail);
