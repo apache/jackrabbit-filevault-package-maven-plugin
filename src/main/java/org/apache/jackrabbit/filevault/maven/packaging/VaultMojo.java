@@ -55,7 +55,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
-import org.apache.maven.shared.filtering.MavenFileFilter;
 import org.apache.maven.shared.filtering.MavenFilteringException;
 import org.apache.maven.shared.filtering.MavenResourcesExecution;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
@@ -181,11 +180,6 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
      * {@link AbstractMetadataPackageMojo#workDirectory} */
     @Parameter
     private MavenArchiveConfiguration archive;
-
-    /**
-     */
-    @Component(role = MavenFileFilter.class, hint = "default")
-    private MavenFileFilter mavenFileFilter;
 
     /**
      */
@@ -352,6 +346,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
 
     protected MavenResourcesExecution setupMavenResourcesExecution() {
         MavenResourcesExecution mavenResourcesExecution = new MavenResourcesExecution();
+        mavenResourcesExecution.setEncoding(resourceEncoding);
         mavenResourcesExecution.setEscapeString(escapeString);
         mavenResourcesExecution.setSupportMultiLineFiltering(supportMultiLineFiltering);
         mavenResourcesExecution.setMavenProject(project);
@@ -396,6 +391,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             Map<String, File> embeddedFiles = getEmbeddedFilesMap();
 
             ContentPackageArchiver contentPackageArchiver = new ContentPackageArchiver();
+            contentPackageArchiver.setEncoding(resourceEncoding);
 
             // A map with key = relative file in zip and value = absolute source file name)
             Map<File, File> duplicateFiles = new HashMap<>();
