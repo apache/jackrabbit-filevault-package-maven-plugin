@@ -136,7 +136,7 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
     Map<String, File> getEmbeddedFilesMap() {
         Map<String, File> map = getEmbeddedFilesMap(PROPERTIES_EMBEDDEDFILESMAP_KEY + classifier);
         if (map.isEmpty()) {
-            getLog().warn("Using regular embedded files map as classifier specific one does not exist!");
+            getLog().debug("Using regular embedded files map as classifier specific one does not exist!");
             map = getEmbeddedFilesMap(PROPERTIES_EMBEDDEDFILESMAP_KEY);
         }
         return map;
