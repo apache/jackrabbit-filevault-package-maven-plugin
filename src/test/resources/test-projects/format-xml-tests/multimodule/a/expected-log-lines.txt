@@ -1,0 +1,1 @@
+[INFO] Reformatted file '%0%'.

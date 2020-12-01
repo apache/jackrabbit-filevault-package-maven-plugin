@@ -18,10 +18,12 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.jackrabbit.vault.fs.io.DocViewFormat;
 import org.apache.maven.plugin.AbstractMojo;
@@ -33,6 +35,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.codehaus.plexus.util.Scanner;
+import org.jetbrains.annotations.NotNull;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
@@ -109,11 +112,18 @@ public class FormatDocviewXmlMojo extends AbstractMojo {
             getLog().info("Skip executing mojo 'format-xml' for incremental builds as parameter 'enableForIncrementalBuilds' is set to 'false'");
         } else {
             File jcrSourceDirectory = AbstractSourceAndMetadataPackageMojo.getFirstExistingDirectory(jcrRootSourceDirectory);
-            executeInternal(jcrSourceDirectory);
+            if (jcrSourceDirectory != null) {
+                executeInternal(jcrSourceDirectory);
+            } else {
+                if (getLog().isDebugEnabled()) {
+                    getLog().debug("None of the configured jcrRootSourceDirectory directories exists, skipping: " +
+                            Arrays.stream(jcrRootSourceDirectory).map(File::toString).collect(Collectors.joining(", ")));
+                }
+            }
         }
     }
     
-    protected void executeInternal(File sourceDirectory)
+    protected void executeInternal(@NotNull File sourceDirectory)
             throws MojoExecutionException, MojoFailureException {
 
         if (includes.isEmpty()) {
