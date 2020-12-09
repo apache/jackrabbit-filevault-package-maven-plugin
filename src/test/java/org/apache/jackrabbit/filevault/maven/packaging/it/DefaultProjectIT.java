@@ -155,11 +155,20 @@ public class DefaultProjectIT {
                 .build()
                 .verifyExpectedFilesChecksum();
     }
-    
+
     @Test
     public void empty_package() throws VerificationException, IOException {
         new ProjectBuilder()
         .setTestProjectDir(TEST_PROJECT_NAME + "empty")
         .build();
+    }
+
+    @Test
+    public void additional_metainf_files() throws Exception {
+        new ProjectBuilder()
+                .setTestProjectDir(TEST_PROJECT_NAME + "additional-metainf-files")
+                .build()
+                .verifyExpectedFiles()
+                .verifyExpectedManifest();
     }
 }

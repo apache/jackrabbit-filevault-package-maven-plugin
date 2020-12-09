@@ -37,6 +37,10 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
 
     private static final String PROPERTIES_EMBEDDEDFILESMAP_KEY = "embeddedfiles.map";
 
+    protected String getProjectRelativeFilePath(File file) {
+        return "'" + project.getBasedir().toPath().relativize(file.toPath()).toString() + "'";
+    }
+
     protected static File getFirstExistingDirectory(File[] directories) {
         for (File dir: directories) {
             if (dir.exists() && dir.isDirectory()) {

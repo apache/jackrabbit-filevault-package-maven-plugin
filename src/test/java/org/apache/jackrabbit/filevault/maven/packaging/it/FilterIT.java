@@ -154,6 +154,6 @@ public class FilterIT {
     @Test 
     public void test_filter_not_covering_all_files() throws Exception {
         ProjectBuilder builder = verify("filter-not-covering-all-files", true);
-        builder.verifyExpectedLogLines(new File(builder.getTestProjectDir(), "jcr_root/apps/.content.xml").getAbsolutePath());
+        builder.verifyExpectedLogLines(new File("jcr_root/apps/.content.xml").toString());
     }
 }

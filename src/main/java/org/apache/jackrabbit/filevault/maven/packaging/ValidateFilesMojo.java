@@ -177,7 +177,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
                 metaInfRootDirectory = metaInfoVaultSourceDirectory.getParentFile();
             }
             File generatedMetaInfRootDirectory = new File(workDirectory, Constants.META_INF);
-            getLog().info("Using generatedMetaInfRootDirectory: " + generatedMetaInfRootDirectory + " and metaInfRootDir: " + metaInfRootDirectory);
+            getLog().info("Validate files in generatedMetaInfRootDirectory " + getProjectRelativeFilePath(generatedMetaInfRootDirectory) + " and metaInfRootDir " + getProjectRelativeFilePath(generatedMetaInfRootDirectory));
             ValidationContext context = new DirectoryValidationContext(generatedMetaInfRootDirectory, metaInfRootDirectory, resolver, getLog());
             ValidationExecutor executor = validationExecutorFactory.createValidationExecutor(context, false, false, getValidatorSettingsForPackage(context.getProperties().getId(), false));
             if (executor == null) {
@@ -205,7 +205,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         scanner.setExcludes(excludes);
         scanner.addDefaultExcludes();
         scanner.scan();
-        getLog().info("Scanning baseDir '" + baseDir + "'...");
+        getLog().info("Scanning baseDir " + getProjectRelativeFilePath(baseDir) + "...");
         List<String> sortedFileNames = Arrays.asList(scanner.getIncludedFiles());
         sortedFileNames.sort(new DotContentXmlFirstComparator());
         for (String fileName : sortedFileNames) {
@@ -220,24 +220,24 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
     private void validateFile(ValidationExecutor executor, File baseDir, boolean isMetaInf, String relativeFile) {
         File absoluteFile = new File(baseDir, relativeFile);
         validationHelper.clearPreviousValidationMessages(buildContext, absoluteFile);
-        getLog().debug("Validating file '" + absoluteFile + "'...");
+        getLog().debug("Validating file " + getProjectRelativeFilePath(absoluteFile) + "...");
         try (InputStream input = new FileInputStream(absoluteFile)) {
             validateInputStream(executor, input, baseDir, isMetaInf, relativeFile);
         } catch (FileNotFoundException e) {
-            getLog().error("Could not find file " + absoluteFile, e);
+            getLog().error("Could not find file " + getProjectRelativeFilePath(absoluteFile), e);
         } catch (IOException e) {
-            getLog().error("Could not validate file " + absoluteFile, e);
+            getLog().error("Could not validate file " + getProjectRelativeFilePath(absoluteFile), e);
         }
     }
     
     private void validateFolder(ValidationExecutor executor, File baseDir, boolean isMetaInf, String relativeFile) {
         File absoluteFile = new File(baseDir, relativeFile);
         validationHelper.clearPreviousValidationMessages(buildContext, absoluteFile);
-        getLog().debug("Validating folder '" + absoluteFile + "'...");
+        getLog().debug("Validating folder " + getProjectRelativeFilePath(absoluteFile) + "...");
         try {
             validateInputStream(executor, null, baseDir, isMetaInf, relativeFile);
         } catch (IOException e) {
-            getLog().error("Could not validate folder " + absoluteFile, e);
+            getLog().error("Could not validate folder " + getProjectRelativeFilePath(absoluteFile), e);
         }
     }
     

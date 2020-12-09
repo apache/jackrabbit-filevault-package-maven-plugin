@@ -106,7 +106,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     }
 
     private void validatePackage(File file) throws IOException, ParserConfigurationException, SAXException, MojoExecutionException {
-        getLog().info("Start validating package '" + file + "'...");
+        getLog().info("Start validating package " + getProjectRelativeFilePath(file) + "...");
 
         // open file to extract the meta data for the validation context
         ArchiveValidationContextImpl context;
@@ -121,7 +121,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
             } else {
                 throw new MojoExecutionException("No registered validators found!");
             }
-            getLog().debug("End validating package '" + file + "'.");
+            getLog().debug("End validating package " + getProjectRelativeFilePath(file) + ".");
         }
     }
 

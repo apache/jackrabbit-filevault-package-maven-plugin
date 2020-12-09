@@ -449,9 +449,9 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             // only execute in case of changes towards the filter.xml as the generated one contains a merge
             if (filterSource != null) {
                 if (buildContext.hasDelta(filterSource)) {
-                    getLog().debug("Detecting a change on '" + filterSource + "' therefore not cancelling build");
+                    getLog().debug("Detecting a change on " + getProjectRelativeFilePath(filterSource) + " therefore not cancelling build");
                 } else {
-                    getLog().debug("'" + filterSource + "' unchanged therefore cancelling build");
+                    getLog().debug(getProjectRelativeFilePath(filterSource) + " unchanged therefore cancelling build");
                     return;
                 }
             } else {
@@ -558,7 +558,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             try {
                 filters.load(filterFile);
             } catch (ConfigurationException e) {
-                throw new IOException("Error loading filter file '" + filterFile + "'", e);
+                throw new IOException("Error loading filter file " + getProjectRelativeFilePath(filterFile) + "", e);
             }
 
             getLog().warn("The project is using a filter.xml provided via the resource plugin.");
@@ -618,7 +618,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             try {
                 sourceFilters.load(filterSource);
             } catch (ConfigurationException e) {
-                throw new IOException("Error loading filter file '" + filterSource + "'", e);
+                throw new IOException("Error loading filter file " + getProjectRelativeFilePath(filterSource), e);
             }
         }
 
