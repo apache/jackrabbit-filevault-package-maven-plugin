@@ -48,7 +48,11 @@
                         <!-- property set here should be accepted because not set in plugin config -->
                         <acHandling>overwrite</acHandling>
                     </properties>
-
+                    <validatorsSettings>
+                        <jackrabbit-accesscontrol>
+                            <isDisabled>true</isDisabled>
+                        </jackrabbit-accesscontrol>
+                    </validatorsSettings>
                 </configuration>
             </plugin>
         </plugins>

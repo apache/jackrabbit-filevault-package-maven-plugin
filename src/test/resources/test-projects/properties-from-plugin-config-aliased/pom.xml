@@ -52,6 +52,11 @@
                         <acHandling>overwrite</acHandling>
                     </properties>
 
+                    <validatorsSettings>
+                        <jackrabbit-accesscontrol>
+                            <isDisabled>true</isDisabled>
+                        </jackrabbit-accesscontrol>
+                    </validatorsSettings>
                 </configuration>
             </plugin>
         </plugins>
