@@ -1,0 +1,9 @@
+Content-Package-Description:Packaging test
+Content-Package-Id:org.apache.jackrabbit.filevault:package-plugin-test-pkg:1.0.0-SNAPSHOT
+Content-Package-Roots:/apps/htl/test
+Content-Package-Type:mixed
+Implementation-Title:Packaging test
+Implementation-Version:1.0.0-SNAPSHOT
+Import-Package:javax.jcr;version="[2.0.0,3.0.0)"
+Import-Package:org.apache.sling.scripting.sightly;version="[2.0.0,3.0.0)"
+Manifest-Version:1.0

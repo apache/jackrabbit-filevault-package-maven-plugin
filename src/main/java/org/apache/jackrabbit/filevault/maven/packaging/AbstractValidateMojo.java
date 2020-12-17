@@ -16,6 +16,7 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Comparator;
@@ -172,6 +173,10 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
      * Artificial Maven artifact which indicates that it should not be considered for further lookup!
      */
     public static final Artifact IGNORE_ARTIFACT = new DefaultArtifact("ignore", "ignore", "1.0", "", "", "", null);
+
+    protected String getProjectRelativeFilePath(File file) {
+        return "'" + project.getBasedir().toPath().relativize(file.toPath()).toString() + "'";
+    }
 
     public AbstractValidateMojo() {
         super();

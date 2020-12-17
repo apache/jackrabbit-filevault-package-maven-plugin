@@ -79,6 +79,13 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
 
     @Component
     private ArtifactHandlerManager artifactHandlerManager;
+    
+    /**
+     * The directory that contains additional files and folders to end up in the package's META-INF folder.
+     * Every file and subfolder is considered except for the subfolder named {@code vault} and a file named {@code MANIFEST.MF}.
+     */
+    @Parameter(property = "vault.metaInfDirectory", required = false)
+    File metaInfDirectory;
 
     /** Set to {@code true} to fail the build in case of files are being contained in the {@code jcrRootSourceDirectory} which are not
      * covered by the filter rules and therefore would not end up in the package. */
@@ -235,7 +242,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         Path destFile = Paths.get(destFileName);
         if ((destFile.startsWith(Constants.ROOT_DIR) && enableJcrRootFiltering) ||
             (destFile.startsWith(Constants.META_INF) && enableMetaInfFiltering)) {
-            getLog().info("Apply filtering to " + sourceFile);
+            getLog().info("Apply filtering to " + getProjectRelativeFilePath(sourceFile));
             Resource resource = new Resource();
             resource.setDirectory(sourceFile.getParent());
             resource.setIncludes(Collections.singletonList(sourceFile.getName()));
@@ -243,7 +250,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             File newTargetDirectory = applyFiltering(destFile.getParent().toString(), mavenResourcesExecution, resource);
             sourceFile = new File(newTargetDirectory, sourceFile.getName());
         }
-        getLog().debug("Adding file '" + sourceFile + "' to package at '" + destFileName + "'");
+        getLog().debug("Adding file " + getProjectRelativeFilePath(sourceFile) + " to package at " + destFileName + "'");
         archiver.addFile(sourceFile, destFileName);
 
     }
@@ -260,7 +267,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         if ((fileSet.getPrefix().startsWith(Constants.ROOT_DIR) && enableJcrRootFiltering) ||
             (fileSet.getPrefix().startsWith(Constants.META_INF) && enableMetaInfFiltering)) {
             
-            getLog().info("Apply filtering to FileSet below " + fileSet.getDirectory());
+            getLog().info("Apply filtering to FileSet below " + getProjectRelativeFilePath(fileSet.getDirectory()));
             Resource resource = new Resource();
             resource.setDirectory(fileSet.getDirectory().getPath());
             if (fileSet.getIncludes() != null) {
@@ -377,32 +384,39 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         final File finalFile = getZipFile(outputDirectory, finalName, classifier);
 
-        MavenResourcesExecution mavenResourcesExection = setupMavenResourcesExecution();
+        MavenResourcesExecution mavenResourcesExecution = setupMavenResourcesExecution();
         try {
-            // find the meta-inf source directory
-            File metaInfDirectory = getMetaInfVaultSourceDirectory();
-            // find the source directory
-            final File jcrSourceDirectory = getJcrSourceDirectory();
-            if (jcrSourceDirectory != null) {
-                getLog().info("Packaging content from " + jcrSourceDirectory.getPath());
+            ContentPackageArchiver contentPackageArchiver = new ContentPackageArchiver();
+            contentPackageArchiver.setEncoding(resourceEncoding);
+
+            if (metaInfDirectory != null) {
+                if (metaInfDirectory.exists() && metaInfDirectory.isDirectory()) {
+                    DefaultFileSet fileSet = createFileSet(metaInfDirectory, Constants.META_INF + "/",
+                            Collections.singletonList(Constants.VAULT_DIR));
+                    addFileSetToArchive(mavenResourcesExecution, contentPackageArchiver, fileSet);
+                    getLog().info("Include additional META-INF files/folders from " + getProjectRelativeFilePath(metaInfDirectory) + " in package.");
+                } else {
+                    getLog().warn("Given metaInfDirectory " + getProjectRelativeFilePath(metaInfDirectory) + " does not exist or is no directory. It won't be included in the package.");
+                }
             }
+            
+            // find the meta-inf/vault source directory
+            File metaInfVaultDirectory = getMetaInfVaultSourceDirectory();
+            
             // retrieve filters
             Filters filters = loadGeneratedFilterFile();
             Map<String, File> embeddedFiles = getEmbeddedFilesMap();
 
-            ContentPackageArchiver contentPackageArchiver = new ContentPackageArchiver();
-            contentPackageArchiver.setEncoding(resourceEncoding);
-
             // A map with key = relative file in zip and value = absolute source file name)
             Map<File, File> duplicateFiles = new HashMap<>();
             contentPackageArchiver.setIncludeEmptyDirs(true);
-            if (metaInfDirectory != null) {
+            if (metaInfVaultDirectory != null) {
                 // first add the metadata from the metaInfDirectory (they should take precedence over the generated ones from workDirectory,
                 // except for the filter.xml, which should always come from the work directory)
-                DefaultFileSet fileSet = createFileSet(metaInfDirectory, Constants.META_DIR + "/",
+                DefaultFileSet fileSet = createFileSet(metaInfVaultDirectory, Constants.META_DIR + "/",
                         Collections.singletonList(Constants.FILTER_XML));
                 duplicateFiles.putAll(getOverwrittenProtectedFiles(fileSet, true));
-                addFileSetToArchive(mavenResourcesExection, contentPackageArchiver, fileSet);
+                addFileSetToArchive(mavenResourcesExecution, contentPackageArchiver, fileSet);
             }
             // then add all files from the workDirectory (they might overlap with the ones from metaInfDirectory, but the duplicates are
             // just ignored in the package)
@@ -410,8 +424,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             // issue warning in case of overlaps
             Map<File, File> overwrittenWorkFiles = getOverwrittenProtectedFiles(fileSet, true);
             for (Entry<File, File> entry : overwrittenWorkFiles.entrySet()) {
-                String message = "Found duplicate file '" + entry.getKey() + "' from sources '" + protectedFiles.get(entry.getKey())
-                        + "' and '" + entry.getValue() + "'.";
+                String message = "Found duplicate file '" + entry.getKey() + "' from sources " + getProjectRelativeFilePath(protectedFiles.get(entry.getKey()))
+                        + " and " + getProjectRelativeFilePath(entry.getValue()) + ".";
 
                 // INFO for the static ones all others warn
                 if (STATIC_META_INF_FILES.contains(entry.getKey())) {
@@ -420,23 +434,25 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                     getLog().warn(message);
                 }
             }
-            addFileSetToArchive(mavenResourcesExection, contentPackageArchiver, fileSet);
+            addFileSetToArchive(mavenResourcesExecution, contentPackageArchiver, fileSet);
 
             // add embedded files
             for (Map.Entry<String, File> entry : embeddedFiles.entrySet()) {
                 protectedFiles.put(new File(entry.getKey()), entry.getValue());
-                addFileToArchive(mavenResourcesExection, contentPackageArchiver, entry.getValue(), entry.getKey());
+                addFileToArchive(mavenResourcesExecution, contentPackageArchiver, entry.getValue(), entry.getKey());
             }
-
+            // find the source directory
+            final File jcrSourceDirectory = getJcrSourceDirectory();
             // include content from build only if it exists
             if (jcrSourceDirectory != null && jcrSourceDirectory.exists()) {
-                Map<File, File> overwrittenFiles = addSourceDirectory(mavenResourcesExection, contentPackageArchiver, jcrSourceDirectory, filters, embeddedFiles);
+                getLog().info("Packaging content from " + getProjectRelativeFilePath(jcrSourceDirectory));
+                Map<File, File> overwrittenFiles = addSourceDirectory(mavenResourcesExecution, contentPackageArchiver, jcrSourceDirectory, filters, embeddedFiles);
                 duplicateFiles.putAll(overwrittenFiles);
 
                 if (!duplicateFiles.isEmpty()) {
                     for (Entry<File, File> entry : duplicateFiles.entrySet()) {
-                        String message = "Found duplicate file '" + entry.getKey() + "' from sources '" + protectedFiles.get(entry.getKey())
-                                + "' and '" + entry.getValue() + "'.";
+                        String message = "Found duplicate file '" + entry.getKey() + "' from sources " + getProjectRelativeFilePath(protectedFiles.get(entry.getKey()))
+                                + " and " + getProjectRelativeFilePath(entry.getValue()) + ".";
                         if (failOnDuplicateEntries) {
                             getLog().error(message);
                         } else {
@@ -454,8 +470,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                         contentPackageArchiver.getFiles().keySet());
                 if (!uncoveredFiles.isEmpty()) {
                     for (File uncoveredFile : uncoveredFiles) {
-                        String message = "File '" + uncoveredFile
-                                + "' not covered by a filter rule and therefore not contained in the resulting package";
+                        String message = "File " + getProjectRelativeFilePath(uncoveredFile)
+                                + " not covered by a filter rule and therefore not contained in the resulting package";
                         if (failOnUncoveredSourceFiles) {
                             getLog().error(message);
                         } else {
@@ -573,7 +589,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         // is there an according .content.xml available? (ignore full-coverage files)
         File genericAggregate = new File(inputFile, Constants.DOT_CONTENT_XML);
         if (genericAggregate.exists()) {
-            getLog().debug("Adding ancestor file '" + genericAggregate + "' to package at '" + destFile + "/" + Constants.DOT_CONTENT_XML +"'");
+            getLog().debug("Adding ancestor file " + getProjectRelativeFilePath(genericAggregate) + " to package at '" + destFile + "/" + Constants.DOT_CONTENT_XML +"'");
             contentPackageArchiver.addFile(genericAggregate, destFile + "/" + Constants.DOT_CONTENT_XML);
         }
         addAncestors(contentPackageArchiver, inputFile.getParentFile(), inputRootFile, StringUtils.chomp(destFile, "/"));
