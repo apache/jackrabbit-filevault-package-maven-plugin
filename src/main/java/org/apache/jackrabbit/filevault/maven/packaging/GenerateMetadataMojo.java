@@ -509,7 +509,10 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
                     vaultDefinitionFolder.mkdir();
                 }
                 copyFile("/vault/definition/.content.xml", new File(vaultDefinitionFolder, ".content.xml"));
-                FileUtils.copyFile(thumbnailImage, new File(vaultDefinitionFolder, "thumbnail.png"));
+                // copy thumbnail image only when it's not already placed in the source META-INF directory
+                if (!thumbnailImage.equals(new File(metaInfDirectory, "/definition/thumbnail.png"))) {
+                    FileUtils.copyFile(thumbnailImage, new File(vaultDefinitionFolder, "thumbnail.png"));
+                }
             }
 
             writeManifest(getGeneratedManifestFile(true), dependenciesString, dependenciesLocations, vaultProperties);
