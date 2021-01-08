@@ -106,9 +106,15 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     @Parameter(property = "vault.outputDirectory", defaultValue = "${project.build.directory}", required = true)
     private File outputDirectory;
 
+    /** Enables resource filtering on the meta-inf source files similar to what the <a href="https://maven.apache.org/plugins/maven-resources-plugin/examples/filter.html">maven-resources-plugin</a> does.
+     * @since 1.1.0 
+     */
     @Parameter(property = "vault.enableMetaInfFiltering", defaultValue = "false")
     private boolean enableMetaInfFiltering;
 
+    /** Enables resource filtering on the {@link AbstractSourceAndMetadataPackageMojo#jcrRootSourceDirectory} source files similar to what the <a href="https://maven.apache.org/plugins/maven-resources-plugin/examples/filter.html">maven-resources-plugin</a> does.
+     * @since 1.1.0 
+     */
     @Parameter(property = "vault.enableJcrRootFiltering", defaultValue = "false") 
     private boolean enableJcrRootFiltering;
 
