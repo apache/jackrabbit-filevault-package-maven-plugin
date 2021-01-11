@@ -18,6 +18,7 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Map;
 import java.util.jar.JarFile;
@@ -38,7 +39,15 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
     private static final String PROPERTIES_EMBEDDEDFILESMAP_KEY = "embeddedfiles.map";
 
     protected String getProjectRelativeFilePath(File file) {
-        return "'" + project.getBasedir().toPath().relativize(file.toPath()).toString() + "'";
+        return getRelativePath(project.getBasedir().toPath(), file.toPath());
+    }
+
+    protected static String getRelativePath(Path base, Path file) {
+        if (file.startsWith(base)) {
+            return "'" + base.relativize(file).toString() + "'"; 
+        } else {
+            return "'" + file.toString() + "'";
+        }
     }
 
     protected static File getFirstExistingDirectory(File[] directories) {
