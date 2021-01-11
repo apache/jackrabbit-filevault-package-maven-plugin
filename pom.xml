@@ -24,7 +24,7 @@
         <groupId>org.apache.jackrabbit.vault</groupId>
         <artifactId>parent</artifactId>
         <relativePath />
-        <version>3.4.7-SNAPSHOT</version>
+        <version>3.4.8</version>
     </parent>
 
     <!-- ====================================================================== -->
