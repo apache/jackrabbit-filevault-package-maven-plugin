@@ -15,7 +15,7 @@
    limitations under the License.
   -->
 
-Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.1.4
+Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.1.6
 ==================================================================================
 
 Introduction
@@ -23,6 +23,25 @@ Introduction
 The Apache Jackrabbit FileVault package Maven plugin is an Apache Maven plugin that simplifies the creation of
 content package Maven artifacts. The content packages can later be used to install content into a JCR repository
 using the Apache Jackrabbit FileVault packaging runtime.
+
+Changes in Jackrabbit FileVault Package Maven Plugin 1.1.6
+---------------------------------------------------
+
+#### Bug Fixes
+* [JCRVLT-467] - Thread Context ClassLoader destroyed in validate-files mojo
+* [JCRVLT-477] - package maven plugin filtering complains about platform encoding although project.build.sourceEncoding is set
+* [JCRVLT-478] - package maven plugin reports warning when classifier option is not used
+* [JCRVLT-481] - filefault-package:format-xml fails when executed in build reactor
+* [JCRVLT-483] - Package thumbnail image is copied twice (and produced warnings) if placed in META-INF/vault/definition folder
+* [JCRVLT-490] - jackrabbit-filevault-package-maven-plugin fails embedding files located on different drives on Windows
+
+#### Improvements
+* [JCRVLT-466] - Allow embeddeds and subpackages to optionally only work on direct but not transitive dependencies
+* [JCRVLT-468] - Skip "validate-files" when "validate-package" is executed later on also in case of forked executions
+* [JCRVLT-471] - Allow configuring files that will be packaged under META-INF
+* [JCRVLT-475] - Enable Sonarcloud.io analysis with Travis
+
+
 
 Changes in Jackrabbit FileVault Package Maven Plugin 1.1.4
 ---------------------------------------------------
