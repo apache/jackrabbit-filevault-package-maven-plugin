@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -80,6 +81,12 @@ import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
+import org.eclipse.aether.resolution.ArtifactResult;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 import aQute.bnd.header.Attrs;
@@ -402,6 +409,22 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             required = true)
     boolean allowIndexDefinitions;
 
+    @Component
+    private RepositorySystem repoSystem;
+
+    @Parameter( defaultValue = "${repositorySystemSession}", readonly = true, required = true )
+    private RepositorySystemSession repoSession;
+
+    @Parameter( defaultValue = "${project.remoteProjectRepositories}", readonly = true, required = true )
+    private List<RemoteRepository> repositories;
+
+    /**
+     * A list of artifact coordinates in the format {@code <groupId>:<artifactId>[:<extension>[:<classifier>]]:<version>}.
+     * The resolved artifacts are embedded as <a href="http://jackrabbit.apache.org/filevault/installhooks.html">internal install hooks</a> in the resulting content package.
+     */
+    @Parameter(defaultValue="")
+    List<ArtifactCoordinates> installHooks;
+
     // take the first "-" followed by a digit as separator between version suffix and rest
     private static final Pattern FILENAME_PATTERN_WITHOUT_VERSION_IN_GROUP1 = Pattern.compile("((?!-\\d).*-)\\d.*");
 
@@ -488,6 +511,15 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             // calculate the embeddeds and subpackages
             Map<String, File> embeddedFiles = getEmbeddeds();
             embeddedFiles.putAll(getSubPackages());
+            
+            // embed install hooks
+            if (installHooks != null && !installHooks.isEmpty()) {
+                for (ArtifactCoordinates installHook : installHooks) {
+                    File installHookFile = resolveArtifact(installHook.toArtifact());
+                    embeddedFiles.put(Constants.META_DIR + "/" + Constants.HOOKS_DIR + "/" + installHookFile.getName(), installHookFile);
+                    getLog().info("Embed install hook " + installHookFile);
+                }
+            }
             setEmbeddedFilesMap(embeddedFiles);
 
             String dependenciesString = computeDependencies();
@@ -1197,6 +1229,17 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             } else {
                 throw new IllegalArgumentException("Could not find resource " + source);
             }
+        }
+    }
+    
+    private File resolveArtifact(org.eclipse.aether.artifact.Artifact artifact) throws MojoExecutionException {
+        ArtifactRequest req = new ArtifactRequest(artifact, this.repositories, null);
+        ArtifactResult resolutionResult;
+        try {
+            resolutionResult = this.repoSystem.resolveArtifact( this.repoSession, req );
+            return resolutionResult.getArtifact().getFile();
+        } catch( ArtifactResolutionException e ) {
+            throw new MojoExecutionException( "Artifact " + artifact + " could not be resolved.", e );
         }
     }
 }

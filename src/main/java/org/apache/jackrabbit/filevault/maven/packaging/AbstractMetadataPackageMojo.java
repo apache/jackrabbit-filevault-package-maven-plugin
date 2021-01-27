@@ -30,6 +30,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Common ancestor of all mojos dealing with package metadata.
@@ -151,18 +152,18 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
      */
     Map<String, File> getEmbeddedFilesMap() {
         Map<String, File> map = getEmbeddedFilesMap(PROPERTIES_EMBEDDEDFILESMAP_KEY + classifier);
-        if (map.isEmpty()) {
+        if (map == null) {
             getLog().debug("Using regular embedded files map as classifier specific one does not exist!");
             map = getEmbeddedFilesMap(PROPERTIES_EMBEDDEDFILESMAP_KEY);
         }
-        return map;
+        return map == null ? Collections.emptyMap() : map;
     }
 
     @SuppressWarnings("unchecked")
-    private Map<String, File> getEmbeddedFilesMap(String key) {
+    private @Nullable Map<String, File> getEmbeddedFilesMap(String key) {
         Object value = getPluginContext().get(key);
         if (value == null) {
-            return Collections.emptyMap();
+            return null;
         } else {
             if (value instanceof Map<?,?>) {
                 return (Map<String, File>) value;
