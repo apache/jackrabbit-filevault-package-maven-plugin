@@ -426,7 +426,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             }
             // then add all files from the workDirectory (they might overlap with the ones from metaInfDirectory, but the duplicates are
             // just ignored in the package)
-            DefaultFileSet fileSet = createFileSet(workDirectory, "");
+            DefaultFileSet fileSet = createFileSet(getWorkDirectory(false), "");
             // issue warning in case of overlaps
             Map<File, File> overwrittenWorkFiles = getOverwrittenProtectedFiles(fileSet, true);
             for (Entry<File, File> entry : overwrittenWorkFiles.entrySet()) {

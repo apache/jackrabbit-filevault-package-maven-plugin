@@ -469,7 +469,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
         // JCRVLT-331 share work directory to expose vault metadata between process-classes and package phases for
         // multi-module builds.
         getArtifactWorkDirectoryLookup(getPluginContext())
-                .put(getModuleArtifactKey(project.getArtifact()), workDirectory);
+                .put(getModuleArtifactKey(project.getArtifact()), getWorkDirectory(true));
 
         try {
             // find the meta-inf source directory
@@ -1001,7 +1001,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
                     File propsXml = new File(otherWorkDirectory, propsRelPath);
                     if (!propsXml.exists()) {
                         // fallback to work dir (assuming the same folder name)
-                        propsXml = new File(otherWorkDirectory.getParent(), workDirectory.getName() + "/" + propsRelPath);
+                        propsXml = new File(otherWorkDirectory.getParent(), getWorkDirectory(false).getName() + "/" + propsRelPath);
                     }
                     try (InputStream input = new FileInputStream(propsXml)) {
                         props.loadFromXML(input);
