@@ -21,7 +21,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.jackrabbit.filevault.maven.packaging.it.ProjectBuilder;
+import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -44,5 +47,15 @@ public class VaultMojoTest {
         Set<String> entryNames = Collections.singleton(new File("jcr_root/apps/.content.xml").getPath());
         Collection<File> uncoveredFiles = VaultMojo.getUncoveredFiles(sourceDirectory, excludes, "", entryNames);
         Assert.assertThat(uncoveredFiles, Matchers.empty());
+    }
+
+    @Test
+    public void testCloneFileSet() {
+        DefaultFileSet fileSet = new DefaultFileSet();
+        fileSet.setIncludes(new String[] { "ab", "c" });
+        fileSet.setExcludes(new String[] { "de", "f" });
+        fileSet.setIncludingEmptyDirectories(true);
+        DefaultFileSet clonedFileSet = VaultMojo.cloneFileSet(fileSet);
+        Assert.assertTrue("Expected " + ToStringBuilder.reflectionToString(fileSet) + " but got " + ToStringBuilder.reflectionToString(clonedFileSet), EqualsBuilder.reflectionEquals(fileSet, clonedFileSet));
     }
 }

@@ -63,6 +63,7 @@ import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.MatchPatterns;
 import org.codehaus.plexus.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -107,12 +108,14 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     private File outputDirectory;
 
     /** Enables resource filtering on the meta-inf source files similar to what the <a href="https://maven.apache.org/plugins/maven-resources-plugin/examples/filter.html">maven-resources-plugin</a> does.
+     * It is recommended to limit filtering with {@link #filteredFilePatterns} and {@link #nonFilteredFileExtensions}.
      * @since 1.1.0 
      */
     @Parameter(property = "vault.enableMetaInfFiltering", defaultValue = "false")
     private boolean enableMetaInfFiltering;
 
     /** Enables resource filtering on the {@link AbstractSourceAndMetadataPackageMojo#jcrRootSourceDirectory} source files similar to what the <a href="https://maven.apache.org/plugins/maven-resources-plugin/examples/filter.html">maven-resources-plugin</a> does.
+     * It is recommended to limit filtering with {@link #filteredFilePatterns} and {@link #nonFilteredFileExtensions}.
      * @since 1.1.0 
      */
     @Parameter(property = "vault.enableJcrRootFiltering", defaultValue = "false") 
@@ -171,11 +174,22 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     @Parameter(property="vault.escapedBackslashesInFilePath", defaultValue = "false")
     private boolean escapedBackslashesInFilePath;
 
-    /** Additional list of file extensions that should not be filtered.
-     * (already defined are : jpg, jpeg, gif, bmp, png)
+    /** Additional list of file extensions that should not be filtered, e.g. binaries.
+     * Already predefined as extensions which should never be filtered are: jpg, jpeg, gif, bmp, png, ico.
+     * Instead of using this deny list approach for binary files and others which should not be filtered, 
+     * consider using an allow list via {@link #filteredFilePatterns} instead.
      * @since 1.1.0 */
     @Parameter(property="vault.nonFilteredFileExtensions")
     private List<String> nonFilteredFileExtensions;
+
+    /** 
+     * Restricts the files which should be filtered to the ones having matching one of the given <a href="http://ant.apache.org/manual/dirtasks.html#patterns">Ant patterns</a>.
+     * Evaluated before {@link #nonFilteredFileExtensions}.
+     * All patterns are relative to the root paths (given through the filter.xml root entries or the META-INF directory).
+     * If empty or not set all files except for the ones from {@link #nonFilteredFileExtensions} are filtered.
+     * @since 1.1.8 */
+    @Parameter(property="vault.filteredFilePatterns")
+    private List<String> filteredFilePatterns;
 
     /** Stop searching endToken at the end of line when filtering is applied.
      * 
@@ -248,13 +262,16 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         Path destFile = Paths.get(destFileName);
         if ((destFile.startsWith(Constants.ROOT_DIR) && enableJcrRootFiltering) ||
             (destFile.startsWith(Constants.META_INF) && enableMetaInfFiltering)) {
-            getLog().info("Apply filtering to " + getProjectRelativeFilePath(sourceFile));
-            Resource resource = new Resource();
-            resource.setDirectory(sourceFile.getParent());
-            resource.setIncludes(Collections.singletonList(sourceFile.getName()));
-            resource.setFiltering(true);
-            File newTargetDirectory = applyFiltering(destFile.getParent().toString(), mavenResourcesExecution, resource);
-            sourceFile = new File(newTargetDirectory, sourceFile.getName());
+            MatchPatterns matchPatterns = MatchPatterns.from(filteredFilePatterns);
+            if (filteredFilePatterns == null || matchPatterns.matches(sourceFile.toString(), true)) {
+                getLog().info("Apply filtering to " + getProjectRelativeFilePath(sourceFile));
+                Resource resource = new Resource();
+                resource.setDirectory(sourceFile.getParent());
+                resource.setIncludes(Collections.singletonList(sourceFile.getName()));
+                resource.setFiltering(true);
+                File newTargetDirectory = applyFiltering(destFile.getParent().toString(), mavenResourcesExecution, resource);
+                sourceFile = new File(newTargetDirectory, sourceFile.getName());
+            }
         }
         getLog().debug("Adding file " + getProjectRelativeFilePath(sourceFile) + " to package at " + destFileName + "'");
         archiver.addFile(sourceFile, destFileName);
@@ -274,21 +291,60 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             (fileSet.getPrefix().startsWith(Constants.META_INF) && enableMetaInfFiltering)) {
             
             getLog().info("Apply filtering to FileSet below " + getProjectRelativeFilePath(fileSet.getDirectory()));
-            Resource resource = new Resource();
-            resource.setDirectory(fileSet.getDirectory().getPath());
-            if (fileSet.getIncludes() != null) {
-                resource.setIncludes(Arrays.asList(fileSet.getIncludes()));
+            Resource filteringSourceResource = new Resource();
+            filteringSourceResource.setDirectory(fileSet.getDirectory().getPath());
+            
+            // since allow lists (i.e. only filtering specific extensions) is not natively supported
+            // split up the fileSet
+            if (filteredFilePatterns != null && !filteredFilePatterns.isEmpty()) {
+                if (fileSet.getIncludes() != null) {
+                    throw new IllegalStateException("FileSet can not have includes set, as those are used for filteredFileExtensions");
+                }
+                // create an additional file set with unfiltered files
+                DefaultFileSet unfilteredFileSet = cloneFileSet(fileSet);
+                
+                // add all filtered file patterns to excludes
+                String[] excludes = Stream.of(Arrays.asList(fileSet.getExcludes()), filteredFilePatterns).flatMap(x -> x.stream()).toArray(String[]::new);
+                unfilteredFileSet.setExcludes(excludes);
+                
+                getLog().debug("Adding unfiltered fileSet '" + getString(unfilteredFileSet) + "' to package");
+                archiver.addFileSet(unfilteredFileSet);
+                filteringSourceResource.setIncludes(filteredFilePatterns);
+            } else {
+                if (fileSet.getIncludes() != null) {
+                    filteringSourceResource.setIncludes(Arrays.asList(fileSet.getIncludes()));
+                }
             }
+           
             if (fileSet.getExcludes() != null) {
-                resource.setExcludes(Arrays.asList(fileSet.getExcludes()));
+                filteringSourceResource.setExcludes(Arrays.asList(fileSet.getExcludes()));
                 // default exclude are managed via mavenResourcesExecution
             }
-            resource.setFiltering(true);
-            File newTargetDirectory = applyFiltering(fileSet.getPrefix(), mavenResourcesExecution, resource);
-            fileSet.setDirectory(newTargetDirectory);
+            filteringSourceResource.setFiltering(true);
+            File newTargetDirectory = applyFiltering(fileSet.getPrefix(), mavenResourcesExecution, filteringSourceResource);
+            if (newTargetDirectory.exists()) {
+                fileSet.setDirectory(newTargetDirectory);
+                getLog().debug("Adding filtered fileSet '" + getString(fileSet) + "' to package");
+                archiver.addFileSet(fileSet);
+            }
+        } else {
+            getLog().debug("Adding fileSet '" + getString(fileSet) + "' to package");
+            archiver.addFileSet(fileSet);
         }
-        getLog().debug("Adding fileSet '" + getString(fileSet) + "' to package");
-        archiver.addFileSet(fileSet);
+    }
+
+    static DefaultFileSet cloneFileSet(DefaultFileSet defaultFileSet) {
+        DefaultFileSet newFileSet = new DefaultFileSet(defaultFileSet.getDirectory());
+        newFileSet.setCaseSensitive(defaultFileSet.isCaseSensitive());
+        newFileSet.setExcludes(defaultFileSet.getExcludes());
+        newFileSet.setFileMappers(defaultFileSet.getFileMappers());
+        newFileSet.setFileSelectors(defaultFileSet.getFileSelectors());
+        newFileSet.setIncludes(defaultFileSet.getIncludes());
+        newFileSet.setIncludingEmptyDirectories(defaultFileSet.isIncludingEmptyDirectories());
+        newFileSet.setPrefix(defaultFileSet.getPrefix());
+        newFileSet.setStreamTransformer(defaultFileSet.getStreamTransformer());
+        newFileSet.setUsingDefaultExcludes(defaultFileSet.isUsingDefaultExcludes());
+        return newFileSet;
     }
 
     private static String getString(FileSet fileSet) {
