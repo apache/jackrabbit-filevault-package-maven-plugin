@@ -19,6 +19,7 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,10 +27,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.factory.ArtifactFactory;
-import org.apache.maven.artifact.repository.ArtifactRepository;
-import org.apache.maven.artifact.resolver.AbstractArtifactResolutionException;
-import org.apache.maven.artifact.resolver.ArtifactResolver;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -43,6 +40,10 @@ import org.codehaus.mojo.animal_sniffer.ClassListBuilder;
 import org.codehaus.mojo.animal_sniffer.SignatureChecker;
 import org.codehaus.mojo.animal_sniffer.maven.MavenLogger;
 import org.codehaus.mojo.animal_sniffer.maven.Signature;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.repository.RemoteRepository;
 
 /**
  * Maven goal which checks the embedded libraries against a defined
@@ -63,7 +64,7 @@ public class CheckSignatureMojo extends AbstractMojo {
     private MavenProject project;
 
     /**
-     * list of embedded bundles
+     * list of embedded bundles to scan
      */
     @Parameter
     private Embedded[] embeddeds = new Embedded[0];
@@ -76,32 +77,26 @@ public class CheckSignatureMojo extends AbstractMojo {
     private boolean failOnMissingEmbed;
 
 
-    /**
-     */
     @Component
-    private ArtifactFactory artifactFactory;
+    private RepositorySystem repoSystem;
+
+    @Parameter( defaultValue = "${repositorySystemSession}", readonly = true, required = true )
+    private RepositorySystemSession repoSession;
+
+    @Parameter( defaultValue = "${project.remoteProjectRepositories}", readonly = true, required = true )
+    private List<RemoteRepository> repositories;
 
     /**
      * Project classpath.
      */
     @Parameter(property = "project.compileClasspathElements", required = true, readonly = true)
-    private List classpathElements;
+    private List<String> classpathElements;
 
     /**
      * Class names to ignore signatures for (wildcards accepted).
      */
     @Parameter
     private String[] ignores;
-
-    /**
-     */
-    @Parameter(property = "localRepository", readonly = true)
-    private ArtifactRepository localRepository;
-
-    /**
-     */
-    @Component
-    private ArtifactResolver resolver;
 
     /**
      * Signature module to use.
@@ -120,9 +115,8 @@ public class CheckSignatureMojo extends AbstractMojo {
      */
     private Set<String> buildPackageList() throws IOException {
         ClassListBuilder plb = new ClassListBuilder(new MavenLogger(getLog()));
-        for (Object classpathElement : classpathElements) {
-            String path = (String) classpathElement;
-            plb.process(new File(path));
+        for (String classpathElement : classpathElements) {
+            plb.process(new File(classpathElement));
         }
         return plb.getPackages();
     }
@@ -140,9 +134,8 @@ public class CheckSignatureMojo extends AbstractMojo {
         try {
             getLog().info("Checking unresolved references to " + signature);
 
-            org.apache.maven.artifact.Artifact a = signature.createArtifact(artifactFactory);
-
-            resolver.resolve(a, project.getRemoteArtifactRepositories(), localRepository);
+            org.eclipse.aether.artifact.Artifact artifact = new DefaultArtifact(signature.getGroupId(),signature.getArtifactId(), "signature", signature.getVersion());
+            File signatureFile = AbstractMetadataPackageMojo.resolveArtifact(artifact, repoSystem, repoSession, repositories);
             // just check code from this module
             final Set<String> ignoredPackages = buildPackageList();
 
@@ -159,20 +152,20 @@ public class CheckSignatureMojo extends AbstractMojo {
                 getLog().debug(ignoredPackages.toString());
             }
 
-            final SignatureChecker signatureChecker = new SignatureChecker(new FileInputStream(a.getFile()),
-                    ignoredPackages, new MavenLogger(getLog()));
-            signatureChecker.setCheckJars(true);
-            signatureChecker.setSourcePath(Collections.singletonList(new File(project.getBuild().getSourceDirectory())));
-            signatureChecker.process(getEmbeddeds().toArray(new File[0]));
+            try (InputStream signatureInput = new FileInputStream(signatureFile)) {
+                final SignatureChecker signatureChecker = new SignatureChecker(signatureInput,
+                        ignoredPackages, new MavenLogger(getLog()));
+                signatureChecker.setCheckJars(true);
+                signatureChecker.setSourcePath(Collections.singletonList(new File(project.getBuild().getSourceDirectory())));
+                signatureChecker.process(getEmbeddeds().toArray(new File[0]));
 
-            if (signatureChecker.isSignatureBroken()) {
-                throw new MojoFailureException(
-                        "Signature errors found. Verify them and put @IgnoreJRERequirement on them.");
+                if (signatureChecker.isSignatureBroken()) {
+                    throw new MojoFailureException(
+                            "Signature errors found. Verify them and put @IgnoreJRERequirement on them.");
+                }
             }
         } catch (IOException e) {
             throw new MojoExecutionException("Failed to check signatures", e);
-        } catch (AbstractArtifactResolutionException e) {
-            throw new MojoExecutionException("Failed to obtain signature: " + signature, e);
         }
     }
 

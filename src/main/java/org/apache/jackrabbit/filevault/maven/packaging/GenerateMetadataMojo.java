@@ -78,15 +78,12 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.jar.ManifestException;
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.IOUtil;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.maven.shared.utils.io.FileUtils;
+import org.apache.maven.shared.utils.io.IOUtil;
+import org.apache.maven.shared.utils.StringUtils;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
-import org.eclipse.aether.resolution.ArtifactRequest;
-import org.eclipse.aether.resolution.ArtifactResolutionException;
-import org.eclipse.aether.resolution.ArtifactResult;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 import aQute.bnd.header.Attrs;
@@ -1233,13 +1230,6 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
     }
     
     private File resolveArtifact(org.eclipse.aether.artifact.Artifact artifact) throws MojoExecutionException {
-        ArtifactRequest req = new ArtifactRequest(artifact, this.repositories, null);
-        ArtifactResult resolutionResult;
-        try {
-            resolutionResult = this.repoSystem.resolveArtifact( this.repoSession, req );
-            return resolutionResult.getArtifact().getFile();
-        } catch( ArtifactResolutionException e ) {
-            throw new MojoExecutionException( "Artifact " + artifact + " could not be resolved.", e );
-        }
+        return resolveArtifact(artifact, repoSystem, repoSession, repositories);
     }
 }

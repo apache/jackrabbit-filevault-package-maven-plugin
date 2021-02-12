@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.jar.JarFile;
 
@@ -27,9 +28,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.maven.plugin.AbstractMojo;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.repository.RemoteRepository;
+import org.eclipse.aether.resolution.ArtifactRequest;
+import org.eclipse.aether.resolution.ArtifactResolutionException;
+import org.eclipse.aether.resolution.ArtifactResult;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -219,6 +227,17 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
             log.info("Using META-INF/vault from " + metaInfDirectory.getPath());
         }
         return metaInfDirectory;
+    }
+
+    protected static File resolveArtifact(org.eclipse.aether.artifact.Artifact artifact, RepositorySystem repoSystem, RepositorySystemSession repoSession, List<RemoteRepository> repositories) throws MojoExecutionException {
+        ArtifactRequest req = new ArtifactRequest(artifact, repositories, null);
+        ArtifactResult resolutionResult;
+        try {
+            resolutionResult = repoSystem.resolveArtifact(repoSession, req);
+            return resolutionResult.getArtifact().getFile();
+        } catch( ArtifactResolutionException e ) {
+            throw new MojoExecutionException("Artifact " + artifact + " could not be resolved.", e);
+        }
     }
 
     Filters loadGeneratedFilterFile() throws IOException, ConfigurationException {

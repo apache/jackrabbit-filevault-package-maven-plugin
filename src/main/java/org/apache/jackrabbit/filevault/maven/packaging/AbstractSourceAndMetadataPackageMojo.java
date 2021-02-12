@@ -21,7 +21,7 @@ import java.util.Set;
 
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.codehaus.plexus.util.DirectoryScanner;
+import org.apache.maven.shared.utils.io.DirectoryScanner;
 
 /**
  * Commons ancestor for all mojos dealing with package source files and meta data files

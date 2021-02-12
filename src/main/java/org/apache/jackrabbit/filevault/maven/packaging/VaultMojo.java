@@ -61,10 +61,10 @@ import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
-import org.codehaus.plexus.util.DirectoryScanner;
-import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.MatchPatterns;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.maven.shared.utils.io.DirectoryScanner;
+import org.apache.maven.shared.utils.io.FileUtils;
+import org.apache.maven.shared.utils.io.MatchPatterns;
+import org.apache.maven.shared.utils.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 /** Builds a content package. */
@@ -262,7 +262,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         Path destFile = Paths.get(destFileName);
         if ((destFile.startsWith(Constants.ROOT_DIR) && enableJcrRootFiltering) ||
             (destFile.startsWith(Constants.META_INF) && enableMetaInfFiltering)) {
-            MatchPatterns matchPatterns = MatchPatterns.from(filteredFilePatterns);
+            MatchPatterns matchPatterns = MatchPatterns.from(filteredFilePatterns.toArray(new String[0]));
             if (filteredFilePatterns == null || matchPatterns.matches(sourceFile.toString(), true)) {
                 getLog().info("Apply filtering to " + getProjectRelativeFilePath(sourceFile));
                 Resource resource = new Resource();
