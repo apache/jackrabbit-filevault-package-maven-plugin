@@ -23,6 +23,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -123,6 +124,18 @@ public class GenerateMetadataMojoTest {
         }
     }
 
+    @Test
+    public void testComputeDependencies() throws IOException {
+        GenerateMetadataMojo mojo = new GenerateMetadataMojo();
+        mojo.dependencies = new ArrayList<>();
+        MavenBasedPackageDependency dependency = MavenBasedPackageDependency.fromGroupNameAndVersion("day/cq60/product", "cq-content", "[6.3.64,)");
+        mojo.dependencies.add(dependency);
+        dependency = MavenBasedPackageDependency.fromGroupNameAndVersion("mygroup", "mypackage", "[1,2)");
+        mojo.dependencies.add(dependency);
+        // upper bound of the first dependency is left out in case it is unlimited
+        Assert.assertEquals("day/cq60/product:cq-content:6.3.64,mygroup:mypackage:[1,2)", mojo.computeDependencies());
+    }
+
     private void assertEscapedValueWorksInManifest(String value) throws IOException {
         String escapedValue = GenerateMetadataMojo.escapeManifestValue(value);
         Manifest manifest = new Manifest();
@@ -155,5 +168,6 @@ public class GenerateMetadataMojoTest {
     private static String unescapeContinuations(String value) {
         return value.replaceAll("\r ", "");
     }
+    
     
 }

@@ -117,6 +117,14 @@ public class MavenBasedPackageDependency {
         
     }
 
+    static MavenBasedPackageDependency fromGroupNameAndVersion(String group, String name, String version) {
+        MavenBasedPackageDependency dependency = new MavenBasedPackageDependency();
+        dependency.group = group;
+        dependency.name = name;
+        dependency.version = version;
+        return dependency;
+    }
+
     /**
      * Converts a list of {@link MavenBasedPackageDependency} instances to vault dependencies.
      *

@@ -234,7 +234,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * {@code ()} or excluded using brackets {@code []}
      */
     @Parameter(property = "vault.dependencies")
-    private Collection<MavenBasedPackageDependency> dependencies = new LinkedList<>();
+    Collection<MavenBasedPackageDependency> dependencies = new LinkedList<>();
 
 
     /**
@@ -773,7 +773,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * @return the dependency string
      * @throws URISyntaxException 
      */
-    private String computeDependencies() throws IOException {
+    String computeDependencies() throws IOException {
         String dependenciesString = null;
         if (!dependencies.isEmpty()) {
             MavenBasedPackageDependency.resolve(project, getLog(), dependencies);
