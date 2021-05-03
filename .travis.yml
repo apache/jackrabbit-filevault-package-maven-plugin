@@ -42,7 +42,7 @@ env:
     # available build differs among platforms.
     - JDK="adopt@1.8"
     - JDK="adopt@1.11"
-    - JDK="adopt@1.14"
+    - JDK="adopt@1.16"
 jobs:
   # for Java11 with linux include only one job which does sonar analysis as well as regular build
   include:
