@@ -508,7 +508,7 @@
                                     <goal>prepare-agent-integration</goal>
                                 </goals>
                                 <configuration>
-                                    <destFile>${project.build.directory}/jacoco-it.exec</destFile>
+                                    <!-- each Maven fork in ITs contributes to code coverage -->
                                     <append>true</append>
                                 </configuration>
                             </execution>
