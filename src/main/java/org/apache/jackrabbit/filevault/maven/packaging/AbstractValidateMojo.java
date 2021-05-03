@@ -18,6 +18,7 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -26,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context.DependencyResolver;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
@@ -154,6 +156,14 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     @Parameter(property = "vault.package.dependency.to.maven.ga")
     protected Collection<String> mapPackageDependencyToMavenGa;
 
+    /** 
+     * The file where to write a report of all found validation violations (warnings and errors) in CSV format as defined in <a href="https://tools.ietf.org/html/rfc4180">RFC 4180</a>.
+     * The generated file is using UTF-8 character encoding.
+     * No CSV report is written if this parameter is not set (default).
+     */
+    @Parameter(property = "vault.validation.csvReportFile")
+    protected File csvReportFile;
+
     @Component
     protected RepositorySystem repositorySystem;
 
@@ -164,8 +174,6 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     protected BuildContext buildContext;
 
     protected final ValidationExecutorFactory validationExecutorFactory;
-
-    protected final ValidationHelper validationHelper;
 
     protected DependencyResolver resolver;
     
@@ -181,7 +189,6 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     public AbstractValidateMojo() {
         super();
         this.validationExecutorFactory = new ValidationExecutorFactory(this.getClass().getClassLoader());
-        this.validationHelper = new ValidationHelper();
     }
 
     static Map<Dependency, Artifact> resolveMap(Collection<String> mapPackageDependencyToMavenGa) {
@@ -212,49 +219,57 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
         }
         translateLegacyParametersToValidatorParameters();
         final Collection<PackageInfo> resolvedDependencies = new LinkedList<>();
-        if (project != null) {
-            validationHelper.clearPreviousValidationMessages(buildContext, project.getBasedir());
-        }
+        
         // repository structure only defines valid roots
         // https://github.com/apache/jackrabbit-filevault-package-maven-plugin/blob/02a853e64d985f075fe88d19101d7c66d741767f/src/main/java/org/apache/jackrabbit/filevault/maven/packaging/impl/DependencyValidator.java#L51
-        try {
-            Collection<String> validRoots = new LinkedList<>();
-            for (PackageInfo packageInfo : getPackageInfoFromMavenBasedDependencies(repositoryStructurePackages)) {
-                for (PathFilterSet set : packageInfo.getFilter().getFilterSets()) {
-                    validRoots.add(set.getRoot());
-                }
+        try (ValidationHelper validationHelper = new ValidationHelper()) {
+            if (csvReportFile != null) {
+                validationHelper.setCsvFile(csvReportFile, StandardCharsets.UTF_8, CSVFormat.EXCEL);
             }
-            if (!validRoots.isEmpty()) {
-                ValidatorSettings settings = null;
-                if (validatorsSettings != null) {
-                    settings = validatorsSettings.get(AdvancedFilterValidatorFactory.ID);
-                } else {
-                    validatorsSettings = new HashMap<>();
-                }
-                if (settings == null) {
-                    settings = new ValidatorSettings();
-                    settings.addOption(AdvancedFilterValidatorFactory.OPTION_VALID_ROOTS, StringUtils.join(validRoots, ","));
-                    validatorsSettings.put(AdvancedFilterValidatorFactory.ID, settings);
-                } else {
-                    String oldValidRoots = settings.getOptions().get(AdvancedFilterValidatorFactory.OPTION_VALID_ROOTS);
-                    settings.addOption(AdvancedFilterValidatorFactory.OPTION_VALID_ROOTS, oldValidRoots + "," + StringUtils.join(validRoots, ","));
-                }
+            if (project != null) {
+                validationHelper.clearPreviousValidationMessages(buildContext, project.getBasedir());
             }
+            try {
+                Collection<String> validRoots = new LinkedList<>();
+                for (PackageInfo packageInfo : getPackageInfoFromMavenBasedDependencies(repositoryStructurePackages)) {
+                    for (PathFilterSet set : packageInfo.getFilter().getFilterSets()) {
+                        validRoots.add(set.getRoot());
+                    }
+                }
+                if (!validRoots.isEmpty()) {
+                    ValidatorSettings settings = null;
+                    if (validatorsSettings != null) {
+                        settings = validatorsSettings.get(AdvancedFilterValidatorFactory.ID);
+                    } else {
+                        validatorsSettings = new HashMap<>();
+                    }
+                    if (settings == null) {
+                        settings = new ValidatorSettings();
+                        settings.addOption(AdvancedFilterValidatorFactory.OPTION_VALID_ROOTS, StringUtils.join(validRoots, ","));
+                        validatorsSettings.put(AdvancedFilterValidatorFactory.ID, settings);
+                    } else {
+                        String oldValidRoots = settings.getOptions().get(AdvancedFilterValidatorFactory.OPTION_VALID_ROOTS);
+                        settings.addOption(AdvancedFilterValidatorFactory.OPTION_VALID_ROOTS, oldValidRoots + "," + StringUtils.join(validRoots, ","));
+                    }
+                }
+            } catch (IOException e) {
+                throw new MojoExecutionException("Could not get meta information for repositoryStructurePackages '"
+                        + StringUtils.join(repositoryStructurePackages, ",") + "': " + e.getMessage(), e);
+            }
+            try {
+                resolvedDependencies.addAll(getPackageInfoFromMavenBasedDependencies(dependencies));
+            } catch (IOException e) {
+                throw new MojoExecutionException(
+                        "Could not get meta information for dependencies '" + StringUtils.join(dependencies, ",") + "': " + e.getMessage(),
+                        e);
+            }
+            // resolve mapping map
+            resolver = new DependencyResolver(DefaultRepositoryRequest.getRepositoryRequest(session, project), repositorySystem,
+                    resolutionErrorHandler, resolveMap(mapPackageDependencyToMavenGa), resolvedDependencies);
+            doExecute(validationHelper);
         } catch (IOException e) {
-            throw new MojoExecutionException("Could not get meta information for repositoryStructurePackages '"
-                    + StringUtils.join(repositoryStructurePackages, ",") + "': " + e.getMessage(), e);
+            throw new MojoExecutionException("Could not create/write to CSV File", e);
         }
-        try {
-            resolvedDependencies.addAll(getPackageInfoFromMavenBasedDependencies(dependencies));
-        } catch (IOException e) {
-            throw new MojoExecutionException(
-                    "Could not get meta information for dependencies '" + StringUtils.join(dependencies, ",") + "': " + e.getMessage(),
-                    e);
-        }
-        // resolve mapping map
-        resolver = new DependencyResolver(DefaultRepositoryRequest.getRepositoryRequest(session, project), repositorySystem,
-                resolutionErrorHandler, resolveMap(mapPackageDependencyToMavenGa), resolvedDependencies);
-        doExecute();
     }
 
     private Collection<PackageInfo> getPackageInfoFromMavenBasedDependencies(Collection<MavenBasedPackageDependency> dependencies) throws IOException {
@@ -312,12 +327,12 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
         filterValidatorSettings.addOption(AdvancedFilterValidatorFactory.OPTION_SEVERITY_FOR_ORPHANED_FILTER_RULES, "debug");
     }
     
-    public abstract void doExecute() throws MojoExecutionException, MojoFailureException;
-    
+    public abstract void doExecute(ValidationHelper validationHelper) throws MojoExecutionException, MojoFailureException;
+
     protected Map<String, ValidatorSettings> getValidatorSettingsForPackage(PackageId packageId, boolean isSubPackage) {
         return getValidatorSettingsForPackage(getLog(), validatorsSettings, packageId, isSubPackage);
     }
-        
+
     static Map<String, ValidatorSettings> getValidatorSettingsForPackage(Log log, Map<String, ValidatorSettings> validatorsSettings, PackageId packageId, boolean isSubPackage) {
         Map<String, ValidatorSettings> validatorSettingsById = new HashMap<>();
         if (validatorsSettings == null) {

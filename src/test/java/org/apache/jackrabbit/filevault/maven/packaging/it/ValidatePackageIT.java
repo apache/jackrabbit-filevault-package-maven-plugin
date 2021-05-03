@@ -16,10 +16,17 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.util.List;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.maven.it.VerificationException;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ValidatePackageIT {
@@ -36,6 +43,10 @@ public class ValidatePackageIT {
 
     @Test
     public void testInvalidProject() throws Exception {
-        verify("invalid-project");
+        File csvReportFile = new File(verify("invalid-project").getTestProjectDir(), "report.csv");
+        Assert.assertTrue(csvReportFile.exists());
+        CSVParser csvParser = CSVParser.parse(csvReportFile, StandardCharsets.UTF_8, CSVFormat.EXCEL);
+        List<CSVRecord> actualRecords = csvParser.getRecords();
+        Assert.assertEquals(4, actualRecords.size()); // 3 issues + header
     }
 }

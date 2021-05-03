@@ -38,6 +38,7 @@ import org.apache.jackrabbit.vault.packaging.PackageType;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.jar.ManifestException;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -114,11 +115,11 @@ public class GenerateMetadataMojoTest {
                     if (expectedAttributeValuePattern == null) {
                         Assert.fail("Found unexpected attribute " + attribute.getKey() + " in Manifest");
                     }
-                    Assert.assertThat("Found unexpected attribute value for " + attribute.getKey(), (String)attribute.getValue(), Matchers.matchesPattern(expectedAttributeValuePattern));
+                    MatcherAssert.assertThat("Found unexpected attribute value for " + attribute.getKey(), (String)attribute.getValue(), Matchers.matchesPattern(expectedAttributeValuePattern));
                     expectedAttributes.remove(attribute.getKey().toString());
                 }
             }
-            Assert.assertThat("Not found expected attributes in manifest", expectedAttributes, Matchers.anEmptyMap());
+            MatcherAssert.assertThat("Not found expected attributes in manifest", expectedAttributes, Matchers.anEmptyMap());
         } finally {
             outputFile.delete();
         }

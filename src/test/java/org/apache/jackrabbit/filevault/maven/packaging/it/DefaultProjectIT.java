@@ -18,7 +18,6 @@ package org.apache.jackrabbit.filevault.maven.packaging.it;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -34,6 +33,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.jackrabbit.util.ISO8601;
 import org.apache.maven.it.VerificationException;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.number.OrderingComparison;
 import org.junit.Assert;
 import org.junit.Test;
@@ -118,8 +118,8 @@ public class DefaultProjectIT {
         Calendar date = ISO8601.parse(createdDate);
         assertNotNull("The created date is not compliant to the ISO8601 profile defined in https://www.w3.org/TR/NOTE-datetime", date);
         // check actual value
-        assertThat(date, OrderingComparison.greaterThan(dateBeforeRun));
-        assertThat(date, OrderingComparison.lessThan(dateAfterRun));
+        MatcherAssert.assertThat(date, OrderingComparison.greaterThan(dateBeforeRun));
+        MatcherAssert.assertThat(date, OrderingComparison.lessThan(dateAfterRun));
     
     }
 

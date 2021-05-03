@@ -29,6 +29,9 @@
                 <artifactId>filevault-package-maven-plugin</artifactId>
                 <version>${plugin.version}</version>
                 <extensions>true</extensions>
+                <configuration>
+                    <csvReportFile>report.csv</csvReportFile>
+                </configuration>
             </plugin>
         </plugins>
     </build>

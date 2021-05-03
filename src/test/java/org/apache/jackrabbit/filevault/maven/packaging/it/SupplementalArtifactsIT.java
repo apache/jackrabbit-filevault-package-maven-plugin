@@ -37,6 +37,6 @@ public class SupplementalArtifactsIT {
     public void testMultipleSupplementalArtifacts() throws VerificationException, IOException {
         ProjectBuilder builder = verify("two-packages-in-one-module");
         builder.verifyExpectedFiles();
-        builder.verifyExpectedFiles(new File(builder.getTestProjectDir(), "expected-files-libs.txt"), builder.verifyPackageZipEntries(new File(builder.getTestProjectDir(), "target/package-plugin-test-pkg-1.0.0-SNAPSHOT-libs.zip")));
+        builder.verifyExpectedFiles(new File(builder.getTestProjectDir(), "expected-files-libs.txt"), ProjectBuilder.verifyPackageZipEntries(new File(builder.getTestProjectDir(), "target/package-plugin-test-pkg-1.0.0-SNAPSHOT-libs.zip")));
     }
 }

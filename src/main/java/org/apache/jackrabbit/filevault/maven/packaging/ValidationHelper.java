@@ -16,22 +16,31 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.Map;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.vault.validation.ValidationExecutor;
 import org.apache.jackrabbit.vault.validation.ValidationViolation;
 import org.apache.jackrabbit.vault.validation.spi.ValidationContext;
+import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
 import org.apache.jackrabbit.vault.validation.spi.Validator;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.sonatype.plexus.build.incremental.BuildContext;
 import org.sonatype.plexus.build.incremental.DefaultBuildContext;
 
-public class ValidationHelper {
+public class ValidationHelper implements Closeable {
 
     /**
      * Set to {@code true} if at least one {@link ValidationViolation} has been given out
@@ -42,6 +51,8 @@ public class ValidationHelper {
      * Set to {@code true} if at least one validation violation with severity {@link ValidationMessageSeverity#ERROR} has been given out
      */
     private int noOfEmittedValidationMessagesWithLevelError = 0;
+    
+    private CSVPrinter csvPrinter = null;
 
     protected ValidationHelper() {
     }
@@ -53,8 +64,9 @@ public class ValidationHelper {
      * @param log
      * @param buildContext
      * @param baseDirectory the directory to which all absolute paths should be made relative (i.e. the Maven basedir)
+     * @throws IOException 
      */
-    public void printMessages(Collection<ValidationViolation> violations, Log log, BuildContext buildContext, Path baseDirectory) {
+    public void printMessages(Collection<ValidationViolation> violations, Log log, BuildContext buildContext, Path baseDirectory) throws IOException {
         for (ValidationViolation violation : violations) {
             final int buildContextSeverity;
                 switch (violation.getSeverity()) {
@@ -83,16 +95,22 @@ public class ValidationHelper {
                         buildContextSeverity = -1;
                         break;
             }
-            // only emit via build context inside eclipse, otherwise log from above is better!
-            if (buildContextSeverity > 0 && !(buildContext instanceof DefaultBuildContext)) {
-                File file;
-                if (violation.getAbsoluteFilePath() != null) {
-                    file = violation.getAbsoluteFilePath().toFile();
-                } else {
-                    // take the base path
-                    file = baseDirectory.toFile();
+               
+            if (buildContextSeverity > 0) {
+                // only emit via build context inside eclipse, otherwise log from above is better!
+                if (!(buildContext instanceof DefaultBuildContext)) {
+                    Path file;
+                    if (violation.getAbsoluteFilePath() != null) {
+                        file = violation.getAbsoluteFilePath();
+                    } else {
+                        // take the base path
+                        file = baseDirectory;
+                    }
+                    buildContext.addMessage(file.toFile(), violation.getLine(), violation.getColumn(), getMessage(violation), buildContextSeverity, violation.getThrowable());
                 }
-                buildContext.addMessage(file, violation.getLine(), violation.getColumn(), getMessage(violation), buildContextSeverity, violation.getThrowable());
+                if (!buildContext.isIncremental() && csvPrinter != null) {
+                    printToCsvFile(violation);
+                }
             }
         }
     }
@@ -158,6 +176,22 @@ public class ValidationHelper {
             throw new MojoFailureException("Found " +noOfEmittedValidationMessagesWithLevelWarn+noOfEmittedValidationMessagesWithLevelError + " violation(s) (either ERROR or WARN). Check above warnings/errors for details");
         } else if (noOfEmittedValidationMessagesWithLevelError > 0) {
             throw new MojoFailureException("Found " + noOfEmittedValidationMessagesWithLevelError + " violation(s) (with severity=ERROR). Check above errors for details");
+        }
+    }
+
+    public void setCsvFile(File csvReportFile, Charset charset, CSVFormat format) throws IOException {
+        csvPrinter = new CSVPrinter(new OutputStreamWriter(new FileOutputStream(csvReportFile), charset), format);
+        csvPrinter.printRecord("Severity", "Validator ID", "Message", "File", "Line:Column", "Node Path");
+    }
+
+    private void printToCsvFile(ValidationViolation violation) throws IOException {
+        csvPrinter.printRecord(violation.getSeverity(), violation.getValidatorId(), violation.getMessage(), violation.getAbsoluteFilePath(), MessageFormat.format("{0}:{1}", violation.getLine(), violation.getColumn()), violation.getNodePath());
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (csvPrinter != null) {
+            csvPrinter.close();
         }
     }
 }

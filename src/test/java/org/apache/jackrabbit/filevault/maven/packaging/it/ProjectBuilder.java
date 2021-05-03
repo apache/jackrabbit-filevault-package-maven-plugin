@@ -20,7 +20,6 @@ import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -55,13 +54,11 @@ import org.apache.maven.it.Verifier;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.shared.utils.StringUtils;
-import org.apache.maven.shared.utils.io.FileUtils;
-import org.apache.maven.shared.utils.io.IOUtil;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.hamcrest.Description;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
-import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +66,7 @@ import aQute.bnd.header.Attrs;
 import aQute.bnd.header.Parameters;
 
 /**
- * Helper class to build and verify a maven project.
+ * Helper class to build and verify a Maven project.
  */
 public class ProjectBuilder {
 
@@ -294,7 +291,7 @@ public class ProjectBuilder {
         Properties properties;
         try (ZipFile zip = new ZipFile(testPackageFile)) {
             ZipEntry propertiesFile = zip.getEntry("META-INF/vault/properties.xml");
-            assertThat(propertiesFile, notNullValue());
+            MatcherAssert.assertThat(propertiesFile, notNullValue());
 
             properties = new Properties();
             properties.loadFromXML(zip.getInputStream(propertiesFile));
@@ -303,9 +300,8 @@ public class ProjectBuilder {
     }
 
     public ProjectBuilder verifyExpectedManifest() throws IOException {
-        final String expected = FileUtils.fileRead(expectedManifestFile);
+        final List<String> expectedEntries = Files.readAllLines(expectedManifestFile.toPath(), StandardCharsets.US_ASCII);
         List<String> entries;
-        String result;
         try (JarFile jar = new JarFile(testPackageFile)) {
             entries = new ArrayList<>();
             for (Map.Entry<Object, Object> e : jar.getManifest().getMainAttributes().entrySet()) {
@@ -325,8 +321,7 @@ public class ProjectBuilder {
             }
         }
         Collections.sort(entries);
-        result = StringUtils.join(entries.iterator(), "\n");
-        assertEquals("Manifest", normalizeWhitespace(expected), normalizeWhitespace(result));
+        assertEquals("Manifest", expectedEntries, entries);
         return this;
     }
 
@@ -362,7 +357,7 @@ public class ProjectBuilder {
             if (entry == null) {
                 fail("Could not find entry with name " + name + " in package " + testPackageFile);
             }
-            Assert.assertThat(entry, new JarEntryMatcher(name, jar, expectedChecksum));
+            MatcherAssert.assertThat(entry, new JarEntryMatcher(name, jar, expectedChecksum));
         }
         return this;
     }
@@ -404,7 +399,7 @@ public class ProjectBuilder {
 
     public ProjectBuilder verifyExpectedFilesOrder() throws IOException {
         List<String> expectedEntriesInOrder= Files.readAllLines(expectedOrderFile.toPath(), StandardCharsets.UTF_8);
-        assertThat("Order of entries within package", pkgZipEntries, Matchers.containsInRelativeOrder(expectedEntriesInOrder.toArray()));
+        MatcherAssert.assertThat("Order of entries within package", pkgZipEntries, Matchers.containsInRelativeOrder(expectedEntriesInOrder.toArray()));
         return this;
     }
 
@@ -415,9 +410,7 @@ public class ProjectBuilder {
         try (ZipFile zip = new ZipFile(testPackageFile)) {
             ZipEntry entry = zip.getEntry("META-INF/vault/filter.xml");
             assertNotNull("package has a filter.xml", entry);
-            String result = IOUtil.toString(zip.getInputStream(entry), "utf-8");
-            String expected = FileUtils.fileRead(expectedFilterFile);
-            assertEquals("filter.xml is correct", normalizeWhitespace(expected), normalizeWhitespace(result));
+            verifyExpectedFilter(IOUtils.toString(zip.getInputStream(entry), StandardCharsets.UTF_8));
         }
         return this;
     }
@@ -430,10 +423,13 @@ public class ProjectBuilder {
         assertTrue("workDirectory should exist: " + workDirFile.toString(), workDirFile.isDirectory());
         File filterFile = new File(workDirFile, "META-INF/vault/filter.xml");
         assertTrue("filterFile should exist: " + filterFile.toString(), filterFile.isFile());
-        String result = FileUtils.fileRead(filterFile);
-        String expected = FileUtils.fileRead(expectedFilterFile);
-        assertEquals("filter.xml is incorrect", normalizeWhitespace(expected), normalizeWhitespace(result));
+        verifyExpectedFilter(new String(Files.readAllBytes(filterFile.toPath()), StandardCharsets.UTF_8));
         return this;
+    }
+
+    private void verifyExpectedFilter(String actualFilter) throws IOException {
+        String expected = new String(Files.readAllBytes(expectedFilterFile.toPath()), StandardCharsets.UTF_8);
+        assertEquals("filter.xml is incorrect", normalizeWhitespace(expected), normalizeWhitespace(actualFilter));
     }
 
     public ProjectBuilder verifyExpectedLogLines(String... placeholderValues) throws IOException {
@@ -452,7 +448,7 @@ public class ProjectBuilder {
                 expectedLogLine = matcher.replaceAll(Matcher.quoteReplacement(placeholderValues[placeholderIndex]));
             }
             // update list
-            assertThat("Could not find the expected log line in the output '" + logTxtFile +"'", actualLogLines, Matchers.hasItem(expectedLogLine));
+            MatcherAssert.assertThat("Could not find the expected log line in the output '" + logTxtFile +"'", actualLogLines, Matchers.hasItem(expectedLogLine));
         }
         // support not and exists
         return this;

@@ -80,18 +80,18 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     }
 
     @Override
-    public void doExecute() throws MojoExecutionException, MojoFailureException {
+    public void doExecute(ValidationHelper validationHelper) throws MojoExecutionException, MojoFailureException {
         try {
             boolean foundPackage = false;
             if (packageFile != null && !packageFile.isDirectory()) {
-                validatePackage(packageFile);
+                validatePackage(validationHelper, packageFile);
                 foundPackage = true;
             } 
             if (!attachedArtifacts.isEmpty()) {
                 for (Artifact attached : attachedArtifacts) {
                     // validate attached artifacts with given classifiers
                     if (classifiers.contains(attached.getClassifier())) {
-                        validatePackage(attached.getFile());
+                        validatePackage(validationHelper, attached.getFile());
                         foundPackage = true;
                     }
                 }
@@ -105,7 +105,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         }
     }
 
-    private void validatePackage(File file) throws IOException, ParserConfigurationException, SAXException, MojoExecutionException {
+    private void validatePackage(ValidationHelper validationHelper, File file) throws IOException, ParserConfigurationException, SAXException, MojoExecutionException {
         getLog().info("Start validating package " + getProjectRelativeFilePath(file) + "...");
 
         // open file to extract the meta data for the validation context
@@ -117,7 +117,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
             executor = validationExecutorFactory.createValidationExecutor(context, false, enforceRecursiveSubpackageValidation, getValidatorSettingsForPackage(context.getProperties().getId(), false));
             if (executor != null) {
                 validationHelper.printUsedValidators(getLog(), executor, context, true);
-                validateArchive(archive, file.toPath(), context, executor);
+                validateArchive(validationHelper, archive, file.toPath(), context, executor);
             } else {
                 throw new MojoExecutionException("No registered validators found!");
             }
@@ -125,13 +125,13 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         }
     }
 
-    private void validateArchive(Archive archive, Path path, ArchiveValidationContextImpl context,
+    private void validateArchive(ValidationHelper validationHelper, Archive archive, Path path, ArchiveValidationContextImpl context,
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException {
-        validateEntry(archive, archive.getRoot(), Paths.get(""), path, context, executor);
+        validateEntry(validationHelper, archive, archive.getRoot(), Paths.get(""), path, context, executor);
         validationHelper.printMessages(executor.done(), getLog(), buildContext, packageFile.toPath());
     }
 
-    private void validateEntry(Archive archive, Archive.Entry entry, Path entryPath, Path packagePath, ArchiveValidationContextImpl context,
+    private void validateEntry(ValidationHelper validationHelper, Archive archive, Archive.Entry entry, Path entryPath, Path packagePath, ArchiveValidationContextImpl context,
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException {
         // sort children to make sure that .content.xml comes first!
         List<Archive.Entry> sortedEntryList = new ArrayList<Archive.Entry>(entry.getChildren());
@@ -139,17 +139,17 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         
         for (Archive.Entry childEntry : sortedEntryList) {
             if (childEntry.isDirectory()) {
-                validateInputStream(null, entryPath.resolve(childEntry.getName()), packagePath, context, executor);
-                validateEntry(archive, childEntry, entryPath.resolve(childEntry.getName()), packagePath, context, executor);
+                validateInputStream(validationHelper, null, entryPath.resolve(childEntry.getName()), packagePath, context, executor);
+                validateEntry(validationHelper, archive, childEntry, entryPath.resolve(childEntry.getName()), packagePath, context, executor);
             } else {
                 try (InputStream input = archive.openInputStream(childEntry)) {
-                    validateInputStream(input, entryPath.resolve(childEntry.getName()), packagePath, context, executor);
+                    validateInputStream(validationHelper, input, entryPath.resolve(childEntry.getName()), packagePath, context, executor);
                 }
             }
         }
     }
 
-    private void validateInputStream(@Nullable InputStream inputStream, Path entryPath, Path packagePath, ArchiveValidationContextImpl context,
+    private void validateInputStream(ValidationHelper validationHelper, @Nullable InputStream inputStream, Path entryPath, Path packagePath, ArchiveValidationContextImpl context,
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException {
         Collection<ValidationViolation> messages = new LinkedList<>();
         if (entryPath.startsWith(Constants.META_INF)) {
@@ -171,7 +171,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
                         .createValidationExecutor(subPackageValidationContext, true, enforceRecursiveSubpackageValidation, getValidatorSettingsForPackage(subPackageValidationContext.getProperties().getId(), true));
                 if (subPackageValidationExecutor != null) {
                     validationHelper.printUsedValidators(getLog(), executor, subPackageValidationContext, false);
-                    validateArchive(subArchive, subPackagePath, subPackageValidationContext, subPackageValidationExecutor);
+                    validateArchive(validationHelper, subArchive, subPackagePath, subPackageValidationContext, subPackageValidationExecutor);
                 } else {
                     getLog().debug("Skip validating sub package as no validator is interested in it.");
                 }

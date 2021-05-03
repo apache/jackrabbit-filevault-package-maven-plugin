@@ -25,6 +25,7 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.jackrabbit.filevault.maven.packaging.it.ProjectBuilder;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
@@ -37,7 +38,7 @@ public class VaultMojoTest {
         Set<String> excludes = Collections.emptySet();
         File sourceDirectory = new File(ProjectBuilder.TEST_PROJECTS_ROOT, "filter-tests/filter-not-covering-all-files/jcr_root");
         Collection<File> uncoveredFiles = VaultMojo.getUncoveredFiles(sourceDirectory, excludes, prefix, Collections.emptySet());
-        Assert.assertThat(uncoveredFiles, Matchers.contains(new File(sourceDirectory, "apps/.content.xml")));
+        MatcherAssert.assertThat(uncoveredFiles, Matchers.contains(new File(sourceDirectory, "apps/.content.xml")));
     }
 
     @Test
@@ -46,7 +47,7 @@ public class VaultMojoTest {
         File sourceDirectory = new File(ProjectBuilder.TEST_PROJECTS_ROOT, "filter-tests/filter-not-covering-all-files/jcr_root");
         Set<String> entryNames = Collections.singleton(new File("jcr_root/apps/.content.xml").getPath());
         Collection<File> uncoveredFiles = VaultMojo.getUncoveredFiles(sourceDirectory, excludes, "", entryNames);
-        Assert.assertThat(uncoveredFiles, Matchers.empty());
+        MatcherAssert.assertThat(uncoveredFiles, Matchers.empty());
     }
 
     @Test

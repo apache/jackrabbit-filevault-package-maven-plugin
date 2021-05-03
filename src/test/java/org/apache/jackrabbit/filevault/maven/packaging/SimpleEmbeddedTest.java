@@ -22,8 +22,8 @@ import java.util.List;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,19 +50,19 @@ public class SimpleEmbeddedTest {
     @Test
     public void testGroupIdOnlyFilter() throws ConfigurationException {
         embedded.setGroupId("mygroupid");
-        Assert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(0), artifacts.get(1), artifacts.get(4), artifacts.get(5), artifacts.get(6)));
+        MatcherAssert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(0), artifacts.get(1), artifacts.get(4), artifacts.get(5), artifacts.get(6)));
     }
 
     @Test
     public void testArtifactIdOnlyFilter() throws ConfigurationException {
         embedded.setArtifactId("artifact1");
-        Assert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(0), artifacts.get(3), artifacts.get(4)));
+        MatcherAssert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(0), artifacts.get(3), artifacts.get(4)));
     }
 
     @Test
     public void testTypeBundleOnlyFilter() throws ConfigurationException {
         embedded.setType("bundle");
-        Assert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.contains(artifacts.get(4), artifacts.get(5), artifacts.get(6)));
+        MatcherAssert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.contains(artifacts.get(4), artifacts.get(5), artifacts.get(6)));
     }
 
     @Test
@@ -70,21 +70,21 @@ public class SimpleEmbeddedTest {
         // in addition filter for jar
         embedded.setType("jar");
         embedded.setType("bundle");
-        Assert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.toArray()));
+        MatcherAssert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.toArray()));
     }
 
     @Test
     public void testClassifierOnlyFilter() throws ConfigurationException {
         // in addition filter for jar
         embedded.setClassifier("myclassifier");
-        Assert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.contains(artifacts.get(6)));
+        MatcherAssert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.contains(artifacts.get(6)));
     }
 
     @Test
     public void testScopeOnlyFilter() {
         // should contain all artifacts with scope "compile", "runtime" or "system"
         embedded.setScope("compile");
-        Assert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(0), artifacts.get(1), artifacts.get(5), artifacts.get(6)));
+        MatcherAssert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(0), artifacts.get(1), artifacts.get(5), artifacts.get(6)));
     }
 
     @Test
@@ -92,7 +92,7 @@ public class SimpleEmbeddedTest {
         embedded.setType("bundle");
         embedded.setArtifactId("artifact1");
         embedded.setGroupId("mygroupid");
-        Assert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(4)));
+        MatcherAssert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(4)));
     }
 
     public final static class SimpleArtifact extends DefaultArtifact {

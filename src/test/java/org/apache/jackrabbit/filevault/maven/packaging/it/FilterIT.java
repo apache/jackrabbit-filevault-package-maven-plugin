@@ -16,14 +16,16 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 import org.apache.maven.it.VerificationException;
-import org.apache.maven.shared.utils.io.FileUtils;
 import org.junit.Test;
-
-import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the behaviour of package filters.
@@ -136,19 +138,19 @@ public class FilterIT {
     public void test_inline_filter_twice() throws Exception {
         // first execute with default goals
         final File projectDir = new File("target/test-classes/test-projects/filter-tests/inline-filter-twice");
-        FileUtils.copyFile(new File(projectDir, "pom1.xml"), new File(projectDir, "pom.xml"));
-        FileUtils.copyFile(new File(projectDir, "expected-filter1.xml"), new File(projectDir, "expected-filter.xml"));
+        Files.copy(projectDir.toPath().resolve("pom1.xml"), projectDir.toPath().resolve("pom.xml"), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(projectDir.toPath().resolve("expected-filter1.xml"), projectDir.toPath().resolve("expected-filter.xml"), StandardCopyOption.REPLACE_EXISTING);
         verify("inline-filter-twice", false);
 
         // copy marker to 'target' to ensure that clean is not executed
-        File marker = new File(projectDir, "target/marker.xml");
-        FileUtils.copyFile(new File(projectDir, "pom1.xml"), marker);
+        Path marker = projectDir.toPath().resolve("target/marker.xml");
+        Files.copy(projectDir.toPath().resolve("pom1.xml"), marker);
 
-        FileUtils.copyFile(new File(projectDir, "pom2.xml"), new File(projectDir, "pom.xml"));
-        FileUtils.copyFile(new File(projectDir, "expected-filter2.xml"), new File(projectDir, "expected-filter.xml"));
+        Files.copy(projectDir.toPath().resolve("pom2.xml"), projectDir.toPath().resolve("pom.xml"), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(projectDir.toPath().resolve("expected-filter2.xml"), projectDir.toPath().resolve("expected-filter.xml"), StandardCopyOption.REPLACE_EXISTING);
         verify("inline-filter-twice", false, "package");
 
-        assertTrue("Marker file still exists.", marker.exists());
+        assertTrue("Marker file still exists.", Files.exists(marker));
     }
 
     @Test 

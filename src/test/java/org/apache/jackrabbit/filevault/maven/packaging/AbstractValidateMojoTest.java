@@ -16,8 +16,6 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
-import static org.junit.Assert.assertThat;
-
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -28,15 +26,15 @@ import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.InvalidArtifactRTException;
 import org.apache.maven.plugin.logging.SystemStreamLog;
+import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class AbstractValidateMojoTest {
 
     @Test
     public void testValidMapWithIgnoredArtifacts() {
-        Assert.assertThat(AbstractValidateMojo.resolveMap(Arrays.asList("group1:name1=ignore", "group2:name2=groupId2:artifactId2")), 
+        MatcherAssert.assertThat(AbstractValidateMojo.resolveMap(Arrays.asList("group1:name1=ignore", "group2:name2=groupId2:artifactId2")), 
                 Matchers.allOf(
                     Matchers.hasEntry(Dependency.fromString("group1:name1"), AbstractValidateMojo.IGNORE_ARTIFACT),
                     Matchers.hasEntry(Dependency.fromString("group2:name2"), new DefaultArtifact("groupId2", "artifactId2", "", "", "", "", null)),
@@ -45,7 +43,7 @@ public class AbstractValidateMojoTest {
 
     @Test
     public void testValidMap() {
-        Assert.assertThat(AbstractValidateMojo.resolveMap(Arrays.asList("group1:name1=groupId1:artifactId1", "group2:name2=groupId2:artifactId2")), 
+        MatcherAssert.assertThat(AbstractValidateMojo.resolveMap(Arrays.asList("group1:name1=groupId1:artifactId1", "group2:name2=groupId2:artifactId2")), 
                 Matchers.allOf(
                     Matchers.hasEntry(Dependency.fromString("group1:name1"), new DefaultArtifact("groupId1", "artifactId1", "", "", "", "", null)),
                     Matchers.hasEntry(Dependency.fromString("group2:name2"), new DefaultArtifact("groupId2", "artifactId2", "", "", "", "", null)),
@@ -77,21 +75,21 @@ public class AbstractValidateMojoTest {
         Map<String, ValidatorSettings> expectedValidatorSettings = new HashMap<>();
         expectedValidatorSettings.put("id1", new ValidatorSettings().addOption("id1", "foo"));
         expectedValidatorSettings.put("id2", new ValidatorSettings().addOption("id2", "foo"));
-        Assert.assertThat(actualValidatorSettings, Matchers.equalTo(expectedValidatorSettings));
+        MatcherAssert.assertThat(actualValidatorSettings, Matchers.equalTo(expectedValidatorSettings));
         
         actualValidatorSettings = AbstractValidateMojo.getValidatorSettingsForPackage(new SystemStreamLog(), validatorsSettings, PackageId.fromString("mygroup:myname:1.0.0"), true);
         expectedValidatorSettings.put("id3", new ValidatorSettings().addOption("id3", "foo"));
-        Assert.assertThat(actualValidatorSettings, Matchers.equalTo(expectedValidatorSettings));
+        MatcherAssert.assertThat(actualValidatorSettings, Matchers.equalTo(expectedValidatorSettings));
         
         actualValidatorSettings = AbstractValidateMojo.getValidatorSettingsForPackage(new SystemStreamLog(), null, PackageId.fromString("mygroup:myname:1.0.0"), true);
         expectedValidatorSettings.clear();
-        Assert.assertThat(actualValidatorSettings, Matchers.equalTo(expectedValidatorSettings));
+        MatcherAssert.assertThat(actualValidatorSettings, Matchers.equalTo(expectedValidatorSettings));
     }
 
     @Test
     public void testDotContentXmlFirstComparator() {
         List<String> list = Arrays.asList("someEntryA", ".content.xml", "someEntryB", ".content.xml");
         list.sort(new AbstractValidateMojo.DotContentXmlFirstComparator());
-        assertThat(list, Matchers.contains(".content.xml", ".content.xml", "someEntryA", "someEntryB"));
+        MatcherAssert.assertThat(list, Matchers.contains(".content.xml", ".content.xml", "someEntryA", "someEntryB"));
     }
 }
