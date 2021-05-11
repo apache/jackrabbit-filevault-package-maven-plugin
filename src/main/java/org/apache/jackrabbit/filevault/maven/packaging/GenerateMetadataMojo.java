@@ -294,7 +294,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * The {@code Embedded} class represents one or multiple embedded artifact dependencies
      * from the project descriptor.
      * Each {@code <embedded>} element may configure any of the following fields
-     *  <p>
+     * <p>
      * <table>
      * <tr><td>groupId</td><td>String</td><td>Filter criterion against the group id of a project dependency. A pattern as described below.</td></tr>
      * <tr><td>artifactId</td><td>String</td><td>Filter criterion against the artifact id of a project dependency. A pattern as described below.</td></tr>
@@ -303,7 +303,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * <tr><td>classifier</td><td>String</td><td>Filter criterion against the classifier of a project dependency. A pattern as described below.</td></tr>
      * <tr><td>filter</td><td>Boolean</td><td>If set to {@code true} adds the embedded artifact location to the package's filter.</td></tr>
      * <tr><td>isAllVersionsFilter</td><td>Boolean</td><td>If {@code filter} is {@code true} and this is {@code true} as well, the filter entry will contain all versions of the same artifact (by creating an according filter pattern).</td></tr>
-     * <tr><td>excludeTransitive</td><td>Boolean</td><td>If {@code true} only filters on direct dependencies (not on transitive ones). Default = {@code false}.</td><tr>
+     * <tr><td>excludeTransitive</td><td>Boolean</td><td>If {@code true} only filters on direct dependencies (not on transitive ones). Default = {@code false}.</td></tr>
      * <tr><td>target</td><td>String</td><td>The parent folder location in the package where to place the embedded artifact. Falls back to {@link #embeddedTarget} if not set.</td></tr>
      * </table>
      * </pre>
