@@ -152,6 +152,7 @@
                         <!--
                             make sure this plugin in installed in the local repository before the integration tests run
                             maybe switching back to a reactor project might be better again
+                            Or use https://maven.apache.org/plugins/maven-invoker-plugin/install-mojo.html
                          -->
                         <phase>pre-integration-test</phase>
                         <goals>
@@ -197,15 +198,8 @@
                 <configuration>
                     <generateReports>true</generateReports>
                     <relativizeDecorationLinks>false</relativizeDecorationLinks>
-                    <skipDeploy>true</skipDeploy>
+                    <skip>false</skip>
                 </configuration>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.maven.doxia</groupId>
-                        <artifactId>doxia-module-markdown</artifactId>
-                        <version>1.9.1</version>
-                    </dependency>
-                </dependencies>
             </plugin>
             <!-- ====================================================================== -->
             <!-- S C M   P U B L I S H   P L U G I N                                    -->
