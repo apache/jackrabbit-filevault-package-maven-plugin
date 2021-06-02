@@ -47,9 +47,6 @@ Release management tasks
     details. Make sure you have added the pgp key information in you maven settings file, especially if you have 
     more than one key installed locally. See [Appendix B](#B) for the details.
 
-    Releasing the maven artifact works best when operating on the subversion checkout of the project. Using _git svn_
-    does not work.
-    
     1. (optional, prepare your environment. e.g.: `$ export version=1.0.0`)
     2. Execute `mvn clean deploy -Papache-release -Dmaven.deploy.skip=true`. This tests if the release would work.
     3. Execute `mvn release:prepare`. This will update the POM files and tag the release in svn (btw: specifying the 
