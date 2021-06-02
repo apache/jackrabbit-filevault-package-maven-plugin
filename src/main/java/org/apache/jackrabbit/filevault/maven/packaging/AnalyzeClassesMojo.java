@@ -36,7 +36,7 @@ import org.apache.maven.shared.artifact.filter.PatternExcludesArtifactFilter;
 import aQute.bnd.osgi.Processor;
 
 /**
- * Maven goal which analyzes the generated class files and generates a usage report
+ * Analyzes the generated class files and generates a usage report
  */
 @Mojo(
         name = "analyze-classes",

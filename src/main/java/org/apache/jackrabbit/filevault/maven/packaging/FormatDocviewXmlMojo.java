@@ -39,7 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
- * Maven goal which either checks only the formatting of the Docview XML files to comply with the 
+ * Either checks only the formatting of the Docview XML files to comply with the 
  * formatting rules from FileVault or also reformats those files.
  */
 @Mojo(

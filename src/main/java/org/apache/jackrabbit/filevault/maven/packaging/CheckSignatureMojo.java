@@ -46,8 +46,8 @@ import org.eclipse.aether.artifact.DefaultArtifact;
 import org.eclipse.aether.repository.RemoteRepository;
 
 /**
- * Maven goal which checks the embedded libraries against a defined
- * signature. Based on the Animal Sniffer project.
+ * Checks the embedded libraries against a defined
+ * signature. Based on the <a href="https://www.mojohaus.org/animal-sniffer/">Animal Sniffer project</a>.
  */
 @Mojo(
         name = "check-signature",

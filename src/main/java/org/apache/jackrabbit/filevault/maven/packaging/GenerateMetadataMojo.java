@@ -49,6 +49,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.jackrabbit.util.Text;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.api.WorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
@@ -60,7 +61,6 @@ import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageProperties;
 import org.apache.jackrabbit.vault.packaging.PackageType;
 import org.apache.jackrabbit.vault.util.Constants;
-import org.apache.jackrabbit.vault.util.Text;
 import org.apache.maven.archiver.ManifestConfiguration;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
@@ -77,10 +77,10 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.plexus.archiver.jar.ManifestException;
+import org.apache.maven.shared.utils.StringUtils;
 import org.apache.maven.shared.utils.io.FileUtils;
 import org.apache.maven.shared.utils.io.IOUtil;
-import org.apache.maven.shared.utils.StringUtils;
+import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.repository.RemoteRepository;
@@ -91,7 +91,7 @@ import aQute.bnd.header.Parameters;
 import aQute.bnd.osgi.Processor;
 
 /**
- * Maven goal which generates the metadata ending up in the package like {@code META-INF/MANIFEST.MF} as well as the
+ * Generates the metadata ending up in the package like {@code META-INF/MANIFEST.MF} as well as the
  * files ending up in {@code META-INF/vault} like {@code filter.xml}, {@code properties.xml}, {@code config.xml} and
  * {@code settings.xml}. Those files will be written to the directory given via parameter {@link #workDirectory}.
  * In addition performs some validations.
