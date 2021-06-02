@@ -55,7 +55,8 @@ import org.xml.sax.SAXException;
         name = "validate-package", defaultPhase = LifecyclePhase.VERIFY, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = false, threadSafe = true)
 public class ValidatePackageMojo extends AbstractValidateMojo {
 
-    /** The mainn package file to validate. By default will be the project's main artifact (in case a project is given) */
+    /** The main package file to validate. By default will be the project's main artifact (in case a project is given). If empty the main artifact will not be validated
+     * but only the attached artifacts with the given {@link #classifiers}. */
     @Parameter(property = "vault.packageToValidate", defaultValue = "${project.artifact.file}", required=true)
     private File packageFile;
 
@@ -71,7 +72,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     private List<Artifact> attachedArtifacts;
 
     /**
-     * If given validates all attached artifacts with one of the given classifiers in addition
+     * If given validates all attached artifacts with one of the given classifiers in addition to the one given in {@link #packageFile}.
      */
     @Parameter()
     private List<String> classifiers;
@@ -83,7 +84,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     public void doExecute(ValidationHelper validationHelper) throws MojoExecutionException, MojoFailureException {
         try {
             boolean foundPackage = false;
-            if (packageFile != null && !packageFile.isDirectory()) {
+            if (packageFile != null && !packageFile.toString().isEmpty() && !packageFile.isDirectory()) {
                 validatePackage(validationHelper, packageFile);
                 foundPackage = true;
             } 
