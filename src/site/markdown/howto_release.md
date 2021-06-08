@@ -58,7 +58,7 @@ Release management tasks
         The non-Maven release artifacts are automatically copied to `/.../target/checkout/target/$version`
 
 4. Close the [staged repository][2] on _repository.apache.org_.  
-   Use `Apache Jackrabbit Filevault Package Maven Plugin ${version} RC` as comment.
+   Use `Apache Jackrabbit FileVault Package Maven Plugin ${version} RC` as comment.
    
 5. Upload the artifacts to https://dist.apache.org/repos/dist/dev/jackrabbit/filevault-package-maven-plugin via SVN
        
@@ -86,7 +86,7 @@ Release management tasks
    (they're automatically archived):
 
     ```` 
-    svn move -m "Apache Jackrabbit Filevault $version" \
+    svn move -m "Apache Jackrabbit FileVault Package Maven Plugin $version" \
         https://dist.apache.org/repos/dist/dev/jackrabbit/filevault-package-maven-plugin/$version \
         https://dist.apache.org/repos/dist/release/jackrabbit/filevault-package-maven-plugin/$version
     ````
