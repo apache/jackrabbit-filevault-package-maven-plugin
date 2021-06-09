@@ -337,7 +337,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * <tr><td>type</td><td>String</td><td>Filter criterion against the type of a project dependency.A pattern as described below.</td></tr>
      * <tr><td>classifier</td><td>String</td><td>Filter criterion against the classifier of a project dependency. A pattern as described below.</td></tr>
      * <tr><td>isAllVersionsFilter</td><td>Boolean</td><td>If {@code filter} is {@code true} and this is {@code true} as well, the filter entry will contain all versions of the same artifact (by creating an according filter pattern).</td></tr>
-     * <tr><td>excludeTransitive</td><td>Boolean</td><td>If {@code true} only filters on direct dependencies (not on transitive ones). Default = {@code false}.</td><tr>
+     * <tr><td>excludeTransitive</td><td>Boolean</td><td>If {@code true} only filters on direct dependencies (not on transitive ones). Default = {@code false}.</td></tr>
      * <tr><td>filter</td><td>Boolean</td><td>If set to {@code true} adds the embedded artifact location to the package's filter</td></tr>
      * </table>
      * </pre>
