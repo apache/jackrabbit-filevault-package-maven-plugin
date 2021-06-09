@@ -380,7 +380,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
 
     
     /** 
-     * Comparator on file names (excluding paths) which makes sure that the files named {@code .content.xml} files come first. 
+     * Comparator on file names (excluding paths) which makes sure that the files named {@code .content.xml} come first. Other file names are ordered lexicographically. 
      */
     static final class DotContentXmlFirstComparator implements Comparator<String> {
         @Override
