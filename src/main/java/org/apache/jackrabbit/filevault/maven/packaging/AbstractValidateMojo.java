@@ -19,6 +19,7 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -182,8 +183,8 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
      */
     public static final Artifact IGNORE_ARTIFACT = new DefaultArtifact("ignore", "ignore", "1.0", "", "", "", null);
 
-    protected String getProjectRelativeFilePath(File file) {
-        return "'" + project.getBasedir().toPath().relativize(file.toPath()).toString() + "'";
+    protected String getProjectRelativeFilePath(Path file) {
+        return "'" + project.getBasedir().toPath().relativize(file).toString() + "'";
     }
 
     public AbstractValidateMojo() {
@@ -377,8 +378,9 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
         return validatorSettingsById;
     }
 
+    
     /** 
-     * Comparator on file names which makes sure that the {@code .content.xml} files come first. 
+     * Comparator on file names (excluding paths) which makes sure that the files named {@code .content.xml} files come first. 
      */
     static final class DotContentXmlFirstComparator implements Comparator<String> {
         @Override
@@ -388,7 +390,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
             } else if (Constants.DOT_CONTENT_XML.equals(s2)) {
                 return 1;
             }
-            return 0;
+            return s1.compareTo(s2);
         }
     }
 }

@@ -85,14 +85,14 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         try {
             boolean foundPackage = false;
             if (packageFile != null && !packageFile.toString().isEmpty() && !packageFile.isDirectory()) {
-                validatePackage(validationHelper, packageFile);
+                validatePackage(validationHelper, packageFile.toPath());
                 foundPackage = true;
             } 
             if (!attachedArtifacts.isEmpty()) {
                 for (Artifact attached : attachedArtifacts) {
                     // validate attached artifacts with given classifiers
                     if (classifiers.contains(attached.getClassifier())) {
-                        validatePackage(validationHelper, attached.getFile());
+                        validatePackage(validationHelper, attached.getFile().toPath());
                         foundPackage = true;
                     }
                 }
@@ -106,19 +106,19 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         }
     }
 
-    private void validatePackage(ValidationHelper validationHelper, File file) throws IOException, ParserConfigurationException, SAXException, MojoExecutionException {
+    private void validatePackage(ValidationHelper validationHelper, Path file) throws IOException, ParserConfigurationException, SAXException, MojoExecutionException {
         getLog().info("Start validating package " + getProjectRelativeFilePath(file) + "...");
 
         // open file to extract the meta data for the validation context
         ArchiveValidationContextImpl context;
         ValidationExecutor executor;
-        try (Archive archive = new ZipArchive(file)) {
+        try (Archive archive = new ZipArchive(file.toFile())) {
             archive.open(true);
-            context = new ArchiveValidationContextImpl(archive, file.toPath(), resolver, getLog());
+            context = new ArchiveValidationContextImpl(archive, file, resolver, getLog());
             executor = validationExecutorFactory.createValidationExecutor(context, false, enforceRecursiveSubpackageValidation, getValidatorSettingsForPackage(context.getProperties().getId(), false));
             if (executor != null) {
                 validationHelper.printUsedValidators(getLog(), executor, context, true);
-                validateArchive(validationHelper, archive, file.toPath(), context, executor);
+                validateArchive(validationHelper, archive, file, context, executor);
             } else {
                 throw new MojoExecutionException("No registered validators found!");
             }
@@ -135,7 +135,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     private void validateEntry(ValidationHelper validationHelper, Archive archive, Archive.Entry entry, Path entryPath, Path packagePath, ArchiveValidationContextImpl context,
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException {
         // sort children to make sure that .content.xml comes first!
-        List<Archive.Entry> sortedEntryList = new ArrayList<Archive.Entry>(entry.getChildren());
+        List<Archive.Entry> sortedEntryList = new ArrayList<>(entry.getChildren());
         sortedEntryList.sort(Comparator.comparing(Archive.Entry::getName, new DotContentXmlFirstComparator()));
         
         for (Archive.Entry childEntry : sortedEntryList) {
