@@ -378,14 +378,15 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
         return validatorSettingsById;
     }
 
-    
     /** 
      * Comparator on file names (excluding paths) which makes sure that the files named {@code .content.xml} come first. Other file names are ordered lexicographically. 
      */
     static final class DotContentXmlFirstComparator implements Comparator<String> {
         @Override
         public int compare(String s1, String s2) {
-            if (Constants.DOT_CONTENT_XML.equals(s1)) {
+            if (Constants.DOT_CONTENT_XML.equals(s1) && Constants.DOT_CONTENT_XML.equals(s2)) {
+                return 0;
+            } else if (Constants.DOT_CONTENT_XML.equals(s1)) {
                 return -1;
             } else if (Constants.DOT_CONTENT_XML.equals(s2)) {
                 return 1;

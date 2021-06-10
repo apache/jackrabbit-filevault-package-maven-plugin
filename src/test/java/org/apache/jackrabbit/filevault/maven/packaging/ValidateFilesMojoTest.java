@@ -42,6 +42,7 @@ public class ValidateFilesMojoTest {
                 "apps" + File.separatorChar + "file",
                 "apps" + File.separatorChar + "test" + File.separatorChar + "huhu", 
                 "apps" + File.separatorChar + "test" + File.separatorChar + ".content.xml",
+                "apps" + File.separatorChar + "test" + File.separatorChar + ".content.xml", // add the same value two times to check that equality (derived from comparator) works correctly
                 "apps" + File.separatorChar + ".content.xml",
             }, 
             new String[]{ 

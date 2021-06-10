@@ -26,7 +26,11 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NavigableSet;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -181,7 +185,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
             }
             File generatedMetaInfRootDirectory = new File(workDirectory, Constants.META_INF);
             getLog().info("Validate files in generatedMetaInfRootDirectory " + getProjectRelativeFilePath(generatedMetaInfRootDirectory.toPath()) + " and metaInfRootDir " + getProjectRelativeFilePath(generatedMetaInfRootDirectory.toPath()));
-            ValidationContext context = new DirectoryValidationContext(generatedMetaInfRootDirectory, metaInfRootDirectory, resolver, getLog());
+            ValidationContext context = new DirectoryValidationContext(buildContext.isIncremental(), generatedMetaInfRootDirectory, metaInfRootDirectory, resolver, getLog());
             ValidationExecutor executor = validationExecutorFactory.createValidationExecutor(context, false, false, getValidatorSettingsForPackage(context.getProperties().getId(), false));
             if (executor == null) {
                 throw new MojoExecutionException("No registered validators found!");
@@ -221,24 +225,52 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         }
     }
 
+    /**
+     * Sorts the given files and directories with {@link ParentAndDotContentXmlFirstComparator}.
+     * In addition adds all potentially relevant (parent) node definitions. 
+     * That is
+     * <ul>
+     * <li>sibling {@code .content.xml} files</li>
+     * <li>{@code .content.xml} below {@code .dir} suffixed folders</li>
+     * <li>parent folders</li>
+     * </ul>
+     * @param baseDir
+     * @param files
+     * @param directories
+     * @return the sorted set of files/folders
+     */
     static SortedSet<Path> sortAndEnrichFilesAndFolders(Path baseDir, String[] files, String[] directories) {
         // first sort by segments
-        SortedSet<Path> paths = new TreeSet<>(new ParentAndDotContentXmlFirstComparator());
+        NavigableSet<Path> paths = new TreeSet<>(new ParentAndDotContentXmlFirstComparator());
         for (String file : files) {
             paths.add(Paths.get(file));
         }
         for (String directory : directories) {
             paths.add(Paths.get(directory));
         }
-        
-        for (Path path : paths) {
+        // start with longest path first
+        Iterator<Path> pathIterator = paths.descendingIterator();
+        Set<Path> additionalPaths = new HashSet<>();
+        while (pathIterator.hasNext()) {
+            Path path = pathIterator.next();
+            // add in addition all potentially relevant parent node definitions
             Path parent = path.getParent();
-            if (parent != null && !paths.contains(parent)) {
-                if (Files.isDirectory(baseDir.resolve(parent))) {
-                    paths.add(parent);
+            if (parent != null) {
+                if (!paths.contains(parent) && !additionalPaths.contains(parent) && Files.isDirectory(baseDir.resolve(parent))) {
+                    additionalPaths.add(parent);
+                }
+                Path parentContentXml = parent.resolve(Constants.DOT_CONTENT_XML);
+                if (!paths.contains(parentContentXml) && !additionalPaths.contains(parentContentXml) && Files.exists(baseDir.resolve(parentContentXml))) {
+                    additionalPaths.add(parentContentXml);
+                }
+                // and the node definition for https://jackrabbit.apache.org/filevault/vaultfs.html#Extended_File_aggregates
+                Path extendedFileAggregateContentXml = parent.resolve(path.getFileName().toString() + ".dir").resolve(Constants.DOT_CONTENT_XML);
+                if (!paths.contains(extendedFileAggregateContentXml) && !additionalPaths.contains(extendedFileAggregateContentXml) && Files.exists(baseDir.resolve(extendedFileAggregateContentXml))) {
+                    additionalPaths.add(parentContentXml);
                 }
             }
         }
+        paths.addAll(additionalPaths);
         return paths;
     }
 
@@ -328,7 +360,8 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
     
 
     /** 
-     * Comparator on paths which makes sure that the parent folders come first, then a file in the parent folder called {@code .content.xml} and then all other subfolders/files ordered lexicographically. 
+     * Comparator on paths which makes sure that the parent folders come first, then a file in the parent folder called {@code .content.xml} 
+     * and then all other subfolders/files ordered lexicographically. 
      */
     static final class ParentAndDotContentXmlFirstComparator implements Comparator<Path> {
         private final DotContentXmlFirstComparator dotXmlFirstComparator;
