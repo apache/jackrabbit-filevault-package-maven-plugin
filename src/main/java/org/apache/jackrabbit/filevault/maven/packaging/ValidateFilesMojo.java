@@ -216,7 +216,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         SortedSet<Path> sortedFileAndFolderNames = sortAndEnrichFilesAndFolders(baseDir, scanner.getIncludedFiles(), scanner.getIncludedDirectories());
         
         for (Path fileOrFolder : sortedFileAndFolderNames) {
-            getLog().info("Scanning path " + fileOrFolder + "...");
+            getLog().debug("Scanning path " + getProjectRelativeFilePath(baseDir.resolve(fileOrFolder)) + "...");
             if (Files.isDirectory(baseDir.resolve(fileOrFolder))) {
                 validateFolder(validationHelper, executor, baseDir, isMetaInf, fileOrFolder);
             } else {
