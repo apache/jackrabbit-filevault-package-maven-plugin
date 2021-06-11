@@ -17,15 +17,22 @@
 package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.NavigableSet;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context.DirectoryValidationContext;
@@ -177,20 +184,20 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
                 metaInfRootDirectory = metaInfoVaultSourceDirectory.getParentFile();
             }
             File generatedMetaInfRootDirectory = new File(workDirectory, Constants.META_INF);
-            getLog().info("Validate files in generatedMetaInfRootDirectory " + getProjectRelativeFilePath(generatedMetaInfRootDirectory) + " and metaInfRootDir " + getProjectRelativeFilePath(generatedMetaInfRootDirectory));
-            ValidationContext context = new DirectoryValidationContext(generatedMetaInfRootDirectory, metaInfRootDirectory, resolver, getLog());
+            getLog().info("Validate files in generatedMetaInfRootDirectory " + getProjectRelativeFilePath(generatedMetaInfRootDirectory.toPath()) + " and metaInfRootDir " + getProjectRelativeFilePath(generatedMetaInfRootDirectory.toPath()));
+            ValidationContext context = new DirectoryValidationContext(buildContext.isIncremental(), generatedMetaInfRootDirectory, metaInfRootDirectory, resolver, getLog());
             ValidationExecutor executor = validationExecutorFactory.createValidationExecutor(context, false, false, getValidatorSettingsForPackage(context.getProperties().getId(), false));
             if (executor == null) {
                 throw new MojoExecutionException("No registered validators found!");
             }
             validationHelper.printUsedValidators(getLog(), executor, context, true);
             if (metaInfRootDirectory != null) {
-                validateDirectory(validationHelper, executor, metaInfRootDirectory, true);
+                validateDirectoryRecursively(validationHelper, executor, metaInfRootDirectory.toPath(), true);
             }
-            validateDirectory(validationHelper, executor, generatedMetaInfRootDirectory, true);
+            validateDirectoryRecursively(validationHelper, executor, generatedMetaInfRootDirectory.toPath(), true);
             File jcrSourceDirectory = AbstractSourceAndMetadataPackageMojo.getJcrSourceDirectory(jcrRootSourceDirectory, builtContentDirectory, getLog());
             if (jcrSourceDirectory != null) {
-                validateDirectory(validationHelper, executor, jcrSourceDirectory, false);
+                validateDirectoryRecursively(validationHelper, executor, jcrSourceDirectory.toPath(), false);
             }
             validationHelper.printMessages(executor.done(), getLog(), buildContext, project.getBasedir().toPath());
         } catch (IOException | ConfigurationException e) {
@@ -199,29 +206,79 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         validationHelper.failBuildInCaseOfViolations(failOnValidationWarnings);
     }
 
-    private void validateDirectory(ValidationHelper validationHelper, ValidationExecutor executor, File baseDir, boolean isMetaInf) {
-        Scanner scanner = buildContext.newScanner(baseDir);
+    private void validateDirectoryRecursively(ValidationHelper validationHelper, ValidationExecutor executor, Path baseDir, boolean isMetaInf) {
+        Scanner scanner = buildContext.newScanner(baseDir.toFile());
         // make sure filtering does work equally as within the package goal
         scanner.setExcludes(excludes);
         scanner.addDefaultExcludes();
         scanner.scan();
         getLog().info("Scanning baseDir " + getProjectRelativeFilePath(baseDir) + "...");
-        List<String> sortedFileNames = Arrays.asList(scanner.getIncludedFiles());
-        sortedFileNames.sort(new DotContentXmlFirstComparator());
-        for (String fileName : sortedFileNames) {
-            validateFile(validationHelper, executor, baseDir, isMetaInf, fileName);
-        }
-        for (String relativeFile : scanner.getIncludedDirectories()) {
-            validateFolder(validationHelper, executor, baseDir, isMetaInf, relativeFile);
+        SortedSet<Path> sortedFileAndFolderNames = sortAndEnrichFilesAndFolders(baseDir, scanner.getIncludedFiles(), scanner.getIncludedDirectories());
+        
+        for (Path fileOrFolder : sortedFileAndFolderNames) {
+            getLog().debug("Scanning path " + getProjectRelativeFilePath(baseDir.resolve(fileOrFolder)) + "...");
+            if (Files.isDirectory(baseDir.resolve(fileOrFolder))) {
+                validateFolder(validationHelper, executor, baseDir, isMetaInf, fileOrFolder);
+            } else {
+                validateFile(validationHelper, executor, baseDir, isMetaInf, fileOrFolder);
+            }
         }
     }
 
+    /**
+     * Sorts the given files and directories with {@link ParentAndDotContentXmlFirstComparator}.
+     * In addition adds all potentially relevant (parent) node definitions. 
+     * That is
+     * <ul>
+     * <li>sibling {@code .content.xml} files</li>
+     * <li>{@code .content.xml} below {@code .dir} suffixed folders</li>
+     * <li>parent folders</li>
+     * </ul>
+     * @param baseDir
+     * @param files
+     * @param directories
+     * @return the sorted set of files/folders
+     */
+    static SortedSet<Path> sortAndEnrichFilesAndFolders(Path baseDir, String[] files, String[] directories) {
+        // first sort by segments
+        NavigableSet<Path> paths = new TreeSet<>(new ParentAndDotContentXmlFirstComparator());
+        for (String file : files) {
+            paths.add(Paths.get(file));
+        }
+        for (String directory : directories) {
+            paths.add(Paths.get(directory));
+        }
+        // start with longest path first
+        Iterator<Path> pathIterator = paths.descendingIterator();
+        Set<Path> additionalPaths = new HashSet<>();
+        while (pathIterator.hasNext()) {
+            Path path = pathIterator.next();
+            // add in addition all potentially relevant parent node definitions
+            Path parent = path.getParent();
+            if (parent != null) {
+                if (!paths.contains(parent) && !additionalPaths.contains(parent) && Files.isDirectory(baseDir.resolve(parent))) {
+                    additionalPaths.add(parent);
+                }
+                Path parentContentXml = parent.resolve(Constants.DOT_CONTENT_XML);
+                if (!paths.contains(parentContentXml) && !additionalPaths.contains(parentContentXml) && Files.exists(baseDir.resolve(parentContentXml))) {
+                    additionalPaths.add(parentContentXml);
+                }
+                // and the node definition for https://jackrabbit.apache.org/filevault/vaultfs.html#Extended_File_aggregates
+                Path extendedFileAggregateContentXml = parent.resolve(path.getFileName().toString() + ".dir").resolve(Constants.DOT_CONTENT_XML);
+                if (!paths.contains(extendedFileAggregateContentXml) && !additionalPaths.contains(extendedFileAggregateContentXml) && Files.exists(baseDir.resolve(extendedFileAggregateContentXml))) {
+                    additionalPaths.add(parentContentXml);
+                }
+            }
+        }
+        paths.addAll(additionalPaths);
+        return paths;
+    }
 
-    private void validateFile(ValidationHelper validationHelper, ValidationExecutor executor, File baseDir, boolean isMetaInf, String relativeFile) {
-        File absoluteFile = new File(baseDir, relativeFile);
-        validationHelper.clearPreviousValidationMessages(buildContext, absoluteFile);
+    private void validateFile(ValidationHelper validationHelper, ValidationExecutor executor, Path baseDir, boolean isMetaInf, Path relativeFile) {
+        Path absoluteFile = baseDir.resolve(relativeFile);
+        validationHelper.clearPreviousValidationMessages(buildContext, absoluteFile.toFile());
         getLog().debug("Validating file " + getProjectRelativeFilePath(absoluteFile) + "...");
-        try (InputStream input = new FileInputStream(absoluteFile)) {
+        try (InputStream input = Files.newInputStream(absoluteFile)) {
             validateInputStream(validationHelper, executor, input, baseDir, isMetaInf, relativeFile);
         } catch (FileNotFoundException e) {
             getLog().error("Could not find file " + getProjectRelativeFilePath(absoluteFile), e);
@@ -230,23 +287,23 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         }
     }
     
-    private void validateFolder(ValidationHelper validationHelper, ValidationExecutor executor, File baseDir, boolean isMetaInf, String relativeFile) {
-        File absoluteFile = new File(baseDir, relativeFile);
-        validationHelper.clearPreviousValidationMessages(buildContext, absoluteFile);
-        getLog().debug("Validating folder " + getProjectRelativeFilePath(absoluteFile) + "...");
+    private void validateFolder(ValidationHelper validationHelper, ValidationExecutor executor, Path baseDir, boolean isMetaInf, Path relativeFolder) {
+        Path absoluteFolder = baseDir.resolve(relativeFolder);
+        validationHelper.clearPreviousValidationMessages(buildContext, absoluteFolder.toFile());
+        getLog().debug("Validating folder " + getProjectRelativeFilePath(absoluteFolder) + "...");
         try {
-            validateInputStream(validationHelper, executor, null, baseDir, isMetaInf, relativeFile);
+            validateInputStream(validationHelper, executor, null, baseDir, isMetaInf, relativeFolder);
         } catch (IOException e) {
-            getLog().error("Could not validate folder " + getProjectRelativeFilePath(absoluteFile), e);
+            getLog().error("Could not validate folder " + getProjectRelativeFilePath(absoluteFolder), e);
         }
     }
     
-    private void validateInputStream(ValidationHelper validationHelper, ValidationExecutor executor, InputStream input, File baseDir, boolean isMetaInf, String relativeFile) throws IOException {
+    private void validateInputStream(ValidationHelper validationHelper, ValidationExecutor executor, InputStream input, Path baseDir, boolean isMetaInf, Path relativeFile) throws IOException {
         final Collection<ValidationViolation> messages;
         if (isMetaInf) {
-            messages = executor.validateMetaInf(input, Paths.get(relativeFile), baseDir.toPath());
+            messages = executor.validateMetaInf(input, relativeFile, baseDir);
         } else {
-            messages = executor.validateJcrRoot(input, Paths.get(relativeFile), baseDir.toPath());
+            messages = executor.validateJcrRoot(input, relativeFile, baseDir);
         }
         validationHelper.printMessages(messages, getLog(), buildContext, project.getBasedir().toPath());
     }
@@ -299,5 +356,35 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
             return true;
         }
         return false;
+    }
+    
+
+    /** 
+     * Comparator on paths which makes sure that the parent folders come first, then a file in the parent folder called {@code .content.xml} 
+     * and then all other subfolders/files ordered lexicographically. 
+     */
+    static final class ParentAndDotContentXmlFirstComparator implements Comparator<Path> {
+        private final DotContentXmlFirstComparator dotXmlFirstComparator;
+        
+        
+        public ParentAndDotContentXmlFirstComparator() {
+            super();
+            this.dotXmlFirstComparator = new DotContentXmlFirstComparator();
+        }
+
+        @Override
+        public int compare(Path s1, Path s2) {
+            if (s1.getNameCount() < s2.getNameCount()) {
+                return -1;
+            } else if (s1.getNameCount() > s2.getNameCount()) {
+                return 1;
+            } else {
+                if (s1.getParent() != null && s1.getParent().equals(s2.getParent())) {
+                    return dotXmlFirstComparator.compare(s1.getFileName().toString(), s2.getFileName().toString());
+                } else {
+                    return s1.compareTo(s2);
+                }
+            }
+        }
     }
 }

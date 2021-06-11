@@ -48,10 +48,11 @@ public class DirectoryValidationContext implements ValidationContext {
     private final PackageProperties properties;
     private final DefaultWorkspaceFilter filter;
     private List<PackageInfo> resolvedDependencies;
+    private final boolean isIncremental;
     
     private static final Path RELATIVE_PROPERTIES_XML_PATH = Paths.get(Constants.VAULT_DIR, Constants.PROPERTIES_XML);
 
-    public DirectoryValidationContext(@NotNull final File generatedMetaInfRootDirectory, final File metaInfRootDirectory, DependencyResolver resolver, @NotNull final Log log) throws IOException, ConfigurationException {
+    public DirectoryValidationContext(boolean isIncremental, @NotNull final File generatedMetaInfRootDirectory, final File metaInfRootDirectory, DependencyResolver resolver, @NotNull final Log log) throws IOException, ConfigurationException {
         Path propertiesPath = null;
         if (!Constants.META_INF.equals(generatedMetaInfRootDirectory.getName())) {
             throw new IllegalArgumentException("The workDir must end with 'META-INF' but is '" + generatedMetaInfRootDirectory+"'");
@@ -82,6 +83,7 @@ public class DirectoryValidationContext implements ValidationContext {
         filter.load(filterFile);
         
         this.resolvedDependencies = resolver.resolve(getProperties().getDependencies(), getProperties().getDependenciesLocations(), log);
+        this.isIncremental = isIncremental;
     }
 
     @Override
@@ -109,4 +111,8 @@ public class DirectoryValidationContext implements ValidationContext {
         return resolvedDependencies;
     }
 
+    @Override
+    public boolean isIncremental() {
+        return isIncremental;
+    }
 }

@@ -32,7 +32,7 @@ public class ValidateFilesIT {
                 .setTestGoals("clean", "process-classes") // make sure the validate-files mojo is not skipped
                 .setBuildExpectedToFail(true)
                 .build()
-                .verifyExpectedLogLines(Paths.get("target","vault-work","META-INF","vault","filter.xml").toString());
+                .verifyExpectedLogLines(Paths.get("src","main","content", "META-INF","vault","filter.xml").toString());
     }
 
     @Test
