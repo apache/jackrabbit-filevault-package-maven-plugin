@@ -213,12 +213,12 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         scanner.addDefaultExcludes();
         scanner.scan();
         getLog().info("Scanning baseDir " + getProjectRelativeFilePath(baseDir) + "...");
-        SortedSet<Path> sortedFileAndFolderNames = sortAndEnrichFilesAndFolders(baseDir, scanner.getIncludedFiles(), scanner.getIncludedDirectories());
+        SortedSet<Path> sortedFileAndFolderNames = sortAndEnrichFilesAndDirectories(baseDir, scanner.getIncludedFiles(), scanner.getIncludedDirectories());
         
         for (Path fileOrFolder : sortedFileAndFolderNames) {
             getLog().debug("Scanning path " + getProjectRelativeFilePath(baseDir.resolve(fileOrFolder)) + "...");
             if (Files.isDirectory(baseDir.resolve(fileOrFolder))) {
-                validateFolder(validationHelper, executor, baseDir, isMetaInf, fileOrFolder);
+                validateDirectory(validationHelper, executor, baseDir, isMetaInf, fileOrFolder);
             } else {
                 validateFile(validationHelper, executor, baseDir, isMetaInf, fileOrFolder);
             }
@@ -231,15 +231,15 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
      * That is
      * <ul>
      * <li>sibling {@code .content.xml} files</li>
-     * <li>{@code .content.xml} below {@code .dir} suffixed folders</li>
-     * <li>parent folders</li>
+     * <li>{@code .content.xml} below {@code .dir} suffixed directories</li>
+     * <li>parent directories</li>
      * </ul>
      * @param baseDir
      * @param files
      * @param directories
-     * @return the sorted set of files/folders
+     * @return the sorted set of files/directories
      */
-    static SortedSet<Path> sortAndEnrichFilesAndFolders(Path baseDir, String[] files, String[] directories) {
+    static SortedSet<Path> sortAndEnrichFilesAndDirectories(Path baseDir, String[] files, String[] directories) {
         // first sort by segments
         NavigableSet<Path> paths = new TreeSet<>(new ParentAndDotContentXmlFirstComparator());
         for (String file : files) {
@@ -286,18 +286,18 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
             getLog().error("Could not validate file " + getProjectRelativeFilePath(absoluteFile), e);
         }
     }
-    
-    private void validateFolder(ValidationHelper validationHelper, ValidationExecutor executor, Path baseDir, boolean isMetaInf, Path relativeFolder) {
+
+    private void validateDirectory(ValidationHelper validationHelper, ValidationExecutor executor, Path baseDir, boolean isMetaInf, Path relativeFolder) {
         Path absoluteFolder = baseDir.resolve(relativeFolder);
         validationHelper.clearPreviousValidationMessages(buildContext, absoluteFolder.toFile());
-        getLog().debug("Validating folder " + getProjectRelativeFilePath(absoluteFolder) + "...");
+        getLog().debug("Validating directory " + getProjectRelativeFilePath(absoluteFolder) + "...");
         try {
             validateInputStream(validationHelper, executor, null, baseDir, isMetaInf, relativeFolder);
         } catch (IOException e) {
-            getLog().error("Could not validate folder " + getProjectRelativeFilePath(absoluteFolder), e);
+            getLog().error("Could not validate directory " + getProjectRelativeFilePath(absoluteFolder), e);
         }
     }
-    
+
     private void validateInputStream(ValidationHelper validationHelper, ValidationExecutor executor, InputStream input, Path baseDir, boolean isMetaInf, Path relativeFile) throws IOException {
         final Collection<ValidationViolation> messages;
         if (isMetaInf) {
@@ -360,8 +360,8 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
     
 
     /** 
-     * Comparator on paths which makes sure that the parent folders come first, then a file in the parent folder called {@code .content.xml} 
-     * and then all other subfolders/files ordered lexicographically. 
+     * Comparator on paths which makes sure that the parent directories come first, then a file in the parent directory called {@code .content.xml} 
+     * and then all other child directories and files ordered lexicographically. 
      */
     static final class ParentAndDotContentXmlFirstComparator implements Comparator<Path> {
         private final DotContentXmlFirstComparator dotXmlFirstComparator;

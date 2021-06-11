@@ -37,7 +37,7 @@ public class ValidateFilesMojoTest {
         expectedPaths.add(Paths.get("apps", "test"));
         expectedPaths.add(Paths.get("apps", "test", ".content.xml"));
         expectedPaths.add(Paths.get("apps", "test", "huhu"));
-        Assert.assertEquals(expectedPaths, ValidateFilesMojo.sortAndEnrichFilesAndFolders(Paths.get("base"), new String[] { 
+        Assert.assertEquals(expectedPaths, ValidateFilesMojo.sortAndEnrichFilesAndDirectories(Paths.get("base"), new String[] { 
                 "apps" + File.separatorChar + "huhu",
                 "apps" + File.separatorChar + "file",
                 "apps" + File.separatorChar + "test" + File.separatorChar + "huhu", 
