@@ -228,6 +228,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
                 validationHelper.setCsvFile(csvReportFile, StandardCharsets.UTF_8, CSVFormat.EXCEL);
             }
             if (project != null) {
+                getLog().info("Clear markers in " + project.getBasedir());
                 validationHelper.clearPreviousValidationMessages(buildContext, project.getBasedir());
             }
             try {
@@ -312,22 +313,6 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
         }
     }
 
-
-    protected void disableChecksOnlyWorkingForPackages() throws MojoExecutionException {
-        final ValidatorSettings filterValidatorSettings;
-        if (validatorsSettings == null) {
-            validatorsSettings = new HashMap<>();
-        }
-        if (validatorsSettings.containsKey(AdvancedFilterValidatorFactory.ID)) {
-            getLog().warn("Overwriting settings for validator " + AdvancedFilterValidatorFactory.ID + " as some checks do not work reliably for this mojo!"); 
-            filterValidatorSettings = validatorsSettings.get(AdvancedFilterValidatorFactory.ID);
-        } else {
-            filterValidatorSettings = new ValidatorSettings();
-        }
-        // orphaned filter rules cannot be realiably detected, as the package is not yet build
-        filterValidatorSettings.addOption(AdvancedFilterValidatorFactory.OPTION_SEVERITY_FOR_ORPHANED_FILTER_RULES, "debug");
-    }
-    
     public abstract void doExecute(ValidationHelper validationHelper) throws MojoExecutionException, MojoFailureException;
 
     protected Map<String, ValidatorSettings> getValidatorSettingsForPackage(PackageId packageId, boolean isSubPackage) {

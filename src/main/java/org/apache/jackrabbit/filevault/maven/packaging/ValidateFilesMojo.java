@@ -176,7 +176,6 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
 
     @Override
     public void doExecute(ValidationHelper validationHelper) throws MojoExecutionException, MojoFailureException {
-        disableChecksOnlyWorkingForPackages();
         try {
             File metaInfoVaultSourceDirectory = AbstractMetadataPackageMojo.getMetaInfVaultSourceDirectory(metaInfVaultDirectory, getLog());
             File metaInfRootDirectory = null;
@@ -216,7 +215,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         SortedSet<Path> sortedFileAndFolderNames = sortAndEnrichFilesAndDirectories(baseDir, scanner.getIncludedFiles(), scanner.getIncludedDirectories());
         
         for (Path fileOrFolder : sortedFileAndFolderNames) {
-            getLog().debug("Scanning path " + getProjectRelativeFilePath(baseDir.resolve(fileOrFolder)) + "...");
+            getLog().info("Scanning path " + getProjectRelativeFilePath(baseDir.resolve(fileOrFolder)) + "...");
             if (Files.isDirectory(baseDir.resolve(fileOrFolder))) {
                 validateDirectory(validationHelper, executor, baseDir, isMetaInf, fileOrFolder);
             } else {

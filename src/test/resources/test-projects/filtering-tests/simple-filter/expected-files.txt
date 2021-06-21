@@ -16,6 +16,7 @@ jcr_root/apps/bar/
 jcr_root/apps/bar/test1.properties
 jcr_root/apps/bar/.content.xml
 jcr_root/apps/foo/
+jcr_root/apps/foo/.content.xml
 jcr_root/apps/foo/test2.properties
 jcr_root/apps/foo/child/
 jcr_root/apps/foo/child/.content.xml
