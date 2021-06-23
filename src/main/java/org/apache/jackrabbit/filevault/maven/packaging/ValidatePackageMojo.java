@@ -163,20 +163,26 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
             // in case this is a subpackage
             if (inputStream != null && entryPath.getFileName().toString().endsWith(VaultMojo.PACKAGE_EXT) && !skipSubPackageValidation) {
                 Path subPackagePath = context.getPackageRootPath().resolve(entryPath);
-                getLog().info("Start validating sub package '" + subPackagePath + "'...");
-                // can't use archive.getSubPackage because that holds the wrong metadata
-                Archive subArchive = new ZipStreamArchive(inputStream);
-                subArchive.open(true);
-                SubPackageValidationContext subPackageValidationContext = new SubPackageValidationContext(context, subArchive, subPackagePath, resolver, getLog());
-                ValidationExecutor subPackageValidationExecutor = validationExecutorFactory
-                        .createValidationExecutor(subPackageValidationContext, true, enforceRecursiveSubpackageValidation, getValidatorSettingsForPackage(subPackageValidationContext.getProperties().getId(), true));
-                if (subPackageValidationExecutor != null) {
-                    validationHelper.printUsedValidators(getLog(), executor, subPackageValidationContext, false);
-                    validateArchive(validationHelper, subArchive, subPackagePath, subPackageValidationContext, subPackageValidationExecutor);
-                } else {
-                    getLog().debug("Skip validating sub package as no validator is interested in it.");
+                // can't use archive.getSubArchive because that holds the wrong metadata
+                try (Archive subArchive = new ZipStreamArchive(inputStream)) {
+                    subArchive.open(true);
+                    // assure this is a real content package
+                    if (subArchive.getJcrRoot() == null) {
+                        getLog().debug("ZIP entry " + subPackagePath + " is no subpackage as it is lacking the mandatory jcr_root entry");
+                    } else {
+                        getLog().info("Start validating sub package '" + subPackagePath + "'...");
+                        SubPackageValidationContext subPackageValidationContext = new SubPackageValidationContext(context, subArchive, subPackagePath, resolver, getLog());
+                        ValidationExecutor subPackageValidationExecutor = validationExecutorFactory
+                                .createValidationExecutor(subPackageValidationContext, true, enforceRecursiveSubpackageValidation, getValidatorSettingsForPackage(subPackageValidationContext.getProperties().getId(), true));
+                        if (subPackageValidationExecutor != null) {
+                            validationHelper.printUsedValidators(getLog(), executor, subPackageValidationContext, false);
+                            validateArchive(validationHelper, subArchive, subPackagePath, subPackageValidationContext, subPackageValidationExecutor);
+                        } else {
+                            getLog().debug("Skip validating sub package as no validator is interested in it.");
+                        }
+                        getLog().info("End validating sub package.");
+                    }
                 }
-                getLog().info("End validating sub package.");
             }
         } else {
             messages.add(new ValidationViolation(ValidationMessageSeverity.WARN, "Found unexpected file outside of " + Constants.ROOT_DIR + " and " + Constants.META_INF, entryPath, packagePath, null, 0,0, null));
