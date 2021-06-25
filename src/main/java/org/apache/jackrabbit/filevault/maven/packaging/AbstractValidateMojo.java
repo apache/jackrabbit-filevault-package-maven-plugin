@@ -228,7 +228,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
                 validationHelper.setCsvFile(csvReportFile, StandardCharsets.UTF_8, CSVFormat.EXCEL);
             }
             if (project != null) {
-                getLog().info("Clear markers in " + project.getBasedir());
+                getLog().debug("Clear markers in " + project.getBasedir());
                 validationHelper.clearPreviousValidationMessages(buildContext, project.getBasedir());
             }
             try {
