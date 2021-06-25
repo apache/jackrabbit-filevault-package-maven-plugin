@@ -61,7 +61,7 @@ public class AnalyzeClassesMojo extends AbstractMojo {
     /**
      * Controls if the output should contain the package report.
      */
-    @Parameter(property = "vault.showPackageReport", defaultValue = "true")
+    @Parameter(property = "vault.showPackageReport", defaultValue = "false")
     private boolean showImportPackageReport;
 
     /**
@@ -84,7 +84,7 @@ public class AnalyzeClassesMojo extends AbstractMojo {
 
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
-            getLog().info("Analyzing java package dependencies.");
+            getLog().info("Analyzing Java package dependencies.");
             List<String> excluded = new ArrayList<String>(excludedLibraries.length);
             for (String lib: excludedLibraries) {
                 excluded.add(lib.trim());
