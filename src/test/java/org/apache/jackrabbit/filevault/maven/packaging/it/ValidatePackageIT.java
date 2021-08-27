@@ -48,7 +48,7 @@ public class ValidatePackageIT {
         Assert.assertTrue(csvReportFile.exists());
         CSVParser csvParser = CSVParser.parse(csvReportFile, StandardCharsets.UTF_8, CSVFormat.EXCEL);
         List<CSVRecord> actualRecords = csvParser.getRecords();
-        Assert.assertEquals(4, actualRecords.size()); // 3 issues + header
+        Assert.assertEquals(5, actualRecords.size()); // 4 issues + header
     }
  
     @Test
