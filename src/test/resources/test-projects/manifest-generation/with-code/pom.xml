@@ -40,6 +40,7 @@
                             <root>/libs/apache</root>
                         </filter>
                     </filters>
+                    <showImportPackageReport>true</showImportPackageReport>
                 </configuration>
             </plugin>
         </plugins>

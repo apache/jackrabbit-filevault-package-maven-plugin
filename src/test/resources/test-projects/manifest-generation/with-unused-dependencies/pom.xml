@@ -37,6 +37,7 @@
                             <root>/apps/test</root>
                         </filter>
                     </filters>
+                    <showImportPackageReport>true</showImportPackageReport>
                 </configuration>
             </plugin>
         </plugins>

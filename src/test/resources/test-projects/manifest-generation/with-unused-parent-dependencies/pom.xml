@@ -42,6 +42,7 @@
                 <configuration>
                     <group>my/test/group</group>
                     <failOnDependencyErrors>false</failOnDependencyErrors>
+                    <showImportPackageReport>true</showImportPackageReport>
                     <excludedLibraries>
                         biz.aQute:bndlib
                     </excludedLibraries>

@@ -37,6 +37,7 @@
                         javax.jcr;version="[2.0.0,3)"
                     </importPackage>
                     <failOnDependencyErrors>false</failOnDependencyErrors>
+                    <showImportPackageReport>true</showImportPackageReport>
                     <dependencies>
                         <dependency>
                             <groupId>com.apache.jackrabbit.filevault</groupId>

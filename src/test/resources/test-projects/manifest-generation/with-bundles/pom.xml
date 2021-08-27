@@ -39,6 +39,7 @@
                         org.apache.foo  <!-- example of adding a new package -->
                     </importPackage>
                     <failOnDependencyErrors>false</failOnDependencyErrors>
+                    <showImportPackageReport>true</showImportPackageReport>
                     <filters>
                         <filter>
                             <root>/apps/test</root>
