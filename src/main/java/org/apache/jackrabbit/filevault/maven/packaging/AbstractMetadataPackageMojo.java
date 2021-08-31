@@ -181,19 +181,28 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
         }
     }
 
+    /**
+     * 
+     * @param isForWriting
+     * @return the (potentially classifier-specific) work directory
+     */
     File getWorkDirectory(boolean isForWriting) {
+        return getWorkDirectory(getLog(), isForWriting, workDirectory, classifier);
+    }
+
+    static File getWorkDirectory(Log log, boolean isForWriting, File defaultWorkDirectory, String classifier) {
         if (StringUtils.isNotBlank(classifier)) {
-            File classifierWorkDirectory = new File(workDirectory.toString() + "-" + classifier);
+            File classifierWorkDirectory = new File(defaultWorkDirectory.toString() + "-" + classifier);
             if (!isForWriting) {
                 // fall back to regular work directory if work dir for classifier does not exist
                 if (!classifierWorkDirectory.exists()) {
-                    getLog().warn("Using regular workDirectory " + workDirectory + " as classifier specific workDirectory does not exist at " + classifierWorkDirectory);
-                    return workDirectory;
+                    log.warn("Using regular workDirectory " + defaultWorkDirectory + " as classifier specific workDirectory does not exist at " + classifierWorkDirectory);
+                    return defaultWorkDirectory;
                 }
             }
             return classifierWorkDirectory;
         } else {
-            return workDirectory;
+            return defaultWorkDirectory;
         }
     }
 

@@ -44,6 +44,7 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.codehaus.plexus.util.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import org.xml.sax.SAXException;
 
@@ -57,7 +58,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
 
     /** The main package file to validate. By default will be the project's main artifact (in case a project is given). If empty the main artifact will not be validated
      * but only the attached artifacts with the given {@link #classifiers}. */
-    @Parameter(property = "vault.packageToValidate", defaultValue = "${project.artifact.file}", required=true)
+    @Parameter(property = "vault.packageToValidate", defaultValue = "${project.artifact.file}")
     private File packageFile;
 
     /** If set to {@code true} always executes all validators also for all sub packages (recursively). */
@@ -72,41 +73,51 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     private List<Artifact> attachedArtifacts;
 
     /**
-     * If given validates all attached artifacts with one of the given classifiers in addition to the one given in {@link #packageFile}.
+     * If given validates all attached artifacts with one of the given classifiers (potentially in addition to the one given in {@link #packageFile}).
+     * This list is merged with the classifier given in parameter {@link #classifier}.
      */
     @Parameter()
     private List<String> classifiers;
+
+    /**
+     * The given classifier is merged with the ones given in parameter {@link #classifiers) and all matching attached artifacts are validated (potentially in addition to the one given in {@link #packageFile}).
+     */
+    @Parameter(property = "vault.classifier")
+    protected String classifier = "";
 
     public ValidatePackageMojo() {
     }
 
     @Override
     public void doExecute(ValidationHelper validationHelper) throws MojoExecutionException, MojoFailureException {
-        try {
-            boolean foundPackage = false;
-            if (packageFile != null && !packageFile.toString().isEmpty() && !packageFile.isDirectory()) {
-                validatePackage(validationHelper, packageFile.toPath());
-                foundPackage = true;
-            } 
-            if (!attachedArtifacts.isEmpty()) {
-                for (Artifact attached : attachedArtifacts) {
-                    // validate attached artifacts with given classifiers
-                    if (classifiers.contains(attached.getClassifier())) {
-                        validatePackage(validationHelper, attached.getFile().toPath());
-                        foundPackage = true;
-                    }
-                }
-            } 
-            if (!foundPackage) {
-                getLog().warn("No packages found to validate.");
+        boolean foundPackage = false;
+        if (packageFile != null && !packageFile.toString().isEmpty() && !packageFile.isDirectory()) {
+            validatePackage(validationHelper, packageFile.toPath());
+            foundPackage = true;
+        } 
+        if (!attachedArtifacts.isEmpty()) {
+            List<String> classifiersToCompare = new ArrayList<>();
+            if (classifiers != null) {
+                classifiersToCompare.addAll(classifiers);
             }
-            validationHelper.failBuildInCaseOfViolations(failOnValidationWarnings);
-        } catch (IOException | ParserConfigurationException | SAXException e) {
-            throw new MojoExecutionException("Could not validate package '" + packageFile + "': " + e.getMessage(), e);
+            if (StringUtils.isNotBlank(classifier)) {
+                classifiersToCompare.add(classifier);
+            }
+            for (Artifact attached : attachedArtifacts) {
+                // validate attached artifacts with given classifiers
+                if (classifiersToCompare.contains(attached.getClassifier())) {
+                    validatePackage(validationHelper, attached.getFile().toPath());
+                    foundPackage = true;
+                }
+            }
+        } 
+        if (!foundPackage) {
+            getLog().warn("No packages found to validate.");
         }
+        validationHelper.failBuildInCaseOfViolations(failOnValidationWarnings);
     }
 
-    private void validatePackage(ValidationHelper validationHelper, Path file) throws IOException, ParserConfigurationException, SAXException, MojoExecutionException {
+    private void validatePackage(ValidationHelper validationHelper, Path file) throws MojoExecutionException {
         getLog().info("Start validating package " + getProjectRelativeFilePath(file) + "...");
 
         // open file to extract the meta data for the validation context
@@ -123,13 +134,15 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
                 throw new MojoExecutionException("No registered validators found!");
             }
             getLog().debug("End validating package " + getProjectRelativeFilePath(file) + ".");
+        } catch (IOException | ParserConfigurationException | SAXException e) {
+            throw new MojoExecutionException("Could not validate package '" + file + "': " + e.getMessage(), e);
         }
     }
 
     private void validateArchive(ValidationHelper validationHelper, Archive archive, Path path, ArchiveValidationContextImpl context,
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException {
         validateEntry(validationHelper, archive, archive.getRoot(), Paths.get(""), path, context, executor);
-        validationHelper.printMessages(executor.done(), getLog(), buildContext, packageFile.toPath());
+        validationHelper.printMessages(executor.done(), getLog(), buildContext, path);
     }
 
     private void validateEntry(ValidationHelper validationHelper, Archive archive, Archive.Entry entry, Path entryPath, Path packagePath, ArchiveValidationContextImpl context,
@@ -187,7 +200,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         } else {
             messages.add(new ValidationViolation(ValidationMessageSeverity.WARN, "Found unexpected file outside of " + Constants.ROOT_DIR + " and " + Constants.META_INF, entryPath, packagePath, null, 0,0, null));
         }
-        validationHelper.printMessages(messages, getLog(), buildContext, packageFile.toPath());
+        validationHelper.printMessages(messages, getLog(), buildContext, packagePath);
     }
 
 }

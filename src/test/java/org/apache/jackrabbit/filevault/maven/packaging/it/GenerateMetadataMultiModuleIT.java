@@ -18,6 +18,7 @@ package org.apache.jackrabbit.filevault.maven.packaging.it;
 
 import java.nio.file.Paths;
 
+import org.apache.jackrabbit.filevault.maven.packaging.VaultMojo;
 import org.junit.Test;
 
 public class GenerateMetadataMultiModuleIT {
@@ -47,7 +48,7 @@ public class GenerateMetadataMultiModuleIT {
     public void multi_module_build_clean_package() throws Exception {
         new ProjectBuilder()
                 .setTestProjectDir("/generate-metadata-multimodule")
-                .setTestPackageFile("container/" + ProjectBuilder.TEST_PACKAGE_DEFAULT_NAME)
+                .setTestPackageFile("container/" + ProjectBuilder.TEST_PACKAGE_DEFAULT_NAME + VaultMojo.PACKAGE_EXT)
                 .setTestGoals("clean", "package")
                 .setVerifyPackageContents(false)
                 .build()
