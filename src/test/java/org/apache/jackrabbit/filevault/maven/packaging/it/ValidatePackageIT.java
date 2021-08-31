@@ -55,4 +55,9 @@ public class ValidatePackageIT {
     public void testValidProjectWithZip() throws Exception {
         verify("project-with-zip", false);
     }
+
+    @Test
+    public void testValidProjectWithClassifier() throws Exception {
+        verify("classifier-project", false);
+    }
 }
