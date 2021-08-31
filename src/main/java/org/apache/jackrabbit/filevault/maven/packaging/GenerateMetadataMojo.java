@@ -60,6 +60,7 @@ import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageProperties;
 import org.apache.jackrabbit.vault.packaging.PackageType;
+import org.apache.jackrabbit.vault.packaging.SubPackageHandling;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.maven.archiver.ManifestConfiguration;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
@@ -201,6 +202,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * <tr><td>packagePath</td><td>Automatically generated from the group and package name</td></tr>
      * <tr><td>packageType</td><td>Set via the package type parameter</td></tr>
      * <tr><td>acHandling</td><td>Use <i>accessControlHandling</i> parameter to set</td></tr>
+     * <tr><td>subPackageHandling</td><td>Use <i>subPackageHandlingEntries</i> parameter to set</td></tr>
      * </table>
      */
     @Parameter
@@ -236,6 +238,17 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
     @Parameter(property = "vault.dependencies")
     Collection<MavenBasedPackageDependency> dependencies = new LinkedList<>();
 
+    /**
+     * Defines a list of sub package handling entries, which affect how sub packages are installed.
+     * Each entry has the following elements:
+     * <ul>
+     *  <li>option, mandatory, one of the values from {@link SubPackageHandlingEntry.Option}</li>
+     *  <li>groupName, optional, restricts the option to the given group name, if not set affects there is no package group restriction</li>
+     *  <li>packageName, optional, restricts the option to the given package name, if not set affects all package names</li></li>
+     * </ul>
+     */
+    @Parameter()
+    List<SubPackageHandlingEntry> subPackageHandlingEntries = new LinkedList<>();
 
     /**
      * Defines the Access control handling. This will become the
@@ -256,8 +269,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      */
     @Parameter(
             property = "vault.acHandling",
-            alias = "acHandling",
-            required = false)
+            alias = "acHandling")
     private AccessControlHandling accessControlHandling;
 
     /**
@@ -907,6 +919,11 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
         props.put(PackageProperties.NAME_PACKAGE_TYPE, packageType.name().toLowerCase());
         if (accessControlHandling != null) {
             props.put(PackageProperties.NAME_AC_HANDLING, accessControlHandling.name().toLowerCase());
+        }
+        if (!subPackageHandlingEntries.isEmpty()) {
+            SubPackageHandling subPackageHandling = new org.apache.jackrabbit.vault.packaging.SubPackageHandling();
+            subPackageHandlingEntries.stream().map(SubPackageHandlingEntry::toEntry).forEach(e -> subPackageHandling.getEntries().add(e));
+            props.put(PackageProperties.NAME_SUB_PACKAGE_HANDLING, subPackageHandling.getString());
         }
         return props;
     }

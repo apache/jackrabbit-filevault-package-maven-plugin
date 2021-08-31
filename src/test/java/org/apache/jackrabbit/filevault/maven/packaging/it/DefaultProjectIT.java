@@ -32,6 +32,7 @@ import java.util.TimeZone;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.jackrabbit.util.ISO8601;
+import org.apache.jackrabbit.vault.packaging.PackageProperties;
 import org.apache.maven.it.VerificationException;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.number.OrderingComparison;
@@ -170,5 +171,13 @@ public class DefaultProjectIT {
                 .build()
                 .verifyExpectedFiles()
                 .verifyExpectedManifest();
+    }
+
+    @Test
+    public void complex_package_properties() throws Exception {
+        new ProjectBuilder()
+        .setTestProjectDir(TEST_PROJECT_NAME + "complex-properties")
+        .build()
+        .verifyPackageProperty(PackageProperties.NAME_SUB_PACKAGE_HANDLING, "*:package1;ignore,group1:*;force_install,group1:package1");
     }
 }
