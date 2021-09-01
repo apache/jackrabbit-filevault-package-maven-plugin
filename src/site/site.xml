@@ -34,6 +34,8 @@
             <item name="Import-package Generation" href="import_package.html"/>
             <item name="Migration from Adobe" href="migrating.html"/>
             <item name="Validators" href="validators.html"/>
+            <item name="Classifier Support" href="classifiers.html"/>
+            <item name="Filtering" href="filtering.html"/>
         </menu>
         <menu ref="modules"/>
         <menu ref="reports" inherit="bottom"/>
