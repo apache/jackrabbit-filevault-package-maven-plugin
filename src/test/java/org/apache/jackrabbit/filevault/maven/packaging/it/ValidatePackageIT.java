@@ -33,16 +33,16 @@ public class ValidatePackageIT {
 
     private static final String TEST_PROJECT_NAME = "/validator-projects/";
 
-    private ProjectBuilder verify(String projectName, boolean expectToFail) throws VerificationException, IOException {
+    private ProjectBuilder verify(String projectName, boolean expectToFail, String classifier) throws VerificationException, IOException {
         return new ProjectBuilder()
-                .setTestProjectDir(TEST_PROJECT_NAME + projectName)
+                .setTestProjectDir(TEST_PROJECT_NAME + projectName, classifier)
                 .setBuildExpectedToFail(expectToFail)
                 .build();
     }
 
     @Test
     public void testInvalidProject() throws Exception {
-        ProjectBuilder projectBuilder = verify("invalid-project", true);
+        ProjectBuilder projectBuilder = verify("invalid-project", true, null);
         projectBuilder.verifyExpectedLogLines(Paths.get("META-INF", "vault", "filter.xml").toString());
         File csvReportFile = new File(projectBuilder.getTestProjectDir(), "report.csv");
         Assert.assertTrue(csvReportFile.exists());
@@ -53,6 +53,11 @@ public class ValidatePackageIT {
  
     @Test
     public void testValidProjectWithZip() throws Exception {
-        verify("project-with-zip", false);
+        verify("project-with-zip", false, null);
+    }
+
+    @Test
+    public void testValidProjectWithClassifier() throws Exception {
+        verify("classifier-project", false, "test");
     }
 }

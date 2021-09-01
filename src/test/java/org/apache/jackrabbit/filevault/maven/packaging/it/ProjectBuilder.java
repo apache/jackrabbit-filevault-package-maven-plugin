@@ -49,6 +49,7 @@ import java.util.zip.ZipFile;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedReader;
+import org.apache.jackrabbit.filevault.maven.packaging.VaultMojo;
 import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
 import org.apache.maven.model.Model;
@@ -79,7 +80,7 @@ public class ProjectBuilder {
 
     public static final String TEST_PROJECTS_ROOT = "target/test-classes/test-projects";
 
-    static final String TEST_PACKAGE_DEFAULT_NAME = "target/package-plugin-test-pkg-1.0.0-SNAPSHOT.zip";
+    static final String TEST_PACKAGE_DEFAULT_NAME = "target/package-plugin-test-pkg-1.0.0-SNAPSHOT";
 
     static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%(\\d*)%");
 
@@ -158,9 +159,9 @@ public class ProjectBuilder {
         return this;
     }
 
-    public ProjectBuilder setTestProjectDir(File testProjectDir) {
+    public ProjectBuilder setTestProjectDir(File testProjectDir, String classifier) {
         this.testProjectDir = testProjectDir;
-        this.testPackageFile = new File(testProjectDir, TEST_PACKAGE_DEFAULT_NAME);
+        this.testPackageFile = new File(testProjectDir, TEST_PACKAGE_DEFAULT_NAME + (StringUtils.isNotBlank(classifier)?"-"+classifier:"") + VaultMojo.PACKAGE_EXT);
 
         // if we ever need different files, just create the setters.
         this.expectedFilesFile = new File(testProjectDir, "expected-files.txt");
@@ -174,11 +175,18 @@ public class ProjectBuilder {
         return this;
     }
 
-    public ProjectBuilder setTestProjectDir(String relPath) {
-        return setTestProjectDir(new File(testProjectsRoot, relPath));
+    public ProjectBuilder setTestProjectDir(File testProjectDir) {
+        return setTestProjectDir(testProjectDir, null);
     }
 
-    
+    public ProjectBuilder setTestProjectDir(String relPath, String classifier) {
+        return setTestProjectDir(new File(testProjectsRoot, relPath), classifier);
+    }
+
+    public ProjectBuilder setTestProjectDir(String relPath) {
+        return setTestProjectDir(relPath, null);
+    }
+
     public File getTestProjectDir() {
         return testProjectDir;
     }

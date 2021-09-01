@@ -73,7 +73,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
 
     private static final String PACKAGE_TYPE = "zip";
 
-    static final String PACKAGE_EXT = "." + PACKAGE_TYPE;
+    public static final String PACKAGE_EXT = "." + PACKAGE_TYPE;
 
     private static final Collection<File> STATIC_META_INF_FILES = Arrays.asList(new File(Constants.META_DIR, Constants.CONFIG_XML),
             new File(Constants.META_DIR, Constants.SETTINGS_XML));

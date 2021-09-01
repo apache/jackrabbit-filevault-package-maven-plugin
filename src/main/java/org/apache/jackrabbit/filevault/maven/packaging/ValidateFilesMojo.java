@@ -98,6 +98,13 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
             defaultValue = "${project.build.directory}/vault-work",
             required = true)
     File workDirectory;
+    
+    /**
+     * If given validates files built for the given classifier. This modifies the {@link #workDirectory} and appends the suffix {@code -<classifier>} to it.
+     */
+    @Parameter(property = "vault.classifier")
+    protected String classifier = "";
+
     //-----
     // End: Copied from AbstractMetadataPackageMojo
     // -----
@@ -182,7 +189,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
             if (metaInfoVaultSourceDirectory != null) {
                 metaInfRootDirectory = metaInfoVaultSourceDirectory.getParentFile();
             }
-            File generatedMetaInfRootDirectory = new File(workDirectory, Constants.META_INF);
+            File generatedMetaInfRootDirectory = new File(AbstractMetadataPackageMojo.getWorkDirectory(getLog(), false, workDirectory, classifier), Constants.META_INF);
             getLog().info("Validate files in generatedMetaInfRootDirectory " + getProjectRelativeFilePath(generatedMetaInfRootDirectory.toPath()) + " and metaInfRootDir " + getProjectRelativeFilePath(generatedMetaInfRootDirectory.toPath()));
             ValidationContext context = new DirectoryValidationContext(buildContext.isIncremental(), generatedMetaInfRootDirectory, metaInfRootDirectory, resolver, getLog());
             ValidationExecutor executor = validationExecutorFactory.createValidationExecutor(context, false, false, getValidatorSettingsForPackage(context.getProperties().getId(), false));
