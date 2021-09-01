@@ -127,7 +127,7 @@ public class ProjectBuilder {
      * Retrieves the version of the {@code filevault-package-maven-plugin} of the current project. The version is used in the
      * test poms so that the cli build uses the current plugin. Usually the version is set via the system property
      * {@code plugin.version} via the failsafe plugin. If the property is missing the method tries to read it from the
-     * {@code pom.xml} of the project. this is useful when running the tests in an IDE.
+     * {@code pom.xml} of the project. This is useful when running the tests in an IDE.
      *
      * @return the version of the current {@code filevault-package-maven-plugin}
      * @throws IllegalArgumentException if the version cannot be determined.
@@ -279,6 +279,7 @@ public class ProjectBuilder {
         assertTrue("Package does not contain mandatory 'jcr_root' folder in package " + packageFile, pkgZipEntries.contains("jcr_root/"));
         return pkgZipEntries;
     }
+
     public ProjectBuilder verifyPackageProperty(String key, String value) throws IOException {
         if (buildExpectedToFail) {
             return this;
