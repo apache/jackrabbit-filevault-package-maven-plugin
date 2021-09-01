@@ -99,7 +99,7 @@ public class CheckSignatureMojo extends AbstractMojo {
     private String[] ignores;
 
     /**
-     * Signature module to use.
+     * Signature module to use. If not set the signature check will be skipped.
      */
     @Parameter
     private Signature signature;
@@ -170,7 +170,7 @@ public class CheckSignatureMojo extends AbstractMojo {
     }
 
     private Collection<File> getEmbeddeds() throws MojoFailureException {
-        Set<File> files = new HashSet<File>();
+        Set<File> files = new HashSet<>();
         for (Embedded emb : embeddeds) {
             final Collection<Artifact> artifacts = emb.getMatchingArtifacts(project);
             if (artifacts.isEmpty()) {

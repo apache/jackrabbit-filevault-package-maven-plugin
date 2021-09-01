@@ -36,7 +36,7 @@ import org.apache.maven.shared.artifact.filter.PatternExcludesArtifactFilter;
 import aQute.bnd.osgi.Processor;
 
 /**
- * Analyzes the generated class files and generates a usage report
+ * Analyzes the generated class files and generates a usage report.
  */
 @Mojo(
         name = "analyze-classes",
@@ -85,7 +85,7 @@ public class AnalyzeClassesMojo extends AbstractMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         try {
             getLog().info("Analyzing Java package dependencies.");
-            List<String> excluded = new ArrayList<String>(excludedLibraries.length);
+            List<String> excluded = new ArrayList<>(excludedLibraries.length);
             for (String lib: excludedLibraries) {
                 excluded.add(lib.trim());
             }
