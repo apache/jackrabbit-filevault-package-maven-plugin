@@ -20,15 +20,15 @@ Migrating From Adobe's Content Package Maven Plugin
 
 Overview
 --------
-Some of the functionality of former `com.day.jcr.vault:content-package-maven-plugin` (Adobe's plugin) was not retained
+Some of the functionality of `com.day.jcr.vault:content-package-maven-plugin` (Adobe's plugin) was not retained
 when the code was migrated to the  `org.apache.jackrabbit:filevault-package-maven-plugin` (Jackrabbit's plugin).
-In particular, all the goals dealing with the Adobe CRX Package Manager interoperability were removed.
+In particular, all the goals dealing with the Adobe's CRX Package Manager interoperability were removed.
 
-Starting with the [1.0.2 release][0] of Adobe's plugin, all the content packaging functionality
+Starting with the [1.0.2 release][0] of Adobe's plugin, all the content package build functionality
 was removed, so that both plugins can now be used in the same project (pom).
 
-Projects that want to migrate to Jackrabbit's plugin just need to replace the maven coordinates of the
-content package plugin. And, if the package manager goals are sill needed, add Adobe's plugin again.
+Projects that want to migrate to Jackrabbit's plugin just need to replace the <aven coordinates of the
+content package plugin. And, if the package manager goals are still needed, add Adobe's plugin again.
 
 Example
 -------
@@ -51,11 +51,11 @@ An example plugin section could look like this:
         <artifactId>content-package-maven-plugin</artifactId>
         <version>1.0.2</version>
     </plugin>
-
-``` 
+```
 
 Next Steps
 ----------
+
 Currently there is no roadmap for implementing a package manager in Jackrabbit. Some ideas are tracked in [JCRVLT-151][1], 
 but until then, the plugin will not support any deployment options.
   

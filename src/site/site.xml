@@ -32,7 +32,7 @@
         </menu>
         <menu name="Documentation">
             <item name="Import-package Generation" href="import_package.html"/>
-            <item name="Migration from Adobe" href="migrating.html"/>
+            <item name="Migration from Adobe's Plugin" href="migrating.html"/>
             <item name="Validators" href="validators.html"/>
             <item name="Classifier Support" href="classifiers.html"/>
             <item name="Filtering" href="filtering.html"/>
