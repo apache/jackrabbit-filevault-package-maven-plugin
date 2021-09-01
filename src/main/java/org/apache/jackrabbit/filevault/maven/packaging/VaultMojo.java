@@ -151,12 +151,14 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     @Parameter(property = "vault.useDefaultDelimiters", defaultValue = "true")
     private boolean useDefaultDelimiters;
 
-    /** The character encoding scheme to be applied when filtering resources. */
+    /** The character encoding scheme to be applied when filtering resources. 
+     * @since 1.1.0
+     */
     @Parameter(property = "vault.resourceEncoding", defaultValue = "${project.build.sourceEncoding}")
     private String resourceEncoding;
 
-    /** Filters (path to  property files) to include during the filtering of resources. The default value is the filter list under build
-     * specifying a filter will override the filter list under build.
+    /**
+     * The list of extra filter properties files to be used along with System properties, project properties, and filter properties files specified in the POM build/filters section, which should be used for the filtering during the current mojo execution.
      * 
      * @since 1.1.0 */
     @Parameter(property="vault.filters")

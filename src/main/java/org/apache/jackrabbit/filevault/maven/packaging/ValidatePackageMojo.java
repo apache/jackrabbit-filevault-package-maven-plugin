@@ -51,6 +51,7 @@ import org.xml.sax.SAXException;
 /**
  * Validates a package (and optionally in addition all attached packages with the given classifiers) with all registered validators.
  * @see <a href="https://jackrabbit.apache.org/filevault-package-maven-plugin/validators.html">Validators</a>
+ * @since 1.1.0
  */
 @Mojo(
         name = "validate-package", defaultPhase = LifecyclePhase.VERIFY, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = false, threadSafe = true)
@@ -65,7 +66,9 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     @Parameter(required = true, defaultValue = "false")
     private boolean enforceRecursiveSubpackageValidation;
 
-    /** If set to {@code true} will not validate any sub packages. This settings overwrites the parameter {@code enforceRecursiveSubpackageValidation}. */
+    /** If set to {@code true} will not validate any sub packages. This settings overwrites the parameter {@code enforceRecursiveSubpackageValidation}. 
+     * @since 1.1.2
+     */
     @Parameter(required = true, defaultValue = "false")
     private boolean skipSubPackageValidation;
 
@@ -80,7 +83,8 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     private List<String> classifiers;
 
     /**
-     * The given classifier is merged with the ones given in parameter {@link #classifiers) and all matching attached artifacts are validated (potentially in addition to the one given in {@link #packageFile}).
+     * The given classifier is merged with the ones given in parameter {@link #classifiers} and all matching attached artifacts are validated (potentially in addition to the one given in {@link #packageFile})
+     * @since 1.1.10
      */
     @Parameter(property = "vault.classifier")
     protected String classifier = "";

@@ -96,6 +96,7 @@ import aQute.bnd.osgi.Processor;
  * files ending up in {@code META-INF/vault} like {@code filter.xml}, {@code properties.xml}, {@code config.xml} and
  * {@code settings.xml}. Those files will be written to the directory given via parameter {@link #workDirectory}.
  * In addition performs some validations.
+ * @since 1.0.3
  */
 @Mojo(
         name = "generate-metadata",
@@ -246,6 +247,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      *  <li>groupName, optional, restricts the option to the given group name, if not set affects there is no package group restriction</li>
      *  <li>packageName, optional, restricts the option to the given package name, if not set affects all package names</li></li>
      * </ul>
+     * @since 1.1.10
      */
     @Parameter()
     List<SubPackageHandlingEntry> subPackageHandlingEntries = new LinkedList<>();
@@ -382,6 +384,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
 
     /**
      * Optional reference to PNG image that should be used as thumbnail for the content package.
+     * @since 
      */
     @Parameter
     private File thumbnailImage;
@@ -430,6 +433,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
     /**
      * A list of artifact coordinates in the format {@code <groupId>:<artifactId>[:<extension>[:<classifier>]]:<version>}.
      * The resolved artifacts are embedded as <a href="http://jackrabbit.apache.org/filevault/installhooks.html">internal install hooks</a> in the resulting content package.
+     * @since 1.1.8
      */
     @Parameter(defaultValue="")
     List<ArtifactCoordinates> installHooks;

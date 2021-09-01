@@ -69,6 +69,7 @@ import org.codehaus.plexus.util.Scanner;
  * Validates individual files with all registered validators. This is only active for incremental builds (i.e. inside m2e)
  * or when mojo "validate-package" is not executed in the current Maven execution.
  * @see <a href="https://jackrabbit.apache.org/filevault-package-maven-plugin/validators.html">Validators</a>
+ * @since 1.1.0
  */
 @Mojo(name = "validate-files", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class ValidateFilesMojo extends AbstractValidateMojo {

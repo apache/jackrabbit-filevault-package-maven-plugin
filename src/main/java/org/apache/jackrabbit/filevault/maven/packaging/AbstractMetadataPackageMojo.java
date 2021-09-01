@@ -106,6 +106,7 @@ public abstract class AbstractMetadataPackageMojo extends AbstractMojo {
      * as a supplemental artifact having this classifier.
      * Also all generated metadata will be pushed to {@code <workDirectory>-<classifier>} and will preferably
      * be looked up from there. In addition the embedded file names will be exchanged leveraging a classifier specific property.
+     * @since 1.1.4
      */
     @Parameter(property = "vault.classifier")
     protected String classifier = "";
