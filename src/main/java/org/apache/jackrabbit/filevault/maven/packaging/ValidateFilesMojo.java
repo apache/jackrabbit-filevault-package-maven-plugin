@@ -171,7 +171,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         // is another mojo from this plugin called in this maven session later on?
         try {
             if (!buildContext.isIncremental() && isMojoGoalExecuted(lifecycleExecutor, "validate-package", allGoals.toArray(new String[0]))) { // how to detect that "install" contains "package"? how to resolve the given goals?
-                getLog().info("Skip this mojo as this is not an incremental build and 'validate-package' is executed later on!");
+                getLog().info("Skip this goal as this is not an incremental build and 'validate-package' is executed later on!");
                 return true;
             }
         } catch (PluginNotFoundException | PluginResolutionException | PluginDescriptorParsingException | MojoNotFoundException
