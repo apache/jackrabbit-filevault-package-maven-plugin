@@ -100,7 +100,7 @@ import aQute.bnd.osgi.Processor;
  */
 @Mojo(
         name = "generate-metadata",
-        defaultPhase = LifecyclePhase.PROCESS_CLASSES,
+        defaultPhase = LifecyclePhase.GENERATE_SOURCES, // to make sure it runs after "analyze-classes"
         requiresDependencyResolution = ResolutionScope.COMPILE,
         threadSafe = true
 )
