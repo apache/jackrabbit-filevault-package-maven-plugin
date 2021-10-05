@@ -24,29 +24,24 @@
                 <lifecycles>
                     <lifecycle>
                         <id>default</id>
-                        <!-- START SNIPPET: bundle-lifecycle -->
+                        <!-- START SNIPPET: content-package lifecycle -->
                         <phases>
                             <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources
                             </process-resources>
                             <compile>org.apache.maven.plugins:maven-compiler-plugin:compile</compile>
-                            <process-classes>
-                                org.apache.jackrabbit:filevault-package-maven-plugin:check-signature,
-                                org.apache.jackrabbit:filevault-package-maven-plugin:analyze-classes,
-                                org.apache.jackrabbit:filevault-package-maven-plugin:generate-metadata,
-                                org.apache.jackrabbit:filevault-package-maven-plugin:validate-files
-                            </process-classes>
-                            <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources
+                            <generate-test-sources>org.apache.jackrabbit:filevault-package-maven-plugin:generate-metadata</generate-test-sources>
+                            <process-test-resources>
+                              org.apache.maven.plugins:maven-resources-plugin:testResources,
+                              org.apache.jackrabbit:filevault-package-maven-plugin:validate-files
                             </process-test-resources>
                             <test-compile>org.apache.maven.plugins:maven-compiler-plugin:testCompile</test-compile>
                             <test>org.apache.maven.plugins:maven-surefire-plugin:test</test>
-                            <package>
-                                org.apache.jackrabbit:filevault-package-maven-plugin:package,
-                                org.apache.jackrabbit:filevault-package-maven-plugin:validate-package
-                            </package>
+                            <package>org.apache.jackrabbit:filevault-package-maven-plugin:package</package>
+                            <verify>org.apache.jackrabbit:filevault-package-maven-plugin:validate-package</verify>
                             <install>org.apache.maven.plugins:maven-install-plugin:install</install>
                             <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
                         </phases>
-                        <!-- END SNIPPET: bundle-lifecycle -->
+                        <!-- END SNIPPET: content package lifecycle -->
                     </lifecycle>
                 </lifecycles>
             </configuration>

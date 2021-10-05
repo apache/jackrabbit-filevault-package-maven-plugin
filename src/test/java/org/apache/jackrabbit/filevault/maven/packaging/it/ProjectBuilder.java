@@ -92,7 +92,7 @@ public class ProjectBuilder {
 
     private Properties testProperties;
 
-    private String[] testGoals = {"clean", "package"};
+    private String[] testGoals = {"clean", "verify"};
 
     private List<String> pkgZipEntries;
 

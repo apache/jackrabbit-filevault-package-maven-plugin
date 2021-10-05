@@ -48,6 +48,13 @@
                         </embedded>
                     </embeddeds>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>check-signature</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

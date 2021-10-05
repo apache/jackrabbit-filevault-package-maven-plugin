@@ -46,6 +46,13 @@
                         </embedded>
                     </embeddeds>
                 </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>analyze-classes</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

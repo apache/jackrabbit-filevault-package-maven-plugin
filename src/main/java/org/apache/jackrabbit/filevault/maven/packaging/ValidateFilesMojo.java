@@ -71,7 +71,10 @@ import org.codehaus.plexus.util.Scanner;
  * @see <a href="https://jackrabbit.apache.org/filevault-package-maven-plugin/validators.html">Validators</a>
  * @since 1.1.0
  */
-@Mojo(name = "validate-files", defaultPhase = LifecyclePhase.PROCESS_CLASSES, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
+@Mojo(name = "validate-files", 
+    defaultPhase = LifecyclePhase.PROCESS_TEST_SOURCES, // to make sure it runs after "generate-metadata"
+    requiresDependencyResolution = ResolutionScope.COMPILE, 
+    threadSafe = true)
 public class ValidateFilesMojo extends AbstractValidateMojo {
 
     //-----

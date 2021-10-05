@@ -29,7 +29,7 @@ public class ValidateFilesIT {
     private ProjectBuilder verify(String projectName) throws VerificationException, IOException {
         return new ProjectBuilder()
                 .setTestProjectDir(TEST_PROJECT_NAME + projectName)
-                .setTestGoals("clean", "process-classes") // make sure the validate-files mojo is not skipped
+                .setTestGoals("clean", "package") // make sure the validate-files mojo is not skipped
                 .setBuildExpectedToFail(true)
                 .build()
                 .verifyExpectedLogLines(Paths.get("META-INF","vault","filter.xml").toString());
