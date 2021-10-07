@@ -65,8 +65,8 @@
     </scm>
 
     <ciManagement>
-        <system>Travis</system>
-        <url>https://travis-ci.org/apache/jackrabbit-filevault-package-maven-plugin</url>
+        <system>Jenkins</system>
+        <url>https://ci-builds.apache.org/blue/organizations/jenkins/Jackrabbit%2Ffilevault-package-maven-plugin/activity</url>
     </ciManagement>
 
     <!-- parent is available in SNAPSHOT repo of Apache -->

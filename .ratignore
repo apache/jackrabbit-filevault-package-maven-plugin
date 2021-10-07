@@ -8,3 +8,5 @@ src/test/resources/test-projects/**/*.lst
 src/test/resources/test-projects/**/*.MF
 .mvn/**
 .no-defender.sh
+.repository/**
+local-snapshots-dir/**
