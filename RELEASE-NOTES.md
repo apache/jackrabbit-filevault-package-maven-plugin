@@ -15,7 +15,7 @@
    limitations under the License.
   -->
 
-Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.1.8
+Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.2.0
 ==================================================================================
 
 Introduction
@@ -24,17 +24,22 @@ The Apache Jackrabbit FileVault Package Maven Plugin is an Apache Maven plugin t
 content package Maven artifacts. The content packages can later be used to install content into a JCR repository
 using the Apache Jackrabbit FileVault packaging runtime.
 
-Changes in Jackrabbit FileVault Package Maven Plugin 1.1.8
+Changes in Jackrabbit FileVault Package Maven Plugin 1.2.0
 ---------------------------------------------------
 
 #### Bug Fixes
-* [JCRVLT-495] - Allow to exclude binaries without extension from filtering
-* [JCRVLT-498] - Package mojo is using wrong workDirectory if classifier is used
+* [JCRVLT-528] - filevault-package-maven-plugin:validate-files reports nodetype related errors validate-package does not
+* [JCRVLT-537] - validate-package goal incorrectly assumes that all zip files inside packages are subpackages
+* [JCRVLT-553] - validate-package fails when using classifier
 
 #### Improvements
-* [JCRVLT-249] - Allow to include a hook jar via a dedicated parameter
-* [JCRVLT-501] - Get rid of plexus-utils dependency
-* [JCRVLT-518] - Optionally create CSV report from validation violations
+* [JCRVLT-316] - Add dedicated parameter to specify subPackageHandling
+* [JCRVLT-530] - Add Jenkins build automatically deploying SNAPSHOTs
+* [JCRVLT-541] - Reduce logging of filevault-package-maven-plugin:analyze-classes
+* [JCRVLT-554] - Don't bind "analyze-classes" goal by default
+* [JCRVLT-555] - Don't bind "check-signature" goal by default
+* [JCRVLT-562] - Build with Java 17
+* [JCRVLT-563] - Change default phases for goals
 
 
 Changes in Jackrabbit FileVault Package Maven Plugin 1.1.6
