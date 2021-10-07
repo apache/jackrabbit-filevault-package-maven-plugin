@@ -1,7 +1,7 @@
 [![ASF Jira](https://img.shields.io/badge/ASF%20JIRA-JCRVLT-orange)](https://issues.apache.org/jira/projects/JCRVLT/summary)
 ![GitHub](https://img.shields.io/github/license/apache/jackrabbit-filevault-package-maven-plugin)
 [![Maven Central](https://img.shields.io/maven-central/v/org.apache.jackrabbit/filevault-package-maven-plugin.svg?label=Maven%20Central)](https://search.maven.org/artifact/org.apache.jackrabbit/filevault-package-maven-plugin)
-[![Build Status](https://travis-ci.com/apache/jackrabbit-filevault-package-maven-plugin.svg?branch=master)](https://travis-ci.com/apache/jackrabbit-filevault-package-maven-plugin)
+[![Build Status](https://ci-builds.apache.org/buildStatus/icon?job=Jackrabbit%2Ffilevault-package-maven-plugin%2Ffmaster)](https://ci-builds.apache.org/job/Jackrabbit/job/filevault-package-maven-plugin/job/master/)
 [![SonarCloud Status](https://sonarcloud.io/api/project_badges/measure?project=apache_jackrabbit-filevault-package-maven-plugin&metric=alert_status)](https://sonarcloud.io/dashboard?id=apache_jackrabbit-filevault-package-maven-plugin)
 [![SonarCloud Coverage](https://sonarcloud.io/api/project_badges/measure?project=apache_jackrabbit-filevault-package-maven-plugin&metric=coverage)](https://sonarcloud.io/component_measures/metric/coverage/list?id=apache_jackrabbit-filevault-package-maven-plugin)
 [![SonarCloud Bugs](https://sonarcloud.io/api/project_badges/measure?project=apache_jackrabbit-filevault-package-maven-plugin&metric=bugs)](https://sonarcloud.io/component_measures/metric/reliability_rating/list?id=apache_jackrabbit-filevault-package-maven-plugin)
