@@ -33,7 +33,8 @@ public class FormattingIT {
                 .build();
 
         for (String formattedFile : formattedFiles) {
-            String path = new File(builder.getTestProjectDir(), formattedFile).getAbsolutePath();
+            // use uppercase drive letter on Windows
+            String path = new File(builder.getTestProjectDir(), formattedFile).getCanonicalPath();
             builder.verifyExpectedLogLines(path);
         }
     }

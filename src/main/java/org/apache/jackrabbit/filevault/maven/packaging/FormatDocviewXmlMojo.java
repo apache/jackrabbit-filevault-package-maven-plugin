@@ -147,9 +147,9 @@ public class FormatDocviewXmlMojo extends AbstractMojo {
                         malformedFiles.add(toCheck);
                         // emit violations for m2e (https://www.eclipse.org/m2e/documentation/m2e-making-maven-plugins-compat.html)
                         buildContext.addMessage(toCheck, 0, 0, MSG_MALFORMED_FILE + ". " +  MSG_COUNTERMEASURE, BuildContext.SEVERITY_ERROR, null);
-                        log.error(MSG_MALFORMED_FILE + ":" + toCheck);
+                        log.error(MSG_MALFORMED_FILE + ":" + toCheck.getCanonicalPath());
                     } else {
-                        log.info("Reformatted file '" + toCheck + "'.");
+                        log.info("Reformatted file '" + toCheck.getCanonicalPath() + "'.");
                     }
                 } else {
                     buildContext.removeMessages(toCheck);
