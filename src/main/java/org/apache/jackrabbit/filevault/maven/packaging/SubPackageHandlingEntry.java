@@ -46,7 +46,7 @@ public class SubPackageHandlingEntry {
      * Sets the access control handling.
      * Explicit setter methods to allow specifying the option in both lower and upper case.
      * 
-     * @param type the string representation of the ac handling
+     * @param option the string representation of the access control handling
      * @throws MojoFailureException if an error occurs
      */
     public void setOption(String option) throws MojoFailureException {
