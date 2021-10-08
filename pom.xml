@@ -583,14 +583,13 @@ https://dist.apache.org/repos/dist/dev/jackrabbit/filevault-package-maven-plugin
 The release candidate is a zip archive of the sources in:
 https://github.com/apache/jackrabbit-filevault-package-maven-plugin/tree/filevault-package-maven-plugin-${project.version}/
 
-The SHA1 checksum of the archive is
-${checksum}
+The release notes can be found in JIRA at https://issues.apache.org/jira/projects/JCRVLT/versions/...
 
 The command for running automated checks against this release candidate is:
 $ sh check-release.sh filevault-plugin ${project.version} ${checksum}
 
 A staged Maven repository is available for review at:
-https://repository.apache.org/
+https://repository.apache.org/content/repositories/orgapachejackrabbit-...
 
 Please vote on releasing this package as Apache Jackrabbit FileVault Package Maven Plugin ${project.version}.
 The vote is open for a minimum of 72 hours during business days and passes
@@ -612,8 +611,7 @@ The vote fails if not enough votes are cast after 1 week (5 business days).
     cd /path/to/jackrabbit-dev/filevault-package-maven-plugin
     mv ${basedir}/target/${project.version} ${project.version}
     svn add ${project.version}
-    svn commit -m 'Apache Jackrabbit FileVault Package Maven Plugin
-    ${project.version} release candidate' ${project.version}
+    svn commit -m 'Apache Jackrabbit FileVault Package Maven Plugin${project.version} release candidate' ${project.version}
 
     A release vote template has been generated for you:
 
