@@ -121,7 +121,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         validationHelper.failBuildInCaseOfViolations(failOnValidationWarnings);
     }
 
-    private void validatePackage(ValidationHelper validationHelper, Path file) throws MojoExecutionException {
+    private void validatePackage(ValidationHelper validationHelper, Path file) throws MojoExecutionException, MojoFailureException {
         getLog().info("Start validating package " + getProjectRelativeFilePath(file) + "...");
 
         // open file to extract the meta data for the validation context
@@ -144,13 +144,13 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     }
 
     private void validateArchive(ValidationHelper validationHelper, Archive archive, Path path, ArchiveValidationContextImpl context,
-            ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException {
+            ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException, MojoFailureException {
         validateEntry(validationHelper, archive, archive.getRoot(), Paths.get(""), path, context, executor);
         validationHelper.printMessages(executor.done(), getLog(), buildContext, path);
     }
 
     private void validateEntry(ValidationHelper validationHelper, Archive archive, Archive.Entry entry, Path entryPath, Path packagePath, ArchiveValidationContextImpl context,
-            ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException {
+            ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException, MojoFailureException {
         // sort children to make sure that .content.xml comes first!
         List<Archive.Entry> sortedEntryList = new ArrayList<>(entry.getChildren());
         sortedEntryList.sort(Comparator.comparing(Archive.Entry::getName, new DotContentXmlFirstComparator()));
@@ -168,7 +168,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     }
 
     private void validateInputStream(ValidationHelper validationHelper, @Nullable InputStream inputStream, Path entryPath, Path packagePath, ArchiveValidationContextImpl context,
-            ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException {
+            ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException, MojoFailureException {
         Collection<ValidationViolation> messages = new LinkedList<>();
         if (entryPath.startsWith(Constants.META_INF)) {
             messages.addAll(executor.validateMetaInf(inputStream, Paths.get(Constants.META_INF).relativize(entryPath), packagePath.resolve(Constants.META_INF)));

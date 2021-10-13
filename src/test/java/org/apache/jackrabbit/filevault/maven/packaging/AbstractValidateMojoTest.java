@@ -16,6 +16,7 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +29,10 @@ import org.apache.maven.artifact.InvalidArtifactRTException;
 import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Test;
+import org.osgi.framework.Version;
+
 
 public class AbstractValidateMojoTest {
 
@@ -66,15 +70,15 @@ public class AbstractValidateMojoTest {
         validatorsSettings.put("id1", new ValidatorSettings().addOption("id1", "foo"));
         validatorsSettings.put("id2:mygroup:myname", new ValidatorSettings().addOption("id2", "foo"));
         validatorsSettings.put("id3:subpackage", new ValidatorSettings().addOption("id3", "foo"));
-        validatorsSettings.put("id4:invalid", new ValidatorSettings().addOption("id4", "foo"));
         validatorsSettings.put("id5:othergroup:myname", new ValidatorSettings().addOption("id5", "foo"));
         validatorsSettings.put("id6:mygroup:myothername", new ValidatorSettings().addOption("id3", "foo"));
-        validatorsSettings.put("id7:", new ValidatorSettings().addOption("id7", "foo"));
-        
+        validatorsSettings.put("id1:*:myname", new ValidatorSettings().addOption("id2", "bar"));
+        validatorsSettings.put("id3", new ValidatorSettings().addOption("id3", "bar"));
         Map<String, ValidatorSettings> actualValidatorSettings = AbstractValidateMojo.getValidatorSettingsForPackage(new SystemStreamLog(), validatorsSettings, PackageId.fromString("mygroup:myname:1.0.0"), false);
         Map<String, ValidatorSettings> expectedValidatorSettings = new HashMap<>();
-        expectedValidatorSettings.put("id1", new ValidatorSettings().addOption("id1", "foo"));
+        expectedValidatorSettings.put("id1", new ValidatorSettings().addOption("id1", "foo").addOption("id2", "bar"));
         expectedValidatorSettings.put("id2", new ValidatorSettings().addOption("id2", "foo"));
+        expectedValidatorSettings.put("id3", new ValidatorSettings().addOption("id3", "bar"));
         MatcherAssert.assertThat(actualValidatorSettings, Matchers.equalTo(expectedValidatorSettings));
         
         actualValidatorSettings = AbstractValidateMojo.getValidatorSettingsForPackage(new SystemStreamLog(), validatorsSettings, PackageId.fromString("mygroup:myname:1.0.0"), true);
@@ -91,5 +95,10 @@ public class AbstractValidateMojoTest {
         List<String> list = Arrays.asList("someEntryA", ".content.xml", "someEntryB", ".content.xml");
         list.sort(new AbstractValidateMojo.DotContentXmlFirstComparator());
         MatcherAssert.assertThat(list, Matchers.contains(".content.xml", ".content.xml", "someEntryA", "someEntryB"));
+    }
+    
+    @Test
+    public void testGetFileVaultValidatorVersion() throws IOException {
+        Assert.assertTrue(AbstractValidateMojo.getFileVaultValidationBundleVersion().compareTo(Version.parseVersion("3.5.4")) >= 0);
     }
 }

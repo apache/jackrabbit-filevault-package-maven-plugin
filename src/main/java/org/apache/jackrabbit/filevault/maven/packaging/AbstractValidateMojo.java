@@ -18,12 +18,16 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.JarURLConnection;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,6 +44,7 @@ import org.apache.jackrabbit.vault.validation.ValidationExecutorFactory;
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
 import org.apache.jackrabbit.vault.validation.spi.impl.AdvancedFilterValidatorFactory;
 import org.apache.jackrabbit.vault.validation.spi.impl.DependencyValidatorFactory;
+import org.apache.jackrabbit.vault.validation.spi.impl.PackageTypeValidatorFactory;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.repository.DefaultRepositoryRequest;
@@ -54,6 +59,7 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
+import org.osgi.framework.Version;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
@@ -68,7 +74,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     /** All validator settings in a map. The keys are the validator ids (optionally suffixed by {@code :<package group>:<package name>} to be restricted to certain packages).
      * You can use {@code *} as wildcard value for {@code package group}.
      * Alternatively you can use the suffix {@code :subpackages} to influence the settings for all sub packages only!
-     * The values are a complex object of type ValdidatorSettings.
+     * The values are a complex object of type {@link ValidatorSettings}.
      * An example configuration looks like
      * <pre>
      *  &lt;jackrabbit-filter&gt;
@@ -77,6 +83,17 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
      *      &lt;/options&gt;
      *  &lt;/jackrabbit-filter&gt;
      * </pre>
+     * 
+     * Each validator settings consists of the fields {@code isDisabled}, {@code defaultSeverity} and {@code options}.
+     * 
+     * As potentially multiple map entries may affect the same validator id (due to different suffixes) the settings for a single validator id are merged in the order from more specific to more generic keys:
+     * <ol>
+     * <li>settings for a specific groupId and artifactId</li>
+     * <li>settings for any groupId (*) and a specific artifactId</li>
+     * <li>settings for subpackages</li>
+     * <li>settings without restrictions</li>
+     * </ol>
+     * Merging will only overwrite non-existing fields, i.e. same-named options from more specific keys will overwrite those from more generic keys (for the same validator id).
      */
     @Parameter
     private Map<String, ValidatorSettings> validatorsSettings;
@@ -182,6 +199,9 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
      * Artificial Maven artifact which indicates that it should not be considered for further lookup!
      */
     public static final Artifact IGNORE_ARTIFACT = new DefaultArtifact("ignore", "ignore", "1.0", "", "", "", null);
+    
+    private static Version fileVaultValidationBundleVersion = null;
+    private final static Version VERSION_3_5_4 = Version.parseVersion("3.5.4");
 
     protected String getProjectRelativeFilePath(Path file) {
         return "'" + project.getBasedir().toPath().relativize(file).toString() + "'";
@@ -219,6 +239,11 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
             return;
         }
         translateLegacyParametersToValidatorParameters();
+        try {
+            fixWrongDefaultForValidatorParameters();
+        } catch (IOException e) {
+            getLog().error("Could not fix the default values of validators because retrieving the FileVault validation bundle version failed: " + e.getMessage(), e);
+        }
         final Collection<PackageInfo> resolvedDependencies = new LinkedList<>();
         
         // repository structure only defines valid roots
@@ -301,7 +326,8 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
             }
 
             // do no fully disable but emit violations with level DEBUG
-            ValidatorSettings dependencyValidatorSettings = new ValidatorSettings(ValidationMessageSeverity.DEBUG);
+            ValidatorSettings dependencyValidatorSettings = new ValidatorSettings();
+            dependencyValidatorSettings.setDefaultSeverity(ValidationMessageSeverity.DEBUG);
             validatorsSettings.put(DependencyValidatorFactory.ID, dependencyValidatorSettings);
 
             ValidatorSettings filterValidatorSettings = validatorsSettings.containsKey(AdvancedFilterValidatorFactory.ID) ? validatorsSettings.get(AdvancedFilterValidatorFactory.ID) : new ValidatorSettings();
@@ -313,51 +339,69 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
         }
     }
 
-    public abstract void doExecute(ValidationHelper validationHelper) throws MojoExecutionException, MojoFailureException;
-
-    protected Map<String, ValidatorSettings> getValidatorSettingsForPackage(PackageId packageId, boolean isSubPackage) {
-        return getValidatorSettingsForPackage(getLog(), validatorsSettings, packageId, isSubPackage);
+    // https://issues.apache.org/jira/browse/JCRVLT-564
+    // TODO: remove once depending on FileVault 3.5.5 or newer
+    private void fixWrongDefaultForValidatorParameters() throws IOException {
+        if (getFileVaultValidationBundleVersion().equals(VERSION_3_5_4)) {
+            if (validatorsSettings == null) {
+                validatorsSettings = new HashMap<>();
+            }
+            ValidatorSettings packageTypeValidatorSettings = validatorsSettings.get("jackrabbit-packagetype");
+            if (packageTypeValidatorSettings == null) {
+                packageTypeValidatorSettings = new ValidatorSettings();
+                validatorsSettings.put("jackrabbit-packagetype", packageTypeValidatorSettings);
+            }
+            if (!packageTypeValidatorSettings.getOptions().containsKey(PackageTypeValidatorFactory.OPTION_JCR_INSTALLER_ADDITIONAL_FILE_NODE_PATH_REGEX)) {
+                packageTypeValidatorSettings.addOption(PackageTypeValidatorFactory.OPTION_JCR_INSTALLER_ADDITIONAL_FILE_NODE_PATH_REGEX, ".*\\.(config|cfg|cfg\\.json|jar)");
+                getLog().info("Overriding wrong default value for validator option '" + PackageTypeValidatorFactory.OPTION_JCR_INSTALLER_ADDITIONAL_FILE_NODE_PATH_REGEX + "' (see https://issues.apache.org/jira/browse/JCRVLT-564)");
+            }
+        }
     }
 
-    static Map<String, ValidatorSettings> getValidatorSettingsForPackage(Log log, Map<String, ValidatorSettings> validatorsSettings, PackageId packageId, boolean isSubPackage) {
+    static synchronized Version getFileVaultValidationBundleVersion() throws IOException {
+        if (fileVaultValidationBundleVersion == null) {
+            URL url = AbstractValidateMojo.class.getClassLoader().getResource("org/apache/jackrabbit/vault/validation/ValidationExecutor.class");
+            if (url == null) {
+                throw new IllegalStateException("This classloader does not see the ValidationExecutor class from FileVault Validation");
+            }
+            URLConnection connection =  url.openConnection();
+            if (connection instanceof JarURLConnection) {
+                fileVaultValidationBundleVersion = Version.parseVersion(((JarURLConnection)connection).getMainAttributes().getValue("Bundle-Version"));
+            } else {
+                fileVaultValidationBundleVersion = Version.emptyVersion;
+            }
+        }
+        return fileVaultValidationBundleVersion;
+    }
+
+    public abstract void doExecute(ValidationHelper validationHelper) throws MojoExecutionException, MojoFailureException;
+
+    protected Map<String, ValidatorSettings> getValidatorSettingsForPackage(PackageId packageId, boolean isSubPackage) throws MojoFailureException {
+        try {
+            return getValidatorSettingsForPackage(getLog(), validatorsSettings, packageId, isSubPackage);
+        }
+        catch (IllegalArgumentException e) {
+            throw new MojoFailureException("Invalid value for 'validatorsSettings': " + e.getMessage(), e);
+        }
+    }
+
+    protected static Map<String, ValidatorSettings> getValidatorSettingsForPackage(Log log, Map<String, ValidatorSettings> validatorsSettings, PackageId packageId, boolean isSubPackage) {
         Map<String, ValidatorSettings> validatorSettingsById = new HashMap<>();
         if (validatorsSettings == null) {
             return validatorSettingsById;
         }
-        for (Map.Entry<String, ValidatorSettings> validatorSettingByIdAndPackage : validatorsSettings.entrySet()) {
-            // does this setting belong to this package?
-            boolean shouldAdd = false;
-            String[] parts = validatorSettingByIdAndPackage.getKey().split(":", 3);
-            final String validatorId = parts[0];
-            
-            if (parts.length == 2) {
-                if (parts[1].equals("subpackage")) {
-                    shouldAdd = isSubPackage;
+        // from most specific to least specific
+        List<ValidatorSettingsKey> sortedKeys = validatorsSettings.keySet().stream().map(ValidatorSettingsKey::fromString).sorted(Comparator.reverseOrder()).collect(Collectors.toList());
+        
+        for (ValidatorSettingsKey key : sortedKeys) {
+            if (key.matchesForPackage(packageId, isSubPackage)) {
+                ValidatorSettings settings = validatorSettingsById.get(key.getValidatorId());
+                if (settings != null) {
+                    settings = settings.merge(validatorsSettings.get(key.getKey()));
                 } else {
-                    log.warn("Invalid validatorSettings key '" + validatorSettingByIdAndPackage.getKey() +"'" );
-                    continue;
+                    settings = validatorsSettings.get(key.getKey());
                 }
-            }
-            // does it contain a package id filter?
-            else if (parts.length == 3) {
-                String group = parts[1];
-                String name = parts[2];
-                if (!"*".equals(group)) {
-                    if (!group.equals(packageId.getGroup())) {
-                        log.debug("Not applying validator settings with id '" + validatorSettingByIdAndPackage.getKey() +"' as it does not match the package " + packageId);
-                        continue;
-                    }
-                }
-                if (!name.equals(packageId.getName())) {
-                    log.debug("Not applying validator settings with id '" + validatorSettingByIdAndPackage.getKey() +"' as it does not match the package " + packageId);
-                    continue;
-                }
-                shouldAdd = true;
-            } else {
-                shouldAdd = true;
-            }
-            if (shouldAdd) {
-                validatorSettingsById.put(validatorId, validatorSettingByIdAndPackage.getValue());
+                validatorSettingsById.put(key.getValidatorId(), settings);
             }
         }
         return validatorSettingsById;

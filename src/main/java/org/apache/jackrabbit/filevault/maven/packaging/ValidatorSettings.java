@@ -18,25 +18,37 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
 
+/**
+ * Mutable implementation of org.apache.jackrabbit.vault.validation.spi.ValidatorSettings. Used as mojo parameter type.
+ */
 public class ValidatorSettings implements org.apache.jackrabbit.vault.validation.spi.ValidatorSettings {
 
-    private final boolean isDisabled;
+    private Boolean isDisabled;
     
     private ValidationMessageSeverity defaultSeverity;
 
     private final Map<String, String> options;
     
     public ValidatorSettings() {
-        isDisabled = false;
         options = new HashMap<>();
     }
-    
-    public ValidatorSettings(ValidationMessageSeverity defaultSeverity) {
-        this();
-        this.defaultSeverity = defaultSeverity;
+
+    public ValidatorSettings merge(ValidatorSettings otherSettings) {
+        // fields of current object take precedence (if not null)
+        ValidatorSettings mergedSettings = new ValidatorSettings();
+        mergedSettings.isDisabled = isDisabled != null ? isDisabled : otherSettings.isDisabled;
+        mergedSettings.defaultSeverity = defaultSeverity != null ? defaultSeverity : otherSettings.defaultSeverity;
+        mergedSettings.options.putAll(options);
+        for (Map.Entry<String, String> entry : otherSettings.getOptions().entrySet()) {
+            if (!options.containsKey(entry.getKey())) {
+                mergedSettings.addOption(entry.getKey(), entry.getValue());
+            }
+        }
+        return mergedSettings;
     }
 
     public ValidatorSettings setDefaultSeverity(String defaultSeverity) {
@@ -44,6 +56,10 @@ public class ValidatorSettings implements org.apache.jackrabbit.vault.validation
             this.defaultSeverity = ValidationMessageSeverity.valueOf(defaultSeverity.toUpperCase());
         }
         return this;
+    }
+
+    public void setDefaultSeverity(ValidationMessageSeverity defaultSeverity) {
+        this.defaultSeverity = defaultSeverity;
     }
 
     protected ValidatorSettings addOption(String key, String value) {
@@ -63,24 +79,23 @@ public class ValidatorSettings implements org.apache.jackrabbit.vault.validation
 
     @Override
     public boolean isDisabled() {
-        return isDisabled;
+        return (isDisabled != null) && isDisabled.booleanValue();
+    }
+
+    public void setIsDisabled(boolean isDisabled) {
+        this.isDisabled = isDisabled;
     }
 
     @Override
     public String toString() {
-        return "ValidatorSettings [isDisabled=" + isDisabled + ", "
+        return "ValidatorSettings [" + (isDisabled != null ? "isDisabled=" + isDisabled + ", " : "")
                 + (defaultSeverity != null ? "defaultSeverity=" + defaultSeverity + ", " : "")
                 + (options != null ? "options=" + options : "") + "]";
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((defaultSeverity == null) ? 0 : defaultSeverity.hashCode());
-        result = prime * result + (isDisabled ? 1231 : 1237);
-        result = prime * result + ((options == null) ? 0 : options.hashCode());
-        return result;
+        return Objects.hash(defaultSeverity, isDisabled, options);
     }
 
     @Override
@@ -92,16 +107,9 @@ public class ValidatorSettings implements org.apache.jackrabbit.vault.validation
         if (getClass() != obj.getClass())
             return false;
         ValidatorSettings other = (ValidatorSettings) obj;
-        if (defaultSeverity != other.defaultSeverity)
-            return false;
-        if (isDisabled != other.isDisabled)
-            return false;
-        if (options == null) {
-            if (other.options != null)
-                return false;
-        } else if (!options.equals(other.options))
-            return false;
-        return true;
+        return defaultSeverity == other.defaultSeverity && Objects.equals(isDisabled, other.isDisabled)
+                && Objects.equals(options, other.options);
     }
 
+    
 }
