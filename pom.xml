@@ -32,7 +32,7 @@
     <!-- ====================================================================== -->
     <groupId>org.apache.jackrabbit</groupId>
     <artifactId>filevault-package-maven-plugin</artifactId>
-    <version>1.2.2</version>
+    <version>1.2.3-SNAPSHOT</version>
     <packaging>maven-plugin</packaging>
 
     <name>Apache Jackrabbit FileVault - Package Maven Plugin</name>
@@ -45,7 +45,7 @@
         <filevault.version>${project.parent.version}</filevault.version> <!-- must be equal to parent version -->
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <project.build.outputTimestamp>2021-10-14T13:08:09Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2021-10-14T13:16:26Z</project.build.outputTimestamp>
     </properties>
 
     <prerequisites>
