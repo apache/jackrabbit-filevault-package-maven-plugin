@@ -37,12 +37,12 @@ Here is an example configuration
   <validatorsSettings>
     <jackrabbit-filter>
       <isDisabled>false</isDisabled><!-- false is default, true disables the validator completely, all other setting are not relevant then -->
-      <defaultSeverity>error</defaultSeverity>
+      <defaultSeverity>error</defaultSeverity><!-- valid severities: debug, info, warn, error (default) -->
       <options>
         <severityForUncoveredAncestorNodes>error</severityForUncoveredAncestorNodes>
       </options>
     </jackrabbit-filter>
-    <!-- succeeding items potentially overwrite preceding items -->
+    <!-- more specific items  potentially overwrite more generic items -->
     <jackrabbit-filter:mygroup:mypackage>
       <isDisabled>true</isDisabled><!-- disable the validator for a specific package -->
     </jackrabbit-filter>
