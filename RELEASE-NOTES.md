@@ -43,6 +43,19 @@ Changes in Jackrabbit FileVault Package Maven Plugin 1.2.2
 * [JCRVLT-563] - Change default phases for goals
 
 
+Changes in Jackrabbit FileVault Package Maven Plugin 1.1.8
+---------------------------------------------------
+
+#### Bug Fixes
+* [JCRVLT-495] - Allow to exclude binaries without extension from filtering
+* [JCRVLT-498] - Package mojo is using wrong workDirectory if classifier is used
+
+#### Improvements
+* [JCRVLT-249] - Allow to include a hook jar via a dedicated parameter
+* [JCRVLT-501] - Get rid of plexus-utils dependency
+* [JCRVLT-518] - Optionally create CSV report from validation violations
+
+
 Changes in Jackrabbit FileVault Package Maven Plugin 1.1.6
 ---------------------------------------------------
 
