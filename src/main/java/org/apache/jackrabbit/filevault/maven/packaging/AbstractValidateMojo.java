@@ -327,7 +327,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
 
             // do no fully disable but emit violations with level DEBUG
             ValidatorSettings dependencyValidatorSettings = new ValidatorSettings();
-            dependencyValidatorSettings.setDefaultSeverity(ValidationMessageSeverity.DEBUG);
+            dependencyValidatorSettings.setDefaultSeverity(ValidationMessageSeverity.DEBUG.name());
             validatorsSettings.put(DependencyValidatorFactory.ID, dependencyValidatorSettings);
 
             ValidatorSettings filterValidatorSettings = validatorsSettings.containsKey(AdvancedFilterValidatorFactory.ID) ? validatorsSettings.get(AdvancedFilterValidatorFactory.ID) : new ValidatorSettings();

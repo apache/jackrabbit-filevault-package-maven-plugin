@@ -18,14 +18,21 @@ package org.apache.jackrabbit.filevault.maven.packaging.it;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.maven.it.VerificationException;
+import org.hamcrest.Description;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -48,7 +55,12 @@ public class ValidatePackageIT {
         Assert.assertTrue(csvReportFile.exists());
         CSVParser csvParser = CSVParser.parse(csvReportFile, StandardCharsets.UTF_8, CSVFormat.EXCEL);
         List<CSVRecord> actualRecords = csvParser.getRecords();
-        Assert.assertEquals(5, actualRecords.size()); // 4 issues + header
+        try (InputStream input = getClass().getResourceAsStream("report.csv")) {
+            csvParser = CSVParser.parse(input, StandardCharsets.UTF_8, CSVFormat.EXCEL);
+            List<CSVRecord> expectedRecords = csvParser.getRecords();
+            // ignore file name in records.csv (4th column)
+            MatcherAssert.assertThat(actualRecords, Matchers.contains(expectedRecords.stream().map(r -> new CSVRecordMatcher(r, 3)).toArray(CSVRecordMatcher[]::new)));
+        }
     }
  
     @Test
@@ -59,5 +71,38 @@ public class ValidatePackageIT {
     @Test
     public void testValidProjectWithClassifier() throws Exception {
         verify("classifier-project", false, "test");
+    }
+
+    private static final class CSVRecordMatcher extends TypeSafeMatcher<CSVRecord> {
+        private final CSVRecord expectedCsvRecord;
+        private final Collection<Integer> ignoredValueIndices;
+
+        CSVRecordMatcher(CSVRecord csvRecord, Integer... ignoredValueIndices) {
+            this.expectedCsvRecord = csvRecord;
+            this.ignoredValueIndices =  Arrays.asList(ignoredValueIndices);
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText(expectedCsvRecord.toString());
+        }
+
+        @Override
+        protected boolean matchesSafely(CSVRecord item) {
+            int size = expectedCsvRecord.size();
+            if (item.size() != size) {
+                return false;
+            }
+            for (int i=0; i<size; i++) {
+                if(ignoredValueIndices.contains(i)) {
+                    continue;
+                }
+                if (!item.get(i).equals(expectedCsvRecord.get(i))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
     }
 }
