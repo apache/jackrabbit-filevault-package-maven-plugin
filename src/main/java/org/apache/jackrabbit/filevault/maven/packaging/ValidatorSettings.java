@@ -58,10 +58,6 @@ public class ValidatorSettings implements org.apache.jackrabbit.vault.validation
         return this;
     }
 
-    public void setDefaultSeverity(ValidationMessageSeverity defaultSeverity) {
-        this.defaultSeverity = defaultSeverity;
-    }
-
     protected ValidatorSettings addOption(String key, String value) {
         options.put(key, value);
         return this;
