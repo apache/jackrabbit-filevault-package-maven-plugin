@@ -20,4 +20,5 @@
         <include pattern="invalidpattern"/>
     </filter>
     <filter root="/rep:policy" mode="merge"/>
+    <filter root="/apps/test" />
 </workspaceFilter>

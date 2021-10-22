@@ -31,6 +31,12 @@
                 <extensions>true</extensions>
                 <configuration>
                     <csvReportFile>report.csv</csvReportFile>
+                    <packageType>content</packageType>
+                    <validatorsSettings>
+                        <jackrabbit-packagetype>
+                            <defaultSeverity>warn</defaultSeverity>
+                        </jackrabbit-packagetype>
+                    </validatorsSettings>
                 </configuration>
             </plugin>
         </plugins>

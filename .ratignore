@@ -6,6 +6,7 @@ src/test/resources/test-projects/**/.vltignore
 src/test/resources/test-projects/**/.dummy
 src/test/resources/test-projects/**/*.lst
 src/test/resources/test-projects/**/*.MF
+src/test/resources/**/*.csv
 .mvn/**
 .no-defender.sh
 .repository/**
