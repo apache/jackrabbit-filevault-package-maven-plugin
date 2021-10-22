@@ -59,7 +59,7 @@ public class ValidatePackageIT {
             csvParser = CSVParser.parse(input, StandardCharsets.UTF_8, CSVFormat.EXCEL);
             List<CSVRecord> expectedRecords = csvParser.getRecords();
             // ignore file name in records.csv (4th column)
-            MatcherAssert.assertThat(actualRecords, Matchers.contains(expectedRecords.stream().map(r -> new CSVRecordMatcher(r, 3)).toArray(CSVRecordMatcher[]::new)));
+            MatcherAssert.assertThat(actualRecords, Matchers.containsInAnyOrder(expectedRecords.stream().map(r -> new CSVRecordMatcher(r, 3)).toArray(CSVRecordMatcher[]::new)));
         }
     }
  
