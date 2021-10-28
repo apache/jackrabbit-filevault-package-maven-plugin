@@ -192,20 +192,20 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * These properties cannot overwrite the following predefined properties:
      * <p>
      * <table>
-     * <tr><td>group</td><td>Use <i>group</i> parameter to set</td></tr>
-     * <tr><td>name</td><td>Use <i>name</i> parameter to set</td></tr>
-     * <tr><td>version</td><td>Use <i>version</i> parameter to set</td></tr>
-     * <tr><td>groupId</td><td><i>groupId</i> of the Maven project descriptor</td></tr>
-     * <tr><td>artifactId</td><td><i>artifactId</i> of the Maven project descriptor</td></tr>
-     * <tr><td>dependencies</td><td>Use <i>dependencies</i> parameter to set</td></tr>
-     * <tr><td>createdBy</td><td>The value of the <i>user.name</i> system property</td></tr>
-     * <tr><td>created</td><td>The current system time</td></tr>
-     * <tr><td>requiresRoot</td><td>Use <i>requiresRoot</i> parameter to set</td></tr>
-     * <tr><td>allowIndexDefinitions</td><td>Use <i>allowIndexDefinitions</i> parameter to set</td></tr>
-     * <tr><td>packagePath</td><td>Automatically generated from the group and package name</td></tr>
-     * <tr><td>packageType</td><td>Set via the package type parameter</td></tr>
-     * <tr><td>acHandling</td><td>Use <i>accessControlHandling</i> parameter to set</td></tr>
-     * <tr><td>subPackageHandling</td><td>Use <i>subPackageHandlingEntries</i> parameter to set</td></tr>
+     * <tr><td>{@code group}</td><td>Use <i>group</i> parameter to set</td></tr>
+     * <tr><td>{@code name}</td><td>Use <i>name</i> parameter to set</td></tr>
+     * <tr><td>{@code version}</td><td>Use <i>version</i> parameter to set</td></tr>
+     * <tr><td>{@code groupId}</td><td><i>groupId</i> of the Maven project descriptor</td></tr>
+     * <tr><td>{@code artifactId}</td><td><i>artifactId</i> of the Maven project descriptor</td></tr>
+     * <tr><td>{@code dependencies}</td><td>Use <i>dependencies</i> parameter to set</td></tr>
+     * <tr><td>{@code createdBy}</td><td>The value of the <i>user.name</i> system property</td></tr>
+     * <tr><td>{@code created}</td><td>The current system time</td></tr>
+     * <tr><td>{@code requiresRoot}</td><td>Use <i>requiresRoot</i> parameter to set</td></tr>
+     * <tr><td>{@code allowIndexDefinitions}</td><td>Use <i>allowIndexDefinitions</i> parameter to set</td></tr>
+     * <tr><td>{@code packagePath}</td><td>Automatically generated from the group and package name</td></tr>
+     * <tr><td>{@code packageType}</td><td>Set via the package type parameter</td></tr>
+     * <tr><td>{@code acHandling}</td><td>Use <i>accessControlHandling</i> parameter to set</td></tr>
+     * <tr><td>{@code subPackageHandling}</td><td>Use <i>subPackageHandlingEntries</i> parameter to set</td></tr>
      * </table>
      */
     @Parameter
@@ -313,20 +313,20 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * Each {@code <embedded>} element may configure any of the following fields
      * <p>
      * <table>
-     * <tr><td>groupId</td><td>String</td><td>Filter criterion against the group id of a project dependency. A pattern as described below.</td></tr>
-     * <tr><td>artifactId</td><td>String</td><td>Filter criterion against the artifact id of a project dependency. A pattern as described below.</td></tr>
-     * <tr><td>scope</td><td>ScopeArtifactFilter</td><td>Filter criterion against the <a href="https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Scope">scope of a project dependency</a>. Possible values are <ul><li>{@code test}, which allows every scope</li><li>{@code compile+runtime} which allows every scope except {@code test}</li><li>{@code runtime+system} which allows every scope except {@code test} and {@code provided}</li><li>{@code compile} which allows only scope {@code compile}, {@code provided} and {@code system}</li><li>{@code runtime} which only allows scope {@code runtime} and {@code compile}.</td></tr>
-     * <tr><td>type</td><td>String</td><td>Filter criterion against the type of a project dependency. A pattern as described below.</td></tr>
-     * <tr><td>classifier</td><td>String</td><td>Filter criterion against the classifier of a project dependency. A pattern as described below.</td></tr>
-     * <tr><td>filter</td><td>Boolean</td><td>If set to {@code true} adds the embedded artifact location to the package's filter.</td></tr>
-     * <tr><td>isAllVersionsFilter</td><td>Boolean</td><td>If {@code filter} is {@code true} and this is {@code true} as well, the filter entry will contain all versions of the same artifact (by creating an according filter pattern).</td></tr>
-     * <tr><td>excludeTransitive</td><td>Boolean</td><td>If {@code true} only filters on direct dependencies (not on transitive ones). Default = {@code false}.</td></tr>
-     * <tr><td>target</td><td>String</td><td>The parent folder location in the package where to place the embedded artifact. Falls back to {@link #embeddedTarget} if not set.</td></tr>
+     * <tr><td>{@code groupId}</td><td>{@link String}</td><td>Filter criterion against the group id of a project dependency. A pattern as described below.</td></tr>
+     * <tr><td>{@code artifactId}</td><td>{@link String}</td><td>Filter criterion against the artifact id of a project dependency. A pattern as described below.</td></tr>
+     * <tr><td>{@code scope}</td><td>{@link ScopeArtifactFilter}</td><td>Filter criterion against the <a href="https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Scope">scope of a project dependency</a>. Possible values are <ul><li>{@code test}, which allows every scope</li><li>{@code compile+runtime} which allows every scope except {@code test}</li><li>{@code runtime+system} which allows every scope except {@code test} and {@code provided}</li><li>{@code compile} which allows only scope {@code compile}, {@code provided} and {@code system}</li><li>{@code runtime} which only allows scope {@code runtime} and {@code compile}.</td></tr>
+     * <tr><td>{@code type}</td><td>{@link String}</td><td>Filter criterion against the type of a project dependency. A pattern as described below.</td></tr>
+     * <tr><td>{@code classifier}</td><td>{@link String}</td><td>Filter criterion against the classifier of a project dependency. A pattern as described below.</td></tr>
+     * <tr><td>{@code filter}</td><td>{@link Boolean}</td><td>If set to {@code true} adds the embedded artifact location to the package's filter. Default = {@code false}.</td></tr>
+     * <tr><td>{@code isAllVersionsFilter}</td><td>{@link Boolean}</td><td>If {@code filter} is {@code true} and this is {@code true} as well, the filter entry will contain all versions of the same artifact (by creating an according filter pattern). Default = {@code false}.</td></tr>
+     * <tr><td>{@code excludeTransitive}</td><td>{@link Boolean}</td><td>If {@code true} only filters on direct dependencies (not on transitive ones). Default = {@code false}.</td></tr>
+     * <tr><td>{@code target}</td><td>{@link String}</td><td>The parent folder location in the package where to place the embedded artifact. Falls back to {@link #embeddedTarget} if not set.</td></tr>
      * </table>
      * </pre>
      * All fields are optional. All filter criteria is concatenated with AND logic (i.e. every criterion must match for a specific dependency to be embedded).
      * <br>
-     * All filter patterns follow the format {@code &lt;filter&gt;{,&lt;filter&gt;}}.
+     * All filter patterns follow the format<code>&lt;filter&gt;{,&lt;filter&gt;}</code>.
      * Each {@code filter} is a string which is either an exclude (if it starts with a {@code ~}) or an include otherwise. If the first {@code filter} is an include the pattern acts as whitelist, 
      * otherwise as blacklist. The last matching filter determines the outcome. Only matching dependencies are being considered for being embedded.</td></tr>
      * <br>
@@ -346,21 +346,21 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * Defines the list of sub packages to be embedded in this package.
      * The {@code SubPackage} class represents one or multiple subpackage artifact dependencies
      * from the project descriptor. Each {@code <subPackage>} element may configure any of the following fields
-     *  <p>
+     * <p>
      * <table>
-     * <tr><td>groupId</td><td>String</td><td>Filter criterion against the group id of a project dependency. A pattern as described below.</td></tr>
-     * <tr><td>artifactId</td><td>String</td><td>Filter criterion against the artifact ids of a project dependency. A pattern as described below.</td></tr>
-     * <tr><td>scope</td><td>ScopeArtifactFilter</td><td>Filter criterion against the <a href="https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Scope">scope of a project dependency</a>. Possible values are <ul><li>{@code test}, which allows every scope</li><li>{@code compile+runtime} which allows every scope except {@code test}</li><li>{@code runtime+system} which allows every scope except {@code test} and {@code provided}</li><li>{@code compile} which allows only scope {@code compile}, {@code provided} and {@code system}</li><li>{@code runtime} which only allows scope {@code runtime} and {@code compile}.</td></tr>
-     * <tr><td>type</td><td>String</td><td>Filter criterion against the type of a project dependency.A pattern as described below.</td></tr>
-     * <tr><td>classifier</td><td>String</td><td>Filter criterion against the classifier of a project dependency. A pattern as described below.</td></tr>
-     * <tr><td>isAllVersionsFilter</td><td>Boolean</td><td>If {@code filter} is {@code true} and this is {@code true} as well, the filter entry will contain all versions of the same artifact (by creating an according filter pattern).</td></tr>
-     * <tr><td>excludeTransitive</td><td>Boolean</td><td>If {@code true} only filters on direct dependencies (not on transitive ones). Default = {@code false}.</td></tr>
-     * <tr><td>filter</td><td>Boolean</td><td>If set to {@code true} adds the embedded artifact location to the package's filter</td></tr>
+     * <tr><td>{@code groupId}</td><td>{@link String}</td><td>Filter criterion against the group id of a project dependency. A pattern as described below.</td></tr>
+     * <tr><td>{@code artifactId}</td><td>{@link String}</td><td>Filter criterion against the artifact id of a project dependency. A pattern as described below.</td></tr>
+     * <tr><td>{@code scope}</td><td>{@link ScopeArtifactFilter}</td><td>Filter criterion against the <a href="https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Dependency_Scope">scope of a project dependency</a>. Possible values are <ul><li>{@code test}, which allows every scope</li><li>{@code compile+runtime} which allows every scope except {@code test}</li><li>{@code runtime+system} which allows every scope except {@code test} and {@code provided}</li><li>{@code compile} which allows only scope {@code compile}, {@code provided} and {@code system}</li><li>{@code runtime} which only allows scope {@code runtime} and {@code compile}.</td></tr>
+     * <tr><td>{@code type}</td><td>{@link String}</td><td>Filter criterion against the type of a project dependency. A pattern as described below.</td></tr>
+     * <tr><td>{@code classifier}</td><td>{@link String}</td><td>Filter criterion against the classifier of a project dependency. A pattern as described below.</td></tr>
+     * <tr><td>{@code filter}</td><td>{@link Boolean}</td><td>If set to {@code true} adds the embedded artifact location to the package's filter. Default = {@code false}.</td></tr>
+     * <tr><td>{@code isAllVersionsFilter}</td><td>{@link Boolean}</td><td>If {@code filter} is {@code true} and this is {@code true} as well, the filter entry will contain all versions of the same artifact (by creating an according filter pattern). Default = {@code false}.</td></tr>
+     * <tr><td>{@code excludeTransitive}</td><td>{@link Boolean}</td><td>If {@code true} only filters on direct dependencies (not on transitive ones). Default = {@code false}.</td></tr>
      * </table>
      * </pre>
      * All fields are optional. All filter criteria is concatenated with AND logic (i.e. every criterion must match for a specific dependency to be embedded as a sub package).
      * <br>
-     * All filter patterns follow the format {@code &lt;filter&gt;{,&lt;filter&gt;}}.
+     * All filter patterns follow the format <code>&lt;filter&gt;{,&lt;filter&gt;}</code>.
      * Each {@code filter} within a filter pattern is a string which is either an exclude (if it starts with a {@code ~}) or an include otherwise. If the first {@code filter} is an include the pattern acts as whitelist, 
      * otherwise as blacklist. The last matching filter determines the outcome. Only matching dependencies are being considered for being embedded.
      * <br>
