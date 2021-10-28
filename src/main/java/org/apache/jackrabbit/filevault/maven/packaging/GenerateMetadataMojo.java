@@ -92,10 +92,12 @@ import aQute.bnd.header.Parameters;
 import aQute.bnd.osgi.Processor;
 
 /**
- * Generates the metadata ending up in the package like {@code META-INF/MANIFEST.MF} as well as the
+ * Generates the metadata ending up in the content package like {@code META-INF/MANIFEST.MF} as well as the
  * files ending up in {@code META-INF/vault} like {@code filter.xml}, {@code properties.xml}, {@code config.xml} and
  * {@code settings.xml}. Those files will be written to the directory given via parameter {@link #workDirectory}.
  * In addition performs some validations.
+ * Also configures artifacts (like OSGi bundles or subpackages) to be embedded in the content package as those may affect metadata as well.
+ * The generated metadata is usually packaged in a content package in a subsequent goal {@code package}.
  * @since 1.0.3
  */
 @Mojo(
