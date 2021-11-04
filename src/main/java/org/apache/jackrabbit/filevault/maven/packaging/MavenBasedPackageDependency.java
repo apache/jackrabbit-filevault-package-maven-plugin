@@ -26,6 +26,7 @@ import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageInfo;
 import org.apache.jackrabbit.vault.packaging.VersionRange;
 import org.apache.jackrabbit.vault.packaging.impl.DefaultPackageInfo;
+import org.apache.jackrabbit.vault.validation.context.AbstractDependencyResolver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.plugin.logging.Log;
@@ -109,8 +110,6 @@ public class MavenBasedPackageDependency {
     private boolean isResolved;
     
     private String mavenVersion;
-    
-    private final static String MAVEN_REPOSITORY_SCHEME = "maven";
     
     // default constructor for passing Maven Mojo parameters of that type
     public MavenBasedPackageDependency() {
@@ -267,40 +266,10 @@ public class MavenBasedPackageDependency {
             ssp.append(":").append(classifier);
         }
         try {
-            return new URI(MAVEN_REPOSITORY_SCHEME, ssp.toString(), null);
+            return new URI(AbstractDependencyResolver.MAVEN_REPOSITORY_SCHEME, ssp.toString(), null);
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Could not create uri from string " + ssp.toString(), e);
         }
     }
 
-    public static Artifact uriToMavenCoordinates(URI uri) {
-        if (!MAVEN_REPOSITORY_SCHEME.equals(uri.getScheme())) {
-            return null;
-        }
-        if (!uri.isOpaque()) {
-            throw new IllegalArgumentException("Only opaque Maven URIs are supported");
-        }
-        // support groupId, artifactId, packaging and classifier (format like https://maven.apache.org/plugins/maven-dependency-plugin/get-mojo.html#artifact)
-        // extract group id and artifact id
-        String[] parts = uri.getSchemeSpecificPart().split(":");
-        if (parts.length < 2) {
-            throw new IllegalArgumentException("At least group id and artifact id need to be given separatedby ':'");
-        }
-        String groupId = parts[0];
-        String artifactId = parts[1];
-        String version = "default";
-        if (parts.length > 2) {
-            version = parts[2];
-        }
-        String type = "zip";
-        if (parts.length > 3) {
-            type = parts[3];
-        }
-        String classifier = "";
-        if (parts.length > 4) {
-            type = parts[4];
-        }
-        // TODO: version must not be null!
-        return new DefaultArtifact(groupId, artifactId, version, null, type, classifier, null);
-    }
 }

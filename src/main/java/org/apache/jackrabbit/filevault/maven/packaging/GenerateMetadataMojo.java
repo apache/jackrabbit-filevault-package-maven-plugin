@@ -326,7 +326,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * </pre>
      * All fields are optional. All filter criteria is concatenated with AND logic (i.e. every criterion must match for a specific dependency to be embedded).
      * <br>
-     * All filter patterns follow the format<code>&lt;filter&gt;{,&lt;filter&gt;}</code>.
+     * All filter patterns follow the format <code>&lt;filter&gt;{,&lt;filter&gt;}</code>.
      * Each {@code filter} is a string which is either an exclude (if it starts with a {@code ~}) or an include otherwise. If the first {@code filter} is an include the pattern acts as whitelist, 
      * otherwise as blacklist. The last matching filter determines the outcome. Only matching dependencies are being considered for being embedded.</td></tr>
      * <br>
