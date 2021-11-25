@@ -19,17 +19,11 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import org.apache.jackrabbit.filevault.maven.packaging.SimpleEmbeddedTest.SimpleArtifact;
-import org.apache.maven.artifact.Artifact;
+import org.apache.jackrabbit.vault.validation.context.AbstractDependencyResolver.MavenCoordinates;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class MavenBasedPackageDependencyTest {
-
-    @Test
-    public void testUriToMavenCoordinates() throws URISyntaxException {
-        Assert.assertEquals(new SimpleArtifact("group1", "name1", null, "zip"), MavenBasedPackageDependency.uriToMavenCoordinates(new URI("maven", "group1:name1", null)));
-    }
 
     @Test
     public void testMavenCoordinatesToUri() throws URISyntaxException {
@@ -39,14 +33,14 @@ public class MavenBasedPackageDependencyTest {
 
     @Test 
     public void testMavenCoordinatesToUriRoundtrip() throws URISyntaxException {
-        Artifact artifact = new SimpleArtifact("groupname", "artifactName", null, "zip");
-        Assert.assertEquals(artifact, MavenBasedPackageDependency.uriToMavenCoordinates(MavenBasedPackageDependency.mavenCoordinatesToUri(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(), artifact.getClassifier())));
+        MavenCoordinates coordinates = new MavenCoordinates("groupname", "artifactName", "1.0");
+        Assert.assertEquals(coordinates, MavenCoordinates.parse(MavenBasedPackageDependency.mavenCoordinatesToUri(coordinates.getGroupId(), coordinates.getArtifactId(), coordinates.getVersion(), coordinates.getClassifier())));
     }
     
     @Test 
     public void testUriToMavenCoordinatesRoundtrip() throws URISyntaxException {
         URI uri = new URI("maven", "test-group:some name:1.0:zip", null);
-        Artifact artifact = MavenBasedPackageDependency.uriToMavenCoordinates(uri);
-        Assert.assertEquals(uri, MavenBasedPackageDependency.mavenCoordinatesToUri(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(), artifact.getClassifier()));
+        MavenCoordinates coordinates = MavenCoordinates.parse(uri);
+        Assert.assertEquals(uri, MavenBasedPackageDependency.mavenCoordinatesToUri(coordinates.getGroupId(), coordinates.getArtifactId(), coordinates.getVersion(), coordinates.getClassifier()));
     }
 }

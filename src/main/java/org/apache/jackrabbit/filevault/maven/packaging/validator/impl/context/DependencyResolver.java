@@ -31,6 +31,7 @@ import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageInfo;
 import org.apache.jackrabbit.vault.packaging.VersionRange;
 import org.apache.jackrabbit.vault.packaging.impl.DefaultPackageInfo;
+import org.apache.jackrabbit.vault.validation.context.AbstractDependencyResolver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.repository.RepositoryRequest;
 import org.apache.maven.artifact.resolver.ArtifactResolutionException;
@@ -42,103 +43,21 @@ import org.apache.maven.repository.RepositorySystem;
 import org.jetbrains.annotations.Nullable;
 
 /** Allows to resolve a {@link Dependency} from the underlying Maven repository (first local, then remote). */
-public class DependencyResolver {
+public class DependencyResolver extends AbstractDependencyResolver {
 
     private final RepositoryRequest repositoryRequest;
     private final RepositorySystem repositorySystem;
     private final ResolutionErrorHandler resolutionErrorHandler;
-    private final Map<Dependency, Artifact> mapPackageDependencyToMavenArtifact;
-    private final Collection<PackageInfo> knownPackageInfos;
+    private final Log log;
 
     public DependencyResolver(RepositoryRequest repositoryRequest, RepositorySystem repositorySystem,
             ResolutionErrorHandler resolutionErrorHandler, Map<Dependency, Artifact> mapPackageDependencyToMavenArtifact,
-            Collection<PackageInfo> knownPackageInfos) {
-        super();
+            Collection<PackageInfo> knownPackageInfos, Log log) {
+        super(knownPackageInfos);
         this.repositoryRequest = repositoryRequest;
         this.repositorySystem = repositorySystem;
         this.resolutionErrorHandler = resolutionErrorHandler;
-        this.mapPackageDependencyToMavenArtifact = mapPackageDependencyToMavenArtifact;
-        this.knownPackageInfos = knownPackageInfos;
-    }
-
-    public List<PackageInfo> resolve(Dependency[] packageDependencies, Map<PackageId, URI> packageLocations, Log log) throws IOException {
-        List<PackageInfo> packageInfos = new LinkedList<>();
-
-        // resolve dependencies
-        for (Dependency packageDependency : packageDependencies) {
-            PackageInfo packageInfo = null;
-            // is it already resolved?
-            for (PackageInfo knownPackageInfo : knownPackageInfos) {
-                if (packageDependency.matches(knownPackageInfo.getId())) {
-                    log.debug("Dependency is already resolved from project dependencies: " + packageDependency);
-                    packageInfo = knownPackageInfo;
-                }
-            }
-            if (packageInfo == null) {
-                for (Map.Entry<PackageId, URI> packageLocation : packageLocations.entrySet()) {
-                    if (packageDependency.matches(packageLocation.getKey())) {
-                        Artifact artifact = MavenBasedPackageDependency.uriToMavenCoordinates(packageLocation.getValue());
-                        packageInfo = resolve(artifact.getGroupId(), artifact.getArtifactId(), artifact.getVersion(), log);
-                    }
-                }
-            }
-            if (packageInfo == null) {
-                packageInfo = resolve(packageDependency, log);
-            }
-            if (packageInfo != null) {
-                packageInfos.add(packageInfo);
-            }
-        }
-        return packageInfos;
-    }
-
-    public @Nullable PackageInfo resolve(Dependency dependency, Log log) throws IOException {
-        // resolving a version range is not supported with Maven API, but only with lower level Aether API (requires Maven 3.5 or newer)
-        // https://github.com/eclipse/aether-demo/blob/master/aether-demo-snippets/src/main/java/org/eclipse/aether/examples/FindAvailableVersions.java
-        // therefore do an best effort resolve instead
-
-        final String groupId;
-        final String artifactId;
-        // strip version for retrieving entry from mapping table
-        Artifact artifact = mapPackageDependencyToMavenArtifact.get(new Dependency(dependency.getGroup(), dependency.getName(), null));
-        // is it special artifact which is supposed to be ignored?
-        if (artifact == AbstractValidateMojo.IGNORE_ARTIFACT) {
-            return null;
-        }
-        log.info("Trying to resolve dependency '" + dependency + "' from Maven repository");
-        // is it part of the mapping table?
-        if (artifact != null) {
-            groupId = artifact.getGroupId();
-            artifactId = artifact.getArtifactId();
-        } else {
-            groupId = dependency.getGroup();
-            artifactId = dependency.getName();
-        }
-        PackageInfo info = null;
-        if (dependency.getRange().isLowInclusive()) {
-            info = resolve(groupId, artifactId, dependency.getRange().getLow().toString(), log);
-        }
-        if (info == null && dependency.getRange().isHighInclusive()) {
-            info = resolve(groupId, artifactId, dependency.getRange().getHigh().toString(), log);
-        }
-        if (info == null && VersionRange.INFINITE.equals(dependency.getRange())) {
-            info = resolve(groupId, artifactId, Artifact.LATEST_VERSION, log);
-        }
-        if (info == null) {
-            log.warn("Could not resolve dependency from any Maven Repository for dependency " + dependency);
-            return null;
-        }
-        return info;
-    }
-
-    private @Nullable PackageInfo resolve(String groupId, String artifactId, String version, Log log) throws IOException {
-        Artifact artifact = repositorySystem.createArtifact(groupId, artifactId, version, "zip");
-        File file = resolve(artifact, log);
-        if (file != null) {
-            return DefaultPackageInfo.read(file);
-        } else {
-            return null;
-        }
+        this.log = log;
     }
 
     private @Nullable File resolve(Artifact artifact, Log log) {
@@ -158,6 +77,21 @@ public class DependencyResolver {
             }
             return null;
         }
+    }
 
+    @Override
+    public @Nullable PackageInfo resolvePackageInfo(MavenCoordinates mavenCoordinates) throws IOException {
+        final Artifact artifact;
+        if (mavenCoordinates.getClassifier() != null) {
+            artifact = repositorySystem.createArtifactWithClassifier(mavenCoordinates.getGroupId(), mavenCoordinates.getArtifactId(), mavenCoordinates.getVersion(), mavenCoordinates.getPackaging(), mavenCoordinates.getClassifier());
+        } else {
+            artifact = repositorySystem.createArtifact(mavenCoordinates.getGroupId(), mavenCoordinates.getArtifactId(), mavenCoordinates.getVersion(), mavenCoordinates.getPackaging());
+        }
+        File file = resolve(artifact, log);
+        if (file != null) {
+            return DefaultPackageInfo.read(file);
+        } else {
+            return null;
+        }
     }
 }

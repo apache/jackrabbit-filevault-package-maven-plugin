@@ -28,14 +28,14 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context.ArchiveValidationContextImpl;
-import org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context.SubPackageValidationContext;
 import org.apache.jackrabbit.vault.fs.io.Archive;
 import org.apache.jackrabbit.vault.fs.io.ZipArchive;
 import org.apache.jackrabbit.vault.fs.io.ZipStreamArchive;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.validation.ValidationExecutor;
 import org.apache.jackrabbit.vault.validation.ValidationViolation;
+import org.apache.jackrabbit.vault.validation.context.ArchiveValidationContext;
+import org.apache.jackrabbit.vault.validation.context.SubPackageInArchiveValidationContext;
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -125,11 +125,11 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         getLog().info("Start validating package " + getProjectRelativeFilePath(file) + "...");
 
         // open file to extract the meta data for the validation context
-        ArchiveValidationContextImpl context;
+        ArchiveValidationContext context;
         ValidationExecutor executor;
         try (Archive archive = new ZipArchive(file.toFile())) {
             archive.open(true);
-            context = new ArchiveValidationContextImpl(archive, file, resolver, getLog());
+            context = new ArchiveValidationContext(archive, file, resolver);
             executor = validationExecutorFactory.createValidationExecutor(context, false, enforceRecursiveSubpackageValidation, getValidatorSettingsForPackage(context.getProperties().getId(), false));
             if (executor != null) {
                 validationHelper.printUsedValidators(getLog(), executor, context, true);
@@ -143,13 +143,13 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         }
     }
 
-    private void validateArchive(ValidationHelper validationHelper, Archive archive, Path path, ArchiveValidationContextImpl context,
+    private void validateArchive(ValidationHelper validationHelper, Archive archive, Path path, ArchiveValidationContext context,
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException, MojoFailureException {
         validateEntry(validationHelper, archive, archive.getRoot(), Paths.get(""), path, context, executor);
         validationHelper.printMessages(executor.done(), getLog(), buildContext, path);
     }
 
-    private void validateEntry(ValidationHelper validationHelper, Archive archive, Archive.Entry entry, Path entryPath, Path packagePath, ArchiveValidationContextImpl context,
+    private void validateEntry(ValidationHelper validationHelper, Archive archive, Archive.Entry entry, Path entryPath, Path packagePath, ArchiveValidationContext context,
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException, MojoFailureException {
         // sort children to make sure that .content.xml comes first!
         List<Archive.Entry> sortedEntryList = new ArrayList<>(entry.getChildren());
@@ -167,7 +167,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         }
     }
 
-    private void validateInputStream(ValidationHelper validationHelper, @Nullable InputStream inputStream, Path entryPath, Path packagePath, ArchiveValidationContextImpl context,
+    private void validateInputStream(ValidationHelper validationHelper, @Nullable InputStream inputStream, Path entryPath, Path packagePath, ArchiveValidationContext context,
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException, MojoFailureException {
         Collection<ValidationViolation> messages = new LinkedList<>();
         if (entryPath.startsWith(Constants.META_INF)) {
@@ -188,7 +188,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
                         getLog().debug("ZIP entry " + subPackagePath + " is no subpackage as it is lacking the mandatory jcr_root entry");
                     } else {
                         getLog().info("Start validating sub package '" + subPackagePath + "'...");
-                        SubPackageValidationContext subPackageValidationContext = new SubPackageValidationContext(context, subArchive, subPackagePath, resolver, getLog());
+                        SubPackageInArchiveValidationContext subPackageValidationContext = new SubPackageInArchiveValidationContext(context, subArchive, subPackagePath, resolver);
                         ValidationExecutor subPackageValidationExecutor = validationExecutorFactory
                                 .createValidationExecutor(subPackageValidationContext, true, enforceRecursiveSubpackageValidation, getValidatorSettingsForPackage(subPackageValidationContext.getProperties().getId(), true));
                         if (subPackageValidationExecutor != null) {

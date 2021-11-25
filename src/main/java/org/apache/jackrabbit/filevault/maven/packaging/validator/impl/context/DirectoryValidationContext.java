@@ -47,7 +47,7 @@ public class DirectoryValidationContext implements ValidationContext {
 
     private final PackageProperties properties;
     private final DefaultWorkspaceFilter filter;
-    private List<PackageInfo> resolvedDependencies;
+    private Collection<PackageInfo> resolvedDependencies;
     private final boolean isIncremental;
     
     private static final Path RELATIVE_PROPERTIES_XML_PATH = Paths.get(Constants.VAULT_DIR, Constants.PROPERTIES_XML);
@@ -82,7 +82,7 @@ public class DirectoryValidationContext implements ValidationContext {
         }
         filter.load(filterFile);
         
-        this.resolvedDependencies = resolver.resolve(getProperties().getDependencies(), getProperties().getDependenciesLocations(), log);
+        this.resolvedDependencies = resolver.resolvePackageInfo(getProperties().getDependencies(), getProperties().getDependenciesLocations());
         this.isIncremental = isIncremental;
     }
 

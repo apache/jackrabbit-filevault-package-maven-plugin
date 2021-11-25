@@ -292,7 +292,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
             }
             // resolve mapping map
             resolver = new DependencyResolver(DefaultRepositoryRequest.getRepositoryRequest(session, project), repositorySystem,
-                    resolutionErrorHandler, resolveMap(mapPackageDependencyToMavenGa), resolvedDependencies);
+                    resolutionErrorHandler, resolveMap(mapPackageDependencyToMavenGa), resolvedDependencies, getLog());
             doExecute(validationHelper);
         } catch (IOException e) {
             throw new MojoExecutionException("Could not create/write to CSV File", e);
