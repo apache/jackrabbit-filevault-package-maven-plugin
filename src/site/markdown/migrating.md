@@ -62,6 +62,6 @@ but until then, the plugin will not support any deployment options.
 Alternatively, projects can use the 3rd party [Composum Package Manager][2] together with Adobe's plugin.
 
 
-[0]: https://repo.adobe.com/nexus/content/groups/public/com/day/jcr/vault/content-package-maven-plugin/1.0.2/
+[0]: https://repo1.maven.org/maven2/com/day/jcr/vault/content-package-maven-plugin/
 [1]: https://issues.apache.org/jira/browse/JCRVLT-151
 [2]: https://ist-software.atlassian.net/wiki/spaces/CMP/pages/46140125/Package+Manager
