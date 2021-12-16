@@ -24,7 +24,7 @@
         <groupId>org.apache.jackrabbit.vault</groupId>
         <artifactId>parent</artifactId>
         <relativePath />
-        <version>3.5.6</version>
+        <version>3.5.7-SNAPSHOT</version>
     </parent>
 
     <!-- ====================================================================== -->
@@ -61,7 +61,6 @@
         <connection>scm:git:https://gitbox.apache.org/repos/asf/jackrabbit-filevault-package-maven-plugin.git</connection>
         <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/jackrabbit-filevault-package-maven-plugin.git</developerConnection>
         <url>https://github.com/apache/jackrabbit-filevault-package-maven-plugin/tree/${project.scm.tag}</url>
-        <tag>filevault-package-maven-plugin-1.2.2</tag>
     </scm>
 
     <ciManagement>
@@ -92,33 +91,7 @@
             <plugins>
                 <plugin>
                     <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.6.1</version>
-                </plugin>
-                <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.apache.maven.plugins</groupId>
-                                        <artifactId>maven-plugin-plugin</artifactId>
-                                        <versionRange>[3.6.0,)</versionRange>
-                                        <goals>
-                                            <goal>descriptor</goal>
-                                            <goal>helpmojo</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore />
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
+                    <version>3.6.2</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -315,32 +288,38 @@
             <groupId>org.apache.jackrabbit</groupId>
             <artifactId>oak-jackrabbit-api</artifactId>
         </dependency>
-        <!-- Maven Plugin stuff -->
+        <!-- Maven Plugin stuff (everything from https://github.com/apache/maven/blob/master/maven-core/src/main/resources/META-INF/maven/extension.xml#L133-L193 should have scope provided -->
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-core</artifactId>
             <version>${maven.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-plugin-api</artifactId>
             <version>${maven.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.plugin-tools</groupId>
             <artifactId>maven-plugin-annotations</artifactId>
             <version>3.6.0</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-artifact</artifactId>
             <version>${maven.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-model</artifactId>
             <version>${maven.version}</version>
+            <scope>provided</scope>
         </dependency>
+        <!-- This is not a core artifact, i.e. must not be used with scope "provided" despite having group id "org.apache.maven", https://issues.apache.org/jira/browse/MPLUGIN-385 -->
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-archiver</artifactId>
@@ -364,6 +343,7 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>${slf4j.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -383,6 +363,12 @@
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>animal-sniffer-maven-plugin</artifactId>
             <version>1.19</version>
+            <exclusions>
+              <exclusion>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>*</artifactId>
+              </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.codehaus.mojo</groupId>
@@ -400,6 +386,12 @@
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-common-artifact-filters</artifactId>
             <version>1.4</version>
+            <exclusions>
+              <exclusion>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>*</artifactId>
+              </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- incremental build support (http://www.eclipse.org/m2e/documentation/m2e-making-maven-plugins-compat.html) -->
@@ -414,13 +406,19 @@
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-filtering</artifactId>
             <version>3.2.0</version>
+            <exclusions>
+              <exclusion>
+                <groupId>org.apache.maven</groupId>
+                <artifactId>*</artifactId>
+              </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.eclipse.aether</groupId>
             <artifactId>aether-api</artifactId>
             <version>${aether.version}</version>
-            <scope>compile</scope>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
