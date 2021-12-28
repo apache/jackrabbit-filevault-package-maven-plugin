@@ -36,7 +36,7 @@ import org.apache.maven.shared.artifact.filter.PatternExcludesArtifactFilter;
 import aQute.bnd.osgi.Processor;
 
 /**
- * Analyzes the generated class files and generates a usage report. This can be used by the "generate--metadata" goal to generate manifest header out of it.
+ * Analyzes the generated class files and generates a usage report. This report can be used by the {@code generate-metadata} goal to generate a manifest header out of it.
  */
 @Mojo(
         name = "analyze-classes",
