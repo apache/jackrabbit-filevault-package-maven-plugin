@@ -19,14 +19,23 @@ package org.apache.jackrabbit.filevault.maven.packaging.it;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.maven.it.VerificationException;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class FormattingIT {
 
+    @Rule
+    public TemporaryFolder tmpFolder = new TemporaryFolder();
+
     private void verify(String project, String... formattedFiles) throws VerificationException, IOException {
+        // copy project to tmp folder as the test modifies the project (allows re-execution without clean/recompile)
+        File sourceDirectory = new File(ProjectBuilder.TEST_PROJECTS_ROOT + "/format-xml-tests/" + project);
+        FileUtils.copyDirectory(sourceDirectory, tmpFolder.getRoot());
         ProjectBuilder builder = new ProjectBuilder()
-                .setTestProjectDir("format-xml-tests/" + project)
+                .setTestProjectDir(tmpFolder.getRoot())
                 .setTestGoals("filevault-package:format-xml")
                 .setBuildExpectedToFail(false)
                 .setVerifyPackageContents(false)
