@@ -113,8 +113,8 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     @Deprecated
     private boolean failOnDependencyErrors;
 
-    /** The Maven project (might be {@code null}) */
-    @Parameter(property = "project", readonly = true, required = false)
+    /** The Maven project (never {@code null}, but might be dummy project returning {@code null} for all methods if running outside a {@code pom.xml} context) */
+    @Parameter(defaultValue = "${project}", readonly = true, required = false)
     protected MavenProject project;
 
     @Parameter(defaultValue = "${mojoExecution}", readonly = true, required = true)
@@ -201,10 +201,16 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     public static final Artifact IGNORE_ARTIFACT = new DefaultArtifact("ignore", "ignore", "1.0", "", "", "", null);
     
     private static Version fileVaultValidationBundleVersion = null;
-    private final static Version VERSION_3_5_4 = Version.parseVersion("3.5.4");
+    private static final Version VERSION_3_5_4 = Version.parseVersion("3.5.4");
 
-    protected String getProjectRelativeFilePath(Path file) {
-        return "'" + project.getBasedir().toPath().relativize(file).toString() + "'";
+    protected String getProjectRelativeFilePath(Path path) {
+        final Path shortenedPath;
+        if (project != null && project.getBasedir() != null) {
+            shortenedPath = project.getBasedir().toPath().relativize(path);
+        } else {
+            shortenedPath = path;
+        }
+        return "'" + shortenedPath.toString() + "'";
     }
 
     public AbstractValidateMojo() {

@@ -133,7 +133,7 @@ public class ProjectBuilder {
      * @return the version of the current {@code filevault-package-maven-plugin}
      * @throws IllegalArgumentException if the version cannot be determined.
      */
-    private String getPluginVersion() {
+    static String getPluginVersion() {
         String pluginVersion  = System.getProperty("plugin.version");
         if (pluginVersion == null) {
             try (FileReader fileReader = new FileReader("pom.xml")) {
