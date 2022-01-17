@@ -16,7 +16,12 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
+import java.nio.channels.UnsupportedAddressTypeException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -26,12 +31,17 @@ import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.InvalidArtifactRTException;
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.SystemStreamLog;
+import org.apache.maven.project.MavenProject;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.osgi.framework.Version;
+
+import aQute.lib.mavenpasswordobfuscator.MavenPasswordObfuscator;
 
 
 public class AbstractValidateMojoTest {
@@ -96,9 +106,22 @@ public class AbstractValidateMojoTest {
         list.sort(new AbstractValidateMojo.DotContentXmlFirstComparator());
         MatcherAssert.assertThat(list, Matchers.contains(".content.xml", ".content.xml", "someEntryA", "someEntryB"));
     }
-    
+
     @Test
     public void testGetFileVaultValidatorVersion() throws IOException {
-        Assert.assertTrue(AbstractValidateMojo.getFileVaultValidationBundleVersion().compareTo(Version.parseVersion("3.5.4")) >= 0);
+        Assert.assertTrue("FileVault version being detected is " + AbstractValidateMojo.getFileVaultValidationBundleVersion(), AbstractValidateMojo.getFileVaultValidationBundleVersion().compareTo(Version.parseVersion("3.5.4")) >= 0);
+    }
+
+    @Test
+    public void testGetProjectRelativeFilePathWithoutRealProject() {
+        AbstractValidateMojo mojo = new AbstractValidateMojo() {
+            @Override
+            public void doExecute(ValidationHelper validationHelper) throws MojoExecutionException, MojoFailureException {
+                throw new UnsupportedOperationException();
+            }
+        };
+        mojo.project = new MavenProject();
+        Path path = Paths.get("").toAbsolutePath();
+        assertEquals("'" + path + "'", mojo.getProjectRelativeFilePath(path));
     }
 }

@@ -62,7 +62,7 @@ public class ValidatePackageIT {
             MatcherAssert.assertThat(actualRecords, Matchers.contains(expectedRecords.stream().map(r -> new CSVRecordMatcher(r, 3)).toArray(CSVRecordMatcher[]::new)));
         }
     }
- 
+
     @Test
     public void testValidProjectWithZip() throws Exception {
         verify("project-with-zip", false, null);
@@ -71,6 +71,18 @@ public class ValidatePackageIT {
     @Test
     public void testValidProjectWithClassifier() throws Exception {
         verify("classifier-project", false, "test");
+    }
+
+    @Test
+    public void testValidPackageWithoutProject() throws Exception {
+        //File testPackage = new File(ProjectBuilder.TEST_PROJECTS_ROOT + "/../test-content/");
+        new ProjectBuilder()
+        // some new dir
+        .setTestProjectDir("../test-content")
+        .setTestGoals(String.format("org.apache.jackrabbit:filevault-package-maven-plugin:%s:validate-package", ProjectBuilder.getPluginVersion()))
+        .setProperty("vault.packageToValidate", "test-package.zip")
+        .setVerifyPackageContents(false)
+        .build();
     }
 
     private static final class CSVRecordMatcher extends TypeSafeMatcher<CSVRecord> {
