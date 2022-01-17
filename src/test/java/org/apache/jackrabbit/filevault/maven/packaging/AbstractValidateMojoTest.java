@@ -19,7 +19,6 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
-import java.nio.channels.UnsupportedAddressTypeException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -40,8 +39,6 @@ import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.osgi.framework.Version;
-
-import aQute.lib.mavenpasswordobfuscator.MavenPasswordObfuscator;
 
 
 public class AbstractValidateMojoTest {
