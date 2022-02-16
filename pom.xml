@@ -43,8 +43,7 @@
         <aether.version>1.0.2.v20150114</aether.version> <!-- should be the version exported by the maven.version, https://github.com/apache/maven/blob/bb52d8502b132ec0a5a3f4c09453c07478323dc5/pom.xml#L64 -->
         <slf4j.version>1.7.5</slf4j.version> <!-- should be the version exported by the maven.version, https://github.com/apache/maven/blob/bb52d8502b132ec0a5a3f4c09453c07478323dc5/pom.xml#L65 -->
         <filevault.version>${project.parent.version}</filevault.version> <!-- must be equal to parent version -->
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.release>8</maven.compiler.release>
         <project.build.outputTimestamp>2021-10-14T13:16:26Z</project.build.outputTimestamp>
     </properties>
 
