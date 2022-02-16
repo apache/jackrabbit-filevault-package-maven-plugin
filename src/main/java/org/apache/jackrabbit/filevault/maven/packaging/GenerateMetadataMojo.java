@@ -277,7 +277,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
     private AccessControlHandling accessControlHandling;
 
     /**
-     * Defines whether the package requires root. This will become the
+     * Defines whether the package requires an admin/privileged session for installation. This will become the
      * {@code requiresRoot} property of the properties.xml file.
      */
     @Parameter(
