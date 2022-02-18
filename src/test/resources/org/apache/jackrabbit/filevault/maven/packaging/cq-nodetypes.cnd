@@ -1,0 +1,91 @@
+/*
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+*/
+
+<'sling'='http://sling.apache.org/jcr/sling/1.0'>
+<'cq'='http://www.day.com/jcr/cq/1.0'>
+
+[sling:Folder] > nt:folder
+  - * (undefined)
+  - * (undefined) multiple
+  + * (nt:base) = sling:Folder version
+
+[cq:ClientLibraryFolder] > sling:Folder
+  - channels (string) multiple
+  - categories (string) multiple
+  - dependencies (string) multiple
+  - embed (string) multiple
+
+[cq:Component] > mix:title, nt:folder, sling:ResourceSuperType
+  - * (undefined)
+  - allowedChildren (string) multiple
+  - dialogPath (string)
+  - * (undefined) multiple
+  - cq:isContainer (boolean)
+  - cq:noDecoration (boolean)
+  - cq:cellName (string)
+  - allowedParents (string) multiple
+  - componentGroup (string)
+  + cq:childEditConfig (cq:EditConfig) = cq:EditConfig
+  + design_dialog (nt:base) = nt:unstructured
+  + * (nt:base) = nt:base multiple version
+  + cq:infoProviders (nt:base) = nt:unstructured
+  + virtual (nt:base) = sling:Folder
+  + dialog (nt:base) = nt:unstructured
+  + cq:htmlTag (nt:base) = nt:unstructured
+  + cq:editConfig (cq:EditConfig) = cq:EditConfig
+  + icon.png (nt:file)
+  + thumbnail.png (nt:file)
+
+[sling:ResourceSuperType]
+  mixin
+  - sling:resourceSuperType (string)
+
+[mix:title]
+  mixin
+  - jcr:description (string)
+  - jcr:title (string)
+
+[cq:EditConfig] > nt:hierarchyNode, nt:unstructured
+  orderable
+  - cq:dialogMode (string) < 'auto', 'floating', 'inline'
+  - cq:layout (string) < 'editbar', 'rollover', 'auto'
+  - cq:actions (string) multiple
+  - cq:emptyText (string)
+  - cq:inherit (boolean)
+  + cq:formParameters (nt:base) = nt:unstructured
+  + cq:actionConfigs (nt:base) = nt:unstructured
+  + cq:dropTargets (nt:base) = nt:unstructured
+  + cq:inplaceEditing (cq:InplaceEditingConfig) = cq:InplaceEditingConfig
+  + cq:listeners (nt:base) = cq:EditListenersConfig
+
+[cq:InplaceEditingConfig] > nt:unstructured
+  orderable
+  - editorType (string)
+  - configPath (string)
+  - active (boolean)
+  + config (nt:unstructured) = nt:unstructured
+
+[cq:EditListenersConfig]
+  - afteredit (string)
+  - aftermove (string)
+  - afterinsert (string)
+  - * (undefined) multiple
+  - aftercreate (string)
+  - afterremove (string)
+  - * (undefined)
+  - afterdelete (string)
+  + * (nt:base) = nt:base multiple version

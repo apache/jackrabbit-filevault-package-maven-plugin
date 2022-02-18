@@ -22,6 +22,7 @@ import java.util.Set;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.shared.utils.io.DirectoryScanner;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Commons ancestor for all mojos dealing with package source files and meta data files
@@ -90,11 +91,11 @@ public abstract class AbstractSourceAndMetadataPackageMojo extends AbstractMetad
     @Parameter(defaultValue = "true")
     protected boolean addDefaultExcludes;
 
-    protected File getJcrSourceDirectory() {
+    protected @Nullable File getJcrSourceDirectory() {
         return getJcrSourceDirectory(jcrRootSourceDirectory, builtContentDirectory, getLog());
     }
     
-    protected static File getJcrSourceDirectory(File[] jcrRootSourceDirectory, File builtContentDirectory, Log log) {
+    protected static @Nullable File getJcrSourceDirectory(File[] jcrRootSourceDirectory, File builtContentDirectory, Log log) {
         final File jcrSourceDirectory;
         if (builtContentDirectory != null) {
             log.warn("The 'builtContentDirectory' is deprecated. Please use the new 'jcrRootSourceDirectory' instead.");
