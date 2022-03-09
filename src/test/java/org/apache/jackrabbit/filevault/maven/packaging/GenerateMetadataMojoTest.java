@@ -171,6 +171,4 @@ public class GenerateMetadataMojoTest {
     private static String unescapeContinuations(String value) {
         return value.replaceAll("\r ", "");
     }
-    
-    
 }

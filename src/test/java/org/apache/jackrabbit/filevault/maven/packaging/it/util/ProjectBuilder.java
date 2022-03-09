@@ -26,8 +26,10 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -382,6 +384,18 @@ public class ProjectBuilder implements AutoCloseable {
             fail("Could not find entry with name " + name + " in package " + testPackageFile);
         }
         MatcherAssert.assertThat(entry, new JarEntryMatcher(name, contentPackageZip, expectedChecksum));
+        return this;
+    }
+
+    public ProjectBuilder verifyExpectedFileContent(String name, Charset cs, String expectedContent) throws IOException {
+        openPackage();
+        JarEntry entry = contentPackageZip.getJarEntry(name);
+        if (entry == null) {
+            fail("Could not find entry with name " + name + " in package " + testPackageFile);
+        }
+        try (InputStream actualInput = contentPackageZip.getInputStream(entry)) {
+            assertEquals(expectedContent, IOUtils.toString(actualInput, cs));
+        }
         return this;
     }
 
