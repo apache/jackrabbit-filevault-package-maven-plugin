@@ -19,24 +19,23 @@ package org.apache.jackrabbit.filevault.maven.packaging.it;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
 import org.apache.maven.it.VerificationException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-public class SupplementalArtifactsIT {
-
-    private static final String TEST_PROJECT_NAME = "/supplemental-artifacts/";
-
-    private ProjectBuilder verify(String projectName) throws VerificationException, IOException {
-        return new ProjectBuilder()
-                .setTestProjectDir(TEST_PROJECT_NAME + projectName)
-                .build();
-
-    }
+@ExtendWith(ProjectBuilderExtension.class)
+class SupplementalArtifactsIT {
 
     @Test
-    public void testMultipleSupplementalArtifacts() throws VerificationException, IOException {
-        ProjectBuilder builder = verify("two-packages-in-one-module");
-        builder.verifyExpectedFiles();
-        builder.verifyExpectedFiles(new File(builder.getTestProjectDir(), "expected-files-libs.txt"), ProjectBuilder.verifyPackageZipEntries(new File(builder.getTestProjectDir(), "target/package-plugin-test-pkg-1.0.0-SNAPSHOT-libs.zip")));
+    void testMultipleSupplementalArtifacts(ProjectBuilder projectBuilder) throws VerificationException, IOException {
+        projectBuilder.setTestProjectDir("/supplemental-artifacts/two-packages-in-one-module");
+        projectBuilder.build();
+        // verify contents of main artifacts
+        projectBuilder.verifyExpectedFiles();
+        // verify contents of supplemental artifact (with classifier "libs")
+        projectBuilder.verifyExpectedFiles(new File(projectBuilder.getTestProjectDir(), "expected-files-libs.txt"), 
+                ProjectBuilder.verifyPackageZipEntries(new File(projectBuilder.getTestProjectDir(), "target/package-plugin-test-pkg-1.0.0-SNAPSHOT-libs.zip")));
     }
 }

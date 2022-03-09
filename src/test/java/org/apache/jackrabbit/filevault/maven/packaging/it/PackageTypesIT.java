@@ -16,67 +16,51 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
-import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
 import org.apache.maven.it.VerificationException;
-import org.apache.maven.shared.utils.StringUtils;
-import org.junit.Assume;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 
-@RunWith(Parameterized.class)
-public class PackageTypesIT {
+@ExtendWith(ProjectBuilderExtension.class)
+class PackageTypesIT {
 
-    @Parameterized.Parameters
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {"application", false},
-                {"application-sourced", false},
-                {"application-cleanup", false},
-                {"content", false},
-                {"mixed", false},
-                {"container", false},
-                {"invalid", true}});
-    }
-
-    private final String type;
-
-    private final String projectName;
-
-    private final boolean expectToFail;
-
-    public PackageTypesIT(String type, boolean expectToFail) {
-        this.projectName = type;
-        this.type = StringUtils.chomp(type, "-");
-        this.expectToFail = expectToFail;
-    }
-
-    private void verify(File projectDir) throws VerificationException, IOException {
-        new ProjectBuilder()
-                .setTestProjectDir(projectDir)
-                .setProperty("test.packageType", type)
-                .setBuildExpectedToFail(expectToFail)
+    private static void verify(ProjectBuilder projectBuilder, String projectName, String type) throws VerificationException, IOException {
+        projectBuilder
+                .setTestProjectDir("package-types/" + projectName)
                 .build()
                 .verifyPackageProperty("packageType", type);
     }
 
 
     @Test
-    public void test_package_type() throws Exception {
-        final File projectDir = new File("target/test-classes/test-projects/package-types");
-        verify(projectDir);
+    void test_package_type_for_invalid(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder.setBuildExpectedToFail(true);
+        verify(projectBuilder, "invalid", "invalid");
+    }
+ 
+    @ParameterizedTest
+    @ValueSource(strings = {"application", "content", "mixed", "container"})
+    void test_package_type_explicit(String type, ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder.setProperty("test.packageType", type);
+        verify(projectBuilder, "from-property", type);
     }
 
-    @Test
-    public void test_package_type_autodetect() throws Exception {
-        // ignore invalid test
-        Assume.assumeTrue(!expectToFail);
+    private static Stream<Arguments> test_package_type_autodetect() {
+        return Stream.of(Arguments.of("application", "application"), Arguments.of("application-sourced", "application"), Arguments.of("application-cleanup", "application"),
+                Arguments.of("content", "content"), Arguments.of("mixed", "mixed"), Arguments.of("container", "container"));
+    }
 
-        final File projectDir = new File("target/test-classes/test-projects/package-type-auto/" + projectName);
-        verify(projectDir);
+    @ParameterizedTest
+    @MethodSource
+    void test_package_type_autodetect(String projectName, String type, ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, projectName, type);
     }
 }

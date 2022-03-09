@@ -16,14 +16,16 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 
 public class ValidateFilesMojoTest {
 
@@ -37,7 +39,7 @@ public class ValidateFilesMojoTest {
         expectedPaths.add(Paths.get("apps", "test"));
         expectedPaths.add(Paths.get("apps", "test", ".content.xml"));
         expectedPaths.add(Paths.get("apps", "test", "huhu"));
-        Assert.assertEquals(expectedPaths, ValidateFilesMojo.sortAndEnrichFilesAndDirectories(Paths.get("base"), new String[] { 
+        assertEquals(expectedPaths, ValidateFilesMojo.sortAndEnrichFilesAndDirectories(Paths.get("base"), new String[] { 
                 "apps" + File.separatorChar + "huhu",
                 "apps" + File.separatorChar + "file",
                 "apps" + File.separatorChar + "test" + File.separatorChar + "huhu", 

@@ -19,16 +19,20 @@ package org.apache.jackrabbit.filevault.maven.packaging.it;
 import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
 import org.apache.maven.it.VerificationException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Tests the behaviour of Maven filtering in packages.
  */
-public class FilteringIT {
+@ExtendWith(ProjectBuilderExtension.class)
+class FilteringIT {
 
-    private ProjectBuilder verify(String projectName, boolean enableJcrRootFiltering, boolean enableMetaInfFiltering, String filteredFilePatterns, String ... goals) throws VerificationException, IOException {
-        ProjectBuilder projectBuilder = new ProjectBuilder()
+    private static void verify(ProjectBuilder projectBuilder, String projectName, boolean enableJcrRootFiltering, boolean enableMetaInfFiltering, String filteredFilePatterns, String ... goals) throws VerificationException, IOException {
+        projectBuilder
                 .setTestProjectDir("filtering-tests/" + projectName)
                 .setTestGoals(goals)
                 .setProperty("vault.enableMetaInfFiltering", Boolean.toString(enableMetaInfFiltering))
@@ -36,57 +40,57 @@ public class FilteringIT {
         if (StringUtils.isNotBlank(filteredFilePatterns)) {
             projectBuilder.setProperty("vault.filteredFilePatterns", filteredFilePatterns);
         }
-        return projectBuilder
+        projectBuilder
                 .build()
                 .verifyExpectedFiles();
     }
 
     @Test
-    public void test_simple_filter_with_filtering_enabled() throws Exception {
-        verify("simple-filter", true, true, null)
+    void test_simple_filter_with_filtering_enabled(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "simple-filter", true, true, null);
             // cannot check checksum of properties.xml as that one has platform dependent new lines!
             //.verifyExpectedFileChecksum("META-INF/vault/properties.xml", "295fb69e")
-            .verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "10791371")
+        projectBuilder.verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "10791371")
             .verifyExpectedFileChecksum("jcr_root/apps/foo/test2.properties", "7563f01d")
             .verifyExpectedFileChecksum("jcr_root/apps/foo/child/.content.xml", "d9b1ad2");
     }
 
     @Test
-    public void test_simple_filter_with_filtering_disabled() throws Exception {
-        verify("simple-filter", false, false, null)
+    void test_simple_filter_with_filtering_disabled(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "simple-filter", false, false, null);
             // cannot check checksum of properties.xml as that one has platform dependent new lines!
             //.verifyExpectedFileChecksum("META-INF/vault/properties.xml", "5953911b")
-            .verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "34e5a01d")
+        projectBuilder.verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "34e5a01d")
             .verifyExpectedFileChecksum("jcr_root/apps/foo/test2.properties", "a41ae6f8")
             .verifyExpectedFileChecksum("jcr_root/apps/foo/child/.content.xml", "f8aee8df");
     }
 
     @Test
-    public void test_simple_filter_with_filtering_enabled_on_jcrroot() throws Exception {
-        verify("simple-filter", true, false, null)
+    void test_simple_filter_with_filtering_enabled_on_jcrroot(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "simple-filter", true, false, null);
             // cannot check checksum of properties.xml as that one has platform dependent new lines!
             //.verifyExpectedFileChecksum("META-INF/vault/properties.xml", "5953911b")
-            .verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "10791371")
+        projectBuilder.verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "10791371")
             .verifyExpectedFileChecksum("jcr_root/apps/foo/test2.properties", "7563f01d")
             .verifyExpectedFileChecksum("jcr_root/apps/foo/child/.content.xml", "d9b1ad2");
     }
 
     @Test
-    public void test_simple_filter_with_filtering_enabled_on_metainf() throws Exception {
-        verify("simple-filter", false, true, null)
+    void test_simple_filter_with_filtering_enabled_on_metainf(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "simple-filter", false, true, null);
             // cannot check checksum of properties.xml as that one has platform dependent new lines!
             //.verifyExpectedFileChecksum("META-INF/vault/properties.xml", "295fb69e")
-            .verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "34e5a01d")
+        projectBuilder.verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "34e5a01d")
             .verifyExpectedFileChecksum("jcr_root/apps/foo/test2.properties", "a41ae6f8")
             .verifyExpectedFileChecksum("jcr_root/apps/foo/child/.content.xml", "f8aee8df");
     }
     
     @Test
-    public void test_simple_filter_with_filtering_partially_enabled_on_jcrroot() throws Exception {
-        verify("simple-filter", true, false, "**/child/*.xml")
+    void test_simple_filter_with_filtering_partially_enabled_on_jcrroot(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "simple-filter", true, false, "**/child/*.xml");
             // cannot check checksum of properties.xml as that one has platform dependent new lines!
             //.verifyExpectedFileChecksum("META-INF/vault/properties.xml", "5953911b")
-            .verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "34e5a01d")
+        projectBuilder.verifyExpectedFileChecksum("jcr_root/apps/bar/test1.properties", "34e5a01d")
             .verifyExpectedFileChecksum("jcr_root/apps/foo/test2.properties", "a41ae6f8")
             .verifyExpectedFileChecksum("jcr_root/apps/bar/.content.xml", "f8aee8df")
             .verifyExpectedFileChecksum("jcr_root/apps/foo/child/.content.xml", "d9b1ad2");

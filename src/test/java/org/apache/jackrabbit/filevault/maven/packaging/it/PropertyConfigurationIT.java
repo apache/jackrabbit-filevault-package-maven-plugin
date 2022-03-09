@@ -16,16 +16,20 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
-import org.junit.Test;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+@ExtendWith(ProjectBuilderExtension.class)
 public class PropertyConfigurationIT {
 
     /**
      * Tests if the property.xml contains the description from the plugin config and not the project.
      */
     @Test
-    public void test_that_description_can_be_overridden_in_properties() throws Exception {
-        new ProjectBuilder()
+   void test_that_description_can_be_overridden_in_properties(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
                 .setTestProjectDir("override-description")
                 .build()
                 .verifyPackageProperty("description", "Description from plugin");
@@ -36,8 +40,8 @@ public class PropertyConfigurationIT {
      * Tests that properties like acHandling can be set via the "properties" map.
      */
     @Test
-    public void test_that_properties_can_be_set_via_map() throws Exception {
-        new ProjectBuilder()
+   void test_that_properties_can_be_set_via_map(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
                 .setTestProjectDir("properties-from-map")
                 .build()
                 .verifyPackageProperty("requiresRoot", "true")
@@ -50,8 +54,8 @@ public class PropertyConfigurationIT {
      * Tests set properties set explicitly as plugin config param have higher precedence than those in the properties map.
      */
     @Test
-    public void test_that_properties_set_in_plugin_config_have_higher_precedence() throws Exception {
-        new ProjectBuilder()
+   void test_that_properties_set_in_plugin_config_have_higher_precedence(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
                 .setTestProjectDir("properties-from-plugin-config")
                 .build()
                 .verifyPackageProperty("requiresRoot", "true")
@@ -63,8 +67,8 @@ public class PropertyConfigurationIT {
      * Tests set properties set explicitly as plugin config param have higher precedence than those in the properties map.
      */
     @Test
-    public void test_that_properties_set_in_plugin_config_have_higher_precedence_with_alias() throws Exception {
-        new ProjectBuilder()
+   void test_that_properties_set_in_plugin_config_have_higher_precedence_with_alias(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
                 .setTestProjectDir("properties-from-plugin-config-aliased")
                 .build()
                 .verifyPackageProperty("requiresRoot", "true")

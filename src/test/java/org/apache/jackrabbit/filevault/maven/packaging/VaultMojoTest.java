@@ -16,6 +16,8 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,12 +25,11 @@ import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.jackrabbit.filevault.maven.packaging.it.ProjectBuilder;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class VaultMojoTest {
 
@@ -57,6 +58,6 @@ public class VaultMojoTest {
         fileSet.setExcludes(new String[] { "de", "f" });
         fileSet.setIncludingEmptyDirectories(true);
         DefaultFileSet clonedFileSet = VaultMojo.cloneFileSet(fileSet);
-        Assert.assertTrue("Expected " + ToStringBuilder.reflectionToString(fileSet) + " but got " + ToStringBuilder.reflectionToString(clonedFileSet), EqualsBuilder.reflectionEquals(fileSet, clonedFileSet));
+        assertTrue( EqualsBuilder.reflectionEquals(fileSet, clonedFileSet), "Expected " + ToStringBuilder.reflectionToString(fileSet) + " but got " + ToStringBuilder.reflectionToString(clonedFileSet));
     }
 }

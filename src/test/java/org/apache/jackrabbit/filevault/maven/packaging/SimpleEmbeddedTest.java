@@ -24,17 +24,18 @@ import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-public class SimpleEmbeddedTest {
-    
+
+class SimpleEmbeddedTest {
+
     private SimpleEmbedded embedded;
-    
+
     private List<Artifact> artifacts;
-    
-    @Before
-    public void setUp() {
+
+    @BeforeEach
+    void setUp() {
         embedded = new SimpleEmbedded();
         artifacts = new ArrayList<>();
         // the order is important here!
@@ -48,25 +49,25 @@ public class SimpleEmbeddedTest {
     }
     
     @Test
-    public void testGroupIdOnlyFilter() throws ConfigurationException {
+    void testGroupIdOnlyFilter() throws ConfigurationException {
         embedded.setGroupId("mygroupid");
         MatcherAssert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(0), artifacts.get(1), artifacts.get(4), artifacts.get(5), artifacts.get(6)));
     }
 
     @Test
-    public void testArtifactIdOnlyFilter() throws ConfigurationException {
+    void testArtifactIdOnlyFilter() throws ConfigurationException {
         embedded.setArtifactId("artifact1");
         MatcherAssert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(0), artifacts.get(3), artifacts.get(4)));
     }
 
     @Test
-    public void testTypeBundleOnlyFilter() throws ConfigurationException {
+    void testTypeBundleOnlyFilter() throws ConfigurationException {
         embedded.setType("bundle");
         MatcherAssert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.contains(artifacts.get(4), artifacts.get(5), artifacts.get(6)));
     }
 
     @Test
-    public void testTypeBundleOrJarOnlyFilter() throws ConfigurationException {
+    void testTypeBundleOrJarOnlyFilter() throws ConfigurationException {
         // in addition filter for jar
         embedded.setType("jar");
         embedded.setType("bundle");
@@ -74,28 +75,28 @@ public class SimpleEmbeddedTest {
     }
 
     @Test
-    public void testClassifierOnlyFilter() throws ConfigurationException {
+    void testClassifierOnlyFilter() throws ConfigurationException {
         // in addition filter for jar
         embedded.setClassifier("myclassifier");
         MatcherAssert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.contains(artifacts.get(6)));
     }
 
     @Test
-    public void testScopeOnlyFilter() {
+    void testScopeOnlyFilter() {
         // should contain all artifacts with scope "compile", "runtime" or "system"
         embedded.setScope("compile");
         MatcherAssert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(0), artifacts.get(1), artifacts.get(5), artifacts.get(6)));
     }
 
     @Test
-    public void testComplexFilter() throws ConfigurationException {
+    void testComplexFilter() throws ConfigurationException {
         embedded.setType("bundle");
         embedded.setArtifactId("artifact1");
         embedded.setGroupId("mygroupid");
         MatcherAssert.assertThat(embedded.getMatchingArtifacts(artifacts), Matchers.containsInAnyOrder(artifacts.get(4)));
     }
 
-    public final static class SimpleArtifact extends DefaultArtifact {
+    final static class SimpleArtifact extends DefaultArtifact {
         SimpleArtifact(String groupId, String artifactId) {
             this(groupId, artifactId, null);
         }
@@ -107,7 +108,7 @@ public class SimpleEmbeddedTest {
         SimpleArtifact(String groupId, String artifactId, String scope, String type) {
             this(groupId, artifactId, scope, type, null);
         }
-        
+
         SimpleArtifact(String groupId, String artifactId, String scope, String type, String classifier) {
             super(groupId, artifactId, "default", scope, type == null ? "jar" : type, classifier == null ? "" : classifier, null);
         }

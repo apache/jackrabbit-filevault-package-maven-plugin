@@ -16,7 +16,9 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -36,8 +38,7 @@ import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.project.MavenProject;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.osgi.framework.Version;
 
 
@@ -61,14 +62,14 @@ public class AbstractValidateMojoTest {
                     Matchers.aMapWithSize(2)));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void testInvalidMap1() {
-        AbstractValidateMojo.resolveMap(Arrays.asList("group1:=artifactId1")); 
+        assertThrows(IllegalArgumentException.class, () -> AbstractValidateMojo.resolveMap(Arrays.asList("group1:=artifactId1"))); 
     }
 
-    @Test(expected = InvalidArtifactRTException.class)
+    @Test
     public void testInvalidMap2() {
-        AbstractValidateMojo.resolveMap(Arrays.asList("group1:=:groupId")); 
+        assertThrows(InvalidArtifactRTException.class, () -> AbstractValidateMojo.resolveMap(Arrays.asList("group1:=:groupId"))); 
     }
 
     @Test
@@ -106,7 +107,7 @@ public class AbstractValidateMojoTest {
 
     @Test
     public void testGetFileVaultValidatorVersion() throws IOException {
-        Assert.assertTrue("FileVault version being detected is " + AbstractValidateMojo.getFileVaultValidationBundleVersion(), AbstractValidateMojo.getFileVaultValidationBundleVersion().compareTo(Version.parseVersion("3.5.4")) >= 0);
+        assertTrue(AbstractValidateMojo.getFileVaultValidationBundleVersion().compareTo(Version.parseVersion("3.5.4")) >= 0, "FileVault version being detected is " + AbstractValidateMojo.getFileVaultValidationBundleVersion());
     }
 
     @Test

@@ -19,9 +19,13 @@ package org.apache.jackrabbit.filevault.maven.packaging.it;
 import java.nio.file.Paths;
 
 import org.apache.jackrabbit.filevault.maven.packaging.VaultMojo;
-import org.junit.Test;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-public class GenerateMetadataMultiModuleIT {
+@ExtendWith(ProjectBuilderExtension.class)
+class GenerateMetadataMultiModuleIT {
 
     /**
      * Tests that the generate-manifest goal generates the expected filter.xml and
@@ -29,8 +33,8 @@ public class GenerateMetadataMultiModuleIT {
      * inter-module dependencies in a multi-module setup for clean + test goals.
      */
     @Test
-    public void multi_module_build_clean_test() throws Exception {
-        new ProjectBuilder()
+    void multi_module_build_clean_test(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
                 .setTestProjectDir("/generate-metadata-multimodule")
                 .setTestGoals("clean", "test")
                 .setVerifyPackageContents(false)
@@ -45,8 +49,8 @@ public class GenerateMetadataMultiModuleIT {
      * inter-module dependencies in a multi-module setup for clean + package goals.
      */
     @Test
-    public void multi_module_build_clean_package() throws Exception {
-        new ProjectBuilder()
+    void multi_module_build_clean_package(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
                 .setTestProjectDir("/generate-metadata-multimodule")
                 .setTestPackageFile("container/" + ProjectBuilder.TEST_PACKAGE_DEFAULT_NAME + VaultMojo.PACKAGE_EXT)
                 .setTestGoals("clean", "package")
