@@ -16,8 +16,9 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -28,31 +29,28 @@ import java.util.List;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
-import org.apache.maven.it.VerificationException;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
 import org.hamcrest.Description;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.hamcrest.TypeSafeMatcher;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-public class ValidatePackageIT {
+@ExtendWith(ProjectBuilderExtension.class)
+class ValidatePackageIT {
 
     private static final String TEST_PROJECT_NAME = "/validator-projects/";
 
-    private ProjectBuilder verify(String projectName, boolean expectToFail, String classifier) throws VerificationException, IOException {
-        return new ProjectBuilder()
-                .setTestProjectDir(TEST_PROJECT_NAME + projectName, classifier)
-                .setBuildExpectedToFail(expectToFail)
-                .build();
-    }
-
     @Test
-    public void testInvalidProject() throws Exception {
-        ProjectBuilder projectBuilder = verify("invalid-project", true, null);
+    void testInvalidProject(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder.setTestProjectDir(TEST_PROJECT_NAME + "invalid-project");
+        projectBuilder.setBuildExpectedToFail(true);
+        projectBuilder.build();
         projectBuilder.verifyExpectedLogLines(Paths.get("META-INF", "vault", "filter.xml").toString());
         File csvReportFile = new File(projectBuilder.getTestProjectDir(), "report.csv");
-        Assert.assertTrue(csvReportFile.exists());
+        assertTrue(csvReportFile.exists());
         CSVParser csvParser = CSVParser.parse(csvReportFile, StandardCharsets.UTF_8, CSVFormat.EXCEL);
         List<CSVRecord> actualRecords = csvParser.getRecords();
         try (InputStream input = getClass().getResourceAsStream("report.csv")) {
@@ -64,19 +62,20 @@ public class ValidatePackageIT {
     }
 
     @Test
-    public void testValidProjectWithZip() throws Exception {
-        verify("project-with-zip", false, null);
+    void testValidProjectWithZip(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder.setTestProjectDir(TEST_PROJECT_NAME + "project-with-zip");
+        projectBuilder.build();
     }
 
     @Test
-    public void testValidProjectWithClassifier() throws Exception {
-        verify("classifier-project", false, "test");
+    void testValidProjectWithClassifier(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder.setTestProjectDir(TEST_PROJECT_NAME + "classifier-project", "test");
+        projectBuilder.build();
     }
 
     @Test
-    public void testValidPackageWithoutProject() throws Exception {
-        //File testPackage = new File(ProjectBuilder.TEST_PROJECTS_ROOT + "/../test-content/");
-        new ProjectBuilder()
+    void testValidPackageWithoutProject(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
         // some new dir
         .setTestProjectDir("../test-content")
         .setTestGoals(String.format("org.apache.jackrabbit:filevault-package-maven-plugin:%s:validate-package", ProjectBuilder.getPluginVersion()))

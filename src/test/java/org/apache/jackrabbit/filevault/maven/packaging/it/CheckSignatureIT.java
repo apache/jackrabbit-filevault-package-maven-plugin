@@ -16,17 +16,21 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
-import org.junit.Test;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-public class CheckSignatureIT {
+@ExtendWith(ProjectBuilderExtension.class)
+class CheckSignatureIT {
 
     /**
      * The check-signature goal ends up in a NPE in the animal-sniffer SignatureChecker, when the animal-sniffer plugin
      * version is 1.14 in the build, breaking the build:
      */
     @Test
-    public void package_builds() throws Exception {
-        new ProjectBuilder()
+    void package_builds(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
                 .setTestProjectDir("/check-signature")
                 .build();
     }
@@ -35,10 +39,10 @@ public class CheckSignatureIT {
      * 
      */
     @Test
-    public void testJava9Module() throws Exception {
-            new ProjectBuilder()
-                    .setTestProjectDir("/check-signature2")
-                    .build();
-    }
+    void testJava9Module(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+                .setTestProjectDir("/check-signature2")
+                .build();
+}
    
 }

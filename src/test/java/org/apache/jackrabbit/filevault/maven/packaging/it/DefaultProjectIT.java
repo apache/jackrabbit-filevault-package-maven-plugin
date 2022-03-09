@@ -16,8 +16,9 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -31,93 +32,116 @@ import java.util.TimeZone;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
 import org.apache.jackrabbit.util.ISO8601;
 import org.apache.jackrabbit.vault.packaging.PackageProperties;
 import org.apache.maven.it.VerificationException;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.number.OrderingComparison;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+@ExtendWith(ProjectBuilderExtension.class)
 public class DefaultProjectIT {
 
     private static final String TEST_PROJECT_NAME = "/default-test-projects/";
 
-    private ProjectBuilder verify(String projectName) throws VerificationException, IOException {
-        return new ProjectBuilder()
-                .setTestProjectDir(TEST_PROJECT_NAME + projectName)
-                .build()
-                .verifyExpectedFiles()
-                .verifyExpectedFilesOrder()
-                .verifyExpectedManifest();
-
-    }
-
     @Test
-    public void generic_project_package_contains_correct_files() throws Exception {
+    public void generic_project_package_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
         // the created date is fixed in the pom, as this is a reproducible build
-        String createdDate = verify("generic").getPackageProperty("created");
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "generic")
+            .build()
+            .verifyExpectedFiles()
+            .verifyExpectedFilesOrder()
+            .verifyExpectedManifest();
+        String createdDate = projectBuilder.getPackageProperty("created");
         Calendar expectedDate = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
         DateFormat df = new SimpleDateFormat( "yyyy-MM-dd'T'HH:mm:ssXXX" );
         expectedDate.setTime(df.parse("2019-10-02T08:04:00Z"));
         expectedDate.setLenient(false);
         Calendar date = ISO8601.parse(createdDate);
-        assertNotNull("The created date is not compliant to the ISO8601 profile defined in https://www.w3.org/TR/NOTE-datetime", date);
+        assertNotNull(date, "The created date is not compliant to the ISO8601 profile defined in https://www.w3.org/TR/NOTE-datetime");
         // check actual value
         assertEquals(expectedDate, date);
     }
 
     @Test
-    public void generic_project_is_reproducible() throws Exception {
-        ProjectBuilder builder = verify("generic");
+    public void generic_project_is_reproducible(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "generic")
+            .build();
         // MD5
         MessageDigest md = MessageDigest.getInstance("MD5");
-        try (InputStream is = new FileInputStream(builder.getTestPackageFile());
+        try (InputStream is = new FileInputStream(projectBuilder.getTestPackageFile());
              DigestInputStream dis = new DigestInputStream(is, md)) {
             IOUtils.copy(dis, new NullOutputStream());
         }
         byte[] digest1 = md.digest();
-        builder = verify("generic");
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "generic")
+            .build();
         // MD5
         md = MessageDigest.getInstance("MD5");
-        try (InputStream is = new FileInputStream(builder.getTestPackageFile());
+        try (InputStream is = new FileInputStream(projectBuilder.getTestPackageFile());
              DigestInputStream dis = new DigestInputStream(is, md)) {
             IOUtils.copy(dis, new NullOutputStream());
         }
         byte[] digest2 = md.digest();
-        Assert.assertArrayEquals(digest1, digest2);
+        assertArrayEquals(digest1, digest2);
     }
  
     @Test
-    public void generic_project_package_with_metainf_contains_correct_files() throws Exception {
-        verify("generic-with-metainf");
+    public void generic_project_package_with_metainf_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "generic-with-metainf")
+            .build()
+            .verifyExpectedFiles()
+            .verifyExpectedFilesOrder()
+            .verifyExpectedManifest();
     }
 
     @Test
-    public void generic_with_builtcd_project_package_contains_correct_files() throws Exception {
-        verify("generic-with-builtcd");
+    public void generic_with_builtcd_project_package_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "generic-with-builtcd")
+            .build()
+            .verifyExpectedFiles()
+            .verifyExpectedFilesOrder()
+            .verifyExpectedManifest();
     }
 
     @Test
-    public void resource_project_package_contains_correct_files() throws Exception {
-        verify("resource");
+    public void resource_project_package_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "resource")
+            .build()
+            .verifyExpectedFiles()
+            .verifyExpectedFilesOrder()
+            .verifyExpectedManifest();
     }
 
     @Test
-    public void unusual_jcr_root_package_contains_correct_files() throws Exception {
-        verify("generic-unusal-jcrroot");
+    public void unusual_jcr_root_package_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "generic-unusal-jcrroot")
+            .build()
+            .verifyExpectedFiles()
+            .verifyExpectedFilesOrder()
+            .verifyExpectedManifest();
     }
 
     @Test
-    public void generic_empty_directories() throws Exception {
+    public void generic_empty_directories(ProjectBuilder projectBuilder) throws Exception {
         Calendar dateBeforeRun = Calendar.getInstance();
-        String createdDate = new ProjectBuilder()
+        String createdDate = projectBuilder
                 .setTestProjectDir(TEST_PROJECT_NAME + "generic-empty-directories")
                 .build()
                 .verifyExpectedFiles().getPackageProperty("created");
         Calendar dateAfterRun = Calendar.getInstance();
         Calendar date = ISO8601.parse(createdDate);
-        assertNotNull("The created date is not compliant to the ISO8601 profile defined in https://www.w3.org/TR/NOTE-datetime", date);
+        assertNotNull(date, "The created date is not compliant to the ISO8601 profile defined in https://www.w3.org/TR/NOTE-datetime");
         // check actual value
         MatcherAssert.assertThat(date, OrderingComparison.greaterThan(dateBeforeRun));
         MatcherAssert.assertThat(date, OrderingComparison.lessThan(dateAfterRun));
@@ -125,59 +149,59 @@ public class DefaultProjectIT {
     }
 
     @Test
-    public void resource_empty_directories() throws Exception {
-        new ProjectBuilder()
-                .setTestProjectDir(TEST_PROJECT_NAME + "resource-empty-directories")
-                .build()
-                .verifyExpectedFiles();
+    public void resource_empty_directories(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "resource-empty-directories")
+            .build()
+            .verifyExpectedFiles();
     }
 
     @Test
-    public void htl_validation() throws Exception {
-        new ProjectBuilder()
-                .setTestProjectDir(TEST_PROJECT_NAME + "htl-validation")
-                .build()
-                .verifyExpectedFiles()
-                .verifyExpectedManifest();
+    public void htl_validation(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "htl-validation")
+            .build()
+            .verifyExpectedFiles()
+            .verifyExpectedManifest();
     }
 
     @Test
-    public void overwritten_embed() throws Exception {
-        new ProjectBuilder()
-                .setTestProjectDir(TEST_PROJECT_NAME + "overwritten-embed")
-                .setBuildExpectedToFail(true)
-                .build();
+    public void overwritten_embed(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "overwritten-embed")
+            .setBuildExpectedToFail(true)
+            .build();
     }
 
     @Test
-    public void overwritten_embed_not_failing() throws Exception {
-        new ProjectBuilder()
-                .setTestProjectDir(TEST_PROJECT_NAME + "overwritten-embed-not-failing")
-                .build()
-                .verifyExpectedFilesChecksum();
+    public void overwritten_embed_not_failing(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "overwritten-embed-not-failing")
+            .build()
+            .verifyExpectedFilesChecksum();
     }
 
     @Test
-    public void empty_package() throws VerificationException, IOException {
-        new ProjectBuilder()
-        .setTestProjectDir(TEST_PROJECT_NAME + "empty")
-        .build();
+    public void empty_package(ProjectBuilder projectBuilder) throws VerificationException, IOException {
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "empty")
+            .build();
     }
 
     @Test
-    public void additional_metainf_files() throws Exception {
-        new ProjectBuilder()
-                .setTestProjectDir(TEST_PROJECT_NAME + "additional-metainf-files")
-                .build()
-                .verifyExpectedFiles()
-                .verifyExpectedManifest();
+    public void additional_metainf_files(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "additional-metainf-files")
+            .build()
+            .verifyExpectedFiles()
+            .verifyExpectedManifest();
     }
 
     @Test
-    public void complex_package_properties() throws Exception {
-        new ProjectBuilder()
-        .setTestProjectDir(TEST_PROJECT_NAME + "complex-properties")
-        .build()
-        .verifyPackageProperty(PackageProperties.NAME_SUB_PACKAGE_HANDLING, "*:package1;ignore,group1:*;force_install,group1:package1");
+    public void complex_package_properties(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir(TEST_PROJECT_NAME + "complex-properties")
+            .build()
+            .verifyPackageProperty(PackageProperties.NAME_SUB_PACKAGE_HANDLING, "*:package1;ignore,group1:*;force_install,group1:package1");
     }
 }

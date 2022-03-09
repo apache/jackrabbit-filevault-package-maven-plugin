@@ -16,8 +16,9 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
-import org.junit.Assert;
-import org.junit.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
 
 public class ValidatorSettingsTest {
 
@@ -39,6 +40,6 @@ public class ValidatorSettingsTest {
         mergedSettings.addOption("option2", "from2");
         mergedSettings.addOption("option3", "from1");
         mergedSettings.setDefaultSeverity("WARN");
-        Assert.assertEquals(mergedSettings, settings1.merge(settings2));
+        assertEquals(mergedSettings, settings1.merge(settings2));
     }
 }

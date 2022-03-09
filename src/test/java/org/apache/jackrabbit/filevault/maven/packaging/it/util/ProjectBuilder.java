@@ -14,14 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging.it;
+package org.apache.jackrabbit.filevault.maven.packaging.it.util;
 
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.FileReader;
@@ -45,7 +45,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
-import java.util.zip.ZipFile;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedReader;
@@ -69,7 +68,7 @@ import aQute.bnd.header.Parameters;
 /**
  * Helper class to build and verify a Maven project.
  */
-public class ProjectBuilder {
+public class ProjectBuilder implements AutoCloseable {
 
     /**
      * default logger
@@ -80,7 +79,7 @@ public class ProjectBuilder {
 
     public static final String TEST_PROJECTS_ROOT = "target/test-classes/test-projects";
 
-    static final String TEST_PACKAGE_DEFAULT_NAME = "target/package-plugin-test-pkg-1.0.0-SNAPSHOT";
+    public static final String TEST_PACKAGE_DEFAULT_NAME = "target/package-plugin-test-pkg-1.0.0-SNAPSHOT";
 
     static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("%(\\d*)%");
 
@@ -114,7 +113,12 @@ public class ProjectBuilder {
 
     private boolean verifyPackageContents = true;
 
-    public ProjectBuilder() {
+    private JarFile contentPackageZip;
+
+    /**
+     * This should only be used from {@link ProjectBuilderStore}
+     */
+    ProjectBuilder() {
         testProjectsRoot = new File(TEST_PROJECTS_ROOT);
         testProperties = new Properties();
 
@@ -133,7 +137,7 @@ public class ProjectBuilder {
      * @return the version of the current {@code filevault-package-maven-plugin}
      * @throws IllegalArgumentException if the version cannot be determined.
      */
-    static String getPluginVersion() {
+    public static String getPluginVersion() {
         String pluginVersion  = System.getProperty("plugin.version");
         if (pluginVersion == null) {
             try (FileReader fileReader = new FileReader("pom.xml")) {
@@ -233,6 +237,7 @@ public class ProjectBuilder {
     }
 
     public ProjectBuilder build() throws VerificationException, IOException {
+        close(); // make sure to release the package from last build
         Verifier verifier = new Verifier(testProjectDir.getAbsolutePath());
         verifier.setSystemProperties(testProperties);
         verifier.setDebug(true);
@@ -246,7 +251,7 @@ public class ProjectBuilder {
         }
         try {
             verifier.executeGoals(Arrays.asList(testGoals));
-            assertFalse("Build expected to fail in project " + testProjectDir.getAbsolutePath(), buildExpectedToFail);
+            assertFalse(buildExpectedToFail, "Build expected to fail in project " + testProjectDir.getAbsolutePath());
         } catch (VerificationException e) {
             if (buildExpectedToFail) {
                 return this;
@@ -262,29 +267,40 @@ public class ProjectBuilder {
         }
 
         // read zip
-        pkgZipEntries = verifyPackageZipEntries(testPackageFile);
+        openPackage();
+        pkgZipEntries = verifyPackageZipEntries(contentPackageZip);
         return this;
     }
 
-    static List<String> verifyPackageZipEntries(File packageFile) throws IOException {
-        assertTrue("Project did not generate package file at " + packageFile, packageFile.exists());
+    private JarFile openPackage() throws IOException {
+        if (contentPackageZip == null) {
+            contentPackageZip = new JarFile(testPackageFile);
+        }
+        return contentPackageZip;
+    }
 
+    public static List<String> verifyPackageZipEntries(File packageFile) throws IOException {
+        assertTrue(packageFile.exists(), "Project did not generate package file at " + packageFile);
+        try (JarFile jarFile = new JarFile(packageFile)) {
+            return verifyPackageZipEntries(jarFile);
+        }
+    }
+ 
+    private static List<String> verifyPackageZipEntries(JarFile packageFile) throws IOException {
         List<String> pkgZipEntries = new ArrayList<>();
-        try (JarFile jar = new JarFile(packageFile)) {
-            Enumeration<JarEntry> e = jar.entries();
-            while (e.hasMoreElements()) {
-                pkgZipEntries.add(e.nextElement().getName());
-            }
+        Enumeration<JarEntry> e = packageFile.entries();
+        while (e.hasMoreElements()) {
+            pkgZipEntries.add(e.nextElement().getName());
         }
         // ensure that MANIFEST.MF is first entry
         String first = pkgZipEntries.get(0);
         if ("META-INF/".equals(first)) {
             first = pkgZipEntries.get(1);
         }
-        assertEquals("MANIFEST.MF is not first entry in package " + packageFile, "META-INF/MANIFEST.MF", first);
+        assertEquals("META-INF/MANIFEST.MF", first, "MANIFEST.MF is not first entry in package " + packageFile);
 
         // ensure that there is a jcr_root directory
-        assertTrue("Package does not contain mandatory 'jcr_root' folder in package " + packageFile, pkgZipEntries.contains("jcr_root/"));
+        assertTrue(pkgZipEntries.contains("jcr_root/"), "Package does not contain mandatory 'jcr_root' folder in package " + packageFile);
         return pkgZipEntries;
     }
 
@@ -292,45 +308,43 @@ public class ProjectBuilder {
         if (buildExpectedToFail) {
             return this;
         }
-        assertEquals("Property '" + key + "' has incorrect value", value, getPackageProperty(key));
+        assertEquals(value, getPackageProperty(key), "Property '" + key + "' has incorrect value");
         return this;
     }
-
+  
     public String getPackageProperty(String key) throws ZipException, IOException {
         Properties properties;
-        try (ZipFile zip = new ZipFile(testPackageFile)) {
-            ZipEntry propertiesFile = zip.getEntry("META-INF/vault/properties.xml");
-            MatcherAssert.assertThat(propertiesFile, notNullValue());
+        openPackage();
+        ZipEntry propertiesFile = contentPackageZip.getEntry("META-INF/vault/properties.xml");
+        MatcherAssert.assertThat(propertiesFile, notNullValue());
 
-            properties = new Properties();
-            properties.loadFromXML(zip.getInputStream(propertiesFile));
-        }
+        properties = new Properties();
+        properties.loadFromXML(contentPackageZip.getInputStream(propertiesFile));
         return properties.getProperty(key);
     }
 
     public ProjectBuilder verifyExpectedManifest() throws IOException {
         final List<String> expectedEntries = Files.readAllLines(expectedManifestFile.toPath(), StandardCharsets.US_ASCII);
         List<String> entries;
-        try (JarFile jar = new JarFile(testPackageFile)) {
-            entries = new ArrayList<>();
-            for (Map.Entry<Object, Object> e : jar.getManifest().getMainAttributes().entrySet()) {
-                String key = e.getKey().toString();
-                if (IGNORED_MANIFEST_ENTRIES.contains(key)) {
-                    continue;
-                }
-                if ("Import-Package".equals(key)) {
-                    // split export package so that we have a sorted set
-                    Parameters params = new Parameters(e.getValue().toString());
-                    for (Map.Entry<String, Attrs> entry : params.entrySet()) {
-                        entries.add(key + ":" + entry.getKey() + ";" + entry.getValue());
-                    }
-                    continue;
-                }
-                entries.add(e.getKey() + ":" + e.getValue());
+        openPackage();
+        entries = new ArrayList<>();
+        for (Map.Entry<Object, Object> e : contentPackageZip.getManifest().getMainAttributes().entrySet()) {
+            String key = e.getKey().toString();
+            if (IGNORED_MANIFEST_ENTRIES.contains(key)) {
+                continue;
             }
+            if ("Import-Package".equals(key)) {
+                // split export package so that we have a sorted set
+                Parameters params = new Parameters(e.getValue().toString());
+                for (Map.Entry<String, Attrs> entry : params.entrySet()) {
+                    entries.add(key + ":" + entry.getKey() + ";" + entry.getValue());
+                }
+                continue;
+            }
+            entries.add(e.getKey() + ":" + e.getValue());
         }
         Collections.sort(entries);
-        assertEquals("Manifest", expectedEntries, entries);
+        assertEquals(expectedEntries, entries, "Manifest");
         return this;
     }
 
@@ -342,9 +356,10 @@ public class ProjectBuilder {
     public ProjectBuilder verifyExpectedFiles(File expectedFilesFile, List<String> pkgZipEntries) throws IOException {
         // first check that only the expected entries are there in the package (regardless of the order)
         List<String> expectedEntries = Files.readAllLines(expectedFilesFile.toPath(), StandardCharsets.UTF_8);
-        assertEquals("Package does not contain the expected entry names",
+        assertEquals(
                 toTidyString(expectedEntries),
-                toTidyString(pkgZipEntries));
+                toTidyString(pkgZipEntries),
+                "Package does not contain the expected entry names");
         return this;
     }
 
@@ -361,13 +376,12 @@ public class ProjectBuilder {
     public ProjectBuilder verifyExpectedFileChecksum(String name, String checksum) throws IOException {
         // the second part must be a hexadecimal CRC32 checksum
         final long expectedChecksum = Long.parseLong(checksum, 16);
-        try (JarFile jar = new JarFile(testPackageFile)) {
-            JarEntry entry = jar.getJarEntry(name);
-            if (entry == null) {
-                fail("Could not find entry with name " + name + " in package " + testPackageFile);
-            }
-            MatcherAssert.assertThat(entry, new JarEntryMatcher(name, jar, expectedChecksum));
+        openPackage();
+        JarEntry entry = contentPackageZip.getJarEntry(name);
+        if (entry == null) {
+            fail("Could not find entry with name " + name + " in package " + testPackageFile);
         }
+        MatcherAssert.assertThat(entry, new JarEntryMatcher(name, contentPackageZip, expectedChecksum));
         return this;
     }
 
@@ -416,11 +430,10 @@ public class ProjectBuilder {
         if (buildExpectedToFail) {
             return this;
         }
-        try (ZipFile zip = new ZipFile(testPackageFile)) {
-            ZipEntry entry = zip.getEntry("META-INF/vault/filter.xml");
-            assertNotNull("package has a filter.xml", entry);
-            verifyExpectedFilter(IOUtils.toString(zip.getInputStream(entry), StandardCharsets.UTF_8));
-        }
+        openPackage();
+        ZipEntry entry = contentPackageZip.getEntry("META-INF/vault/filter.xml");
+        assertNotNull(entry, "package has a filter.xml");
+        verifyExpectedFilter(IOUtils.toString(contentPackageZip.getInputStream(entry), StandardCharsets.UTF_8));
         return this;
     }
 
@@ -429,16 +442,16 @@ public class ProjectBuilder {
             return this;
         }
         File workDirFile = new File(testProjectDir, workDirectory);
-        assertTrue("workDirectory should exist: " + workDirFile.toString(), workDirFile.isDirectory());
+        assertTrue(workDirFile.isDirectory(), "workDirectory should exist: " + workDirFile.toString());
         File filterFile = new File(workDirFile, "META-INF/vault/filter.xml");
-        assertTrue("filterFile should exist: " + filterFile.toString(), filterFile.isFile());
+        assertTrue(filterFile.isFile(), "filterFile should exist: " + filterFile.toString());
         verifyExpectedFilter(new String(Files.readAllBytes(filterFile.toPath()), StandardCharsets.UTF_8));
         return this;
     }
 
     private void verifyExpectedFilter(String actualFilter) throws IOException {
         String expected = new String(Files.readAllBytes(expectedFilterFile.toPath()), StandardCharsets.UTF_8);
-        assertEquals("filter.xml is incorrect", normalizeWhitespace(expected), normalizeWhitespace(actualFilter));
+        assertEquals(normalizeWhitespace(expected), normalizeWhitespace(actualFilter), "filter.xml is incorrect");
     }
 
     public ProjectBuilder verifyExpectedLogLines(String... placeholderValues) throws IOException {
@@ -462,6 +475,7 @@ public class ProjectBuilder {
         // support not and exists
         return this;
     }
+
     public List<String> getBuildOutput() throws IOException {
         return Files.readAllLines(logTxtFile.toPath(), StandardCharsets.UTF_8);
     }
@@ -481,5 +495,13 @@ public class ProjectBuilder {
      */
     private String normalizeWhitespace(String s) {
         return s.replaceAll("[\r\n]+", "\n");
+    }
+
+    @Override
+    public void close() throws IOException {
+        if (contentPackageZip != null) {
+            contentPackageZip.close();
+            contentPackageZip = null;
+        }
     }
 }

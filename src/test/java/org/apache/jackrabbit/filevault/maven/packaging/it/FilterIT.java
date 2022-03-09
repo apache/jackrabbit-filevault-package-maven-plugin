@@ -16,7 +16,7 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,16 +24,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
 import org.apache.maven.it.VerificationException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 /**
  * Tests the behaviour of package filters.
  */
-public class FilterIT {
+@ExtendWith(ProjectBuilderExtension.class)
+class FilterIT {
 
-    private ProjectBuilder verify(String projectName, boolean expectToFail, String ... goals) throws VerificationException, IOException {
-        return new ProjectBuilder()
+    private static void verify(ProjectBuilder projectBuilder, String projectName, boolean expectToFail, String ... goals) throws VerificationException, IOException {
+        projectBuilder
                 .setTestProjectDir("filter-tests/" + projectName)
                 .setTestGoals(goals)
                 .setBuildExpectedToFail(expectToFail)
@@ -45,72 +49,72 @@ public class FilterIT {
      * Tests if a pom with no filter definition at all fails.
      */
     @Test
-    public void test_no_filter_fails() throws Exception {
-        verify("no-filter-fails", true);
+    void test_no_filter_fails(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "no-filter-fails", true);
     }
 
     /**
      * Tests if a project with an implicit filter defined with a resource based META-INF/vault/filter.xml is correctly built
      */
     @Test
-    public void test_implicit_filter() throws Exception {
-        verify("implicit-filter", false);
+    void test_implicit_filter(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "implicit-filter", false);
     }
 
     /**
      * Tests if a project with an implicit filter defined in META-INF/vault/filter.xml is correctly built
      */
     @Test
-    public void test_implicit_filter_via_metainf() throws Exception {
-        verify("implicit-filter-via-metainf", false);
+    void test_implicit_filter_via_metainf(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "implicit-filter-via-metainf", false);
     }
 
     /**
      * Tests if a project with an inline filter properly generates the filter.xml
      */
     @Test
-    public void test_inline_filter() throws Exception {
-        verify("inline-filter", false);
+    void test_inline_filter(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "inline-filter", false);
     }
 
     /**
      * Tests if a project with an inline filter and a filter source properly generates the merged filter.xml
      */
     @Test
-    public void test_merge_inline_filter() throws Exception {
-        verify("merge-inline-filter", false);
+    void test_merge_inline_filter(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "merge-inline-filter", false);
     }
 
     /**
      * Tests if a project with an inline filter and a filter source properly generates the merged filter.xml
      */
     @Test
-    public void test_merge_inline_filter_with_metainf() throws Exception {
-        verify("merge-inline-filter-metainf", false);
+    void test_merge_inline_filter_with_metainf(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "merge-inline-filter-metainf", false);
     }
 
     /**
      * Tests if a project with an filter source and no inline filters keeps the filter comments.
      */
     @Test
-    public void test_retain_filter_source() throws Exception {
-        verify("retain-filter-source", false);
+    void test_retain_filter_source(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "retain-filter-source", false);
     }
 
     /**
      * Tests if a project with no filter but a prefix creates the default root
      */
     @Test
-    public void test_no_filter_with_prefix() throws Exception {
-        verify("no-filter-with-prefix", false);
+    void test_no_filter_with_prefix(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "no-filter-with-prefix", false);
     }
 
     /**
      * Tests if a project with an inline filter and an implicit filter correctly uses the inline filters.
      */
     @Test
-    public void test_inline_and_implicit_filter_fails() throws Exception {
-        verify("inline-and-implicit-fails", true);
+    void test_inline_and_implicit_filter_fails(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "inline-and-implicit-fails", true);
     }
 
     /**
@@ -118,8 +122,8 @@ public class FilterIT {
      * is creating a filter
      */
     @Test
-    public void test_no_filter_container() throws Exception {
-        verify("no-filter-container", false);
+    void test_no_filter_container(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "no-filter-container", false);
     }
 
     /**
@@ -127,20 +131,20 @@ public class FilterIT {
      * is creating a filter but inside an execution's configuration
      */
     @Test
-    public void test_no_filter_container_in_execution() throws Exception {
-        verify("no-filter-container-in-execution", false);
+    void test_no_filter_container_in_execution(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "no-filter-container-in-execution", false);
     }
 
     /**
      * Tests if a project with an inline filter executed twice works w/o clean
      */
     @Test
-    public void test_inline_filter_twice() throws Exception {
+    void test_inline_filter_twice(ProjectBuilder projectBuilder) throws Exception {
         // first execute with default goals
         final File projectDir = new File("target/test-classes/test-projects/filter-tests/inline-filter-twice");
         Files.copy(projectDir.toPath().resolve("pom1.xml"), projectDir.toPath().resolve("pom.xml"), StandardCopyOption.REPLACE_EXISTING);
         Files.copy(projectDir.toPath().resolve("expected-filter1.xml"), projectDir.toPath().resolve("expected-filter.xml"), StandardCopyOption.REPLACE_EXISTING);
-        verify("inline-filter-twice", false);
+        verify(projectBuilder, "inline-filter-twice", false);
 
         // copy marker to 'target' to ensure that clean is not executed
         Path marker = projectDir.toPath().resolve("target/marker.xml");
@@ -148,14 +152,14 @@ public class FilterIT {
 
         Files.copy(projectDir.toPath().resolve("pom2.xml"), projectDir.toPath().resolve("pom.xml"), StandardCopyOption.REPLACE_EXISTING);
         Files.copy(projectDir.toPath().resolve("expected-filter2.xml"), projectDir.toPath().resolve("expected-filter.xml"), StandardCopyOption.REPLACE_EXISTING);
-        verify("inline-filter-twice", false, "package");
+        verify(projectBuilder, "inline-filter-twice", false, "package");
 
-        assertTrue("Marker file still exists.", Files.exists(marker));
+        assertTrue(Files.exists(marker), "Marker file still exists.");
     }
 
     @Test 
-    public void test_filter_not_covering_all_files() throws Exception {
-        ProjectBuilder builder = verify("filter-not-covering-all-files", true);
-        builder.verifyExpectedLogLines(new File("jcr_root/apps/.content.xml").toString());
+    void test_filter_not_covering_all_files(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "filter-not-covering-all-files", true);
+        projectBuilder.verifyExpectedLogLines(new File("jcr_root/apps/.content.xml").toString());
     }
 }

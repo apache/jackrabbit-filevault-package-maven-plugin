@@ -16,6 +16,9 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -40,8 +43,7 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class GenerateMetadataMojoTest {
 
@@ -62,24 +64,24 @@ public class GenerateMetadataMojoTest {
         // TODO: check filter
         // use OSGi bundle filename patterns first
         PathFilterSet expectedPathFilter = new PathFilterSet("/apps/install/jcr-2.0.jar");
-        Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/install/jcr-2.0.jar", false));
+        assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/install/jcr-2.0.jar", false));
         expectedPathFilter = new PathFilterSet("/apps/install");
         expectedPathFilter.addInclude(new DefaultPathFilter(Pattern.quote("/apps/install/jcr-") + ".*\\.jar(/.*)?"));
-        Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/install/jcr-2.0.jar", true));
-        Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/install/jcr-3.0.jar", true));
+        assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/install/jcr-2.0.jar", true));
+        assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/install/jcr-3.0.jar", true));
 
         expectedPathFilter = new PathFilterSet("/apps/some/other/install");
         expectedPathFilter.addInclude(new DefaultPathFilter(Pattern.quote("/apps/some/other/install/jcr-") + ".*\\.jar(/.*)?"));
-        Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/some/other/install/jcr-2.0-alpha1.jar", true));
+        assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/apps/some/other/install/jcr-2.0-alpha1.jar", true));
 
         // then test against some sub package names
         // look at PackageId.getInstallationPath for patterns ("/etc/packages/<group>/<name>-<version>.zip")
         expectedPathFilter = new PathFilterSet("/etc/packages/some/weird/group/name-1.0.zip");
-        Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/etc/packages/some/weird/group/name-1.0.zip", false));
+        assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/etc/packages/some/weird/group/name-1.0.zip", false));
         
         expectedPathFilter = new PathFilterSet("/etc/packages/some/weird/group");
         expectedPathFilter.addInclude(new DefaultPathFilter(Pattern.quote("/etc/packages/some/weird/group/name-") + ".*\\.zip(/.*)?"));
-        Assert.assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/etc/packages/some/weird/group/name-1.0.zip", true));
+        assertEquals(expectedPathFilter, GenerateMetadataMojo.getPathFilterSetForEmbeddedFile("/etc/packages/some/weird/group/name-1.0.zip", true));
     }
 
     @Test
@@ -113,7 +115,7 @@ public class GenerateMetadataMojoTest {
                 for (Map.Entry<Object, Object> attribute : attributes.entrySet()) {
                     Pattern expectedAttributeValuePattern = expectedAttributes.get(attribute.getKey().toString());
                     if (expectedAttributeValuePattern == null) {
-                        Assert.fail("Found unexpected attribute " + attribute.getKey() + " in Manifest");
+                        fail("Found unexpected attribute " + attribute.getKey() + " in Manifest");
                     }
                     MatcherAssert.assertThat("Found unexpected attribute value for " + attribute.getKey(), (String)attribute.getValue(), Matchers.matchesPattern(expectedAttributeValuePattern));
                     expectedAttributes.remove(attribute.getKey().toString());
@@ -134,7 +136,7 @@ public class GenerateMetadataMojoTest {
         dependency = MavenBasedPackageDependency.fromGroupNameAndVersion("mygroup", "mypackage", "[1,2)");
         mojo.dependencies.add(dependency);
         // upper bound of the first dependency is left out in case it is unlimited
-        Assert.assertEquals("day/cq60/product:cq-content:6.3.64,mygroup:mypackage:[1,2)", mojo.computeDependencies());
+        assertEquals("day/cq60/product:cq-content:6.3.64,mygroup:mypackage:[1,2)", mojo.computeDependencies());
     }
 
     private void assertEscapedValueWorksInManifest(String value) throws IOException {
@@ -151,7 +153,7 @@ public class GenerateMetadataMojoTest {
                 manifest = new Manifest(inputStream);
                 // java.util.jar.Manifest removes the new lines unfortunately from values, but maybe this gets fixed by Oracle at some point in time...
                 String actualValue = manifest.getMainAttributes().getValue(MANIFEST_ATTRIBUTE_NAME);
-                Assert.assertEquals(removeNewlines(value), unescapeContinuations(actualValue));
+                assertEquals(removeNewlines(value), unescapeContinuations(actualValue));
             }
         };
     }

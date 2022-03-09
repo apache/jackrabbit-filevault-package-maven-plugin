@@ -16,22 +16,25 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
 
 public class ValidatorSettingsKeyTest {
 
     @Test
     public void testFromString() {
-        Assert.assertEquals(new ValidatorSettingsKey("id1", "id1", false, null, null), ValidatorSettingsKey.fromString("id1"));
-        Assert.assertEquals(new ValidatorSettingsKey("id2:subpackage", "id2", true, null, null), ValidatorSettingsKey.fromString("id2:subpackage"));
-        Assert.assertThrows(IllegalArgumentException.class, () -> {ValidatorSettingsKey.fromString("id1:invalid");} );
-        Assert.assertEquals(new ValidatorSettingsKey("id3:othergroup:myname", "id3", false, "othergroup", "myname"),  ValidatorSettingsKey.fromString("id3:othergroup:myname"));
-        Assert.assertEquals(new ValidatorSettingsKey("id4:*:othername", "id4", false, "*", "othername"),  ValidatorSettingsKey.fromString("id4:*:othername"));
+        assertEquals(new ValidatorSettingsKey("id1", "id1", false, null, null), ValidatorSettingsKey.fromString("id1"));
+        assertEquals(new ValidatorSettingsKey("id2:subpackage", "id2", true, null, null), ValidatorSettingsKey.fromString("id2:subpackage"));
+        assertThrows(IllegalArgumentException.class, () -> {ValidatorSettingsKey.fromString("id1:invalid");} );
+        assertEquals(new ValidatorSettingsKey("id3:othergroup:myname", "id3", false, "othergroup", "myname"),  ValidatorSettingsKey.fromString("id3:othergroup:myname"));
+        assertEquals(new ValidatorSettingsKey("id4:*:othername", "id4", false, "*", "othername"),  ValidatorSettingsKey.fromString("id4:*:othername"));
     }
 
     @Test
@@ -43,20 +46,20 @@ public class ValidatorSettingsKeyTest {
         ValidatorSettingsKey key3 = new ValidatorSettingsKey("id1:*:mypackage", "id1", false, "*", "mypackage");
         ValidatorSettingsKey key4 = new ValidatorSettingsKey("id1:mygroup:mypackage", "id1", false, "mygroup", "mypackage");
         ValidatorSettingsKey key5 = new ValidatorSettingsKey("id1:mygroup:otherpackage", "id1", false, "mygroup", "otherpackage");
-        Assert.assertEquals(-1, Integer.signum(key1.compareTo(key2)));
-        Assert.assertEquals(1, Integer.signum(key2.compareTo(key1)));
-        Assert.assertEquals(-1, Integer.signum(key2.compareTo(key3)));
-        Assert.assertEquals(1, Integer.signum(key3.compareTo(key2)));
-        Assert.assertEquals(-1, Integer.signum(key3.compareTo(key4)));
-        Assert.assertEquals(1, Integer.signum(key4.compareTo(key3)));
-        Assert.assertEquals(-1, Integer.signum(key4.compareTo(key5)));
-        Assert.assertEquals(1, Integer.signum(key5.compareTo(key4)));
-        Assert.assertEquals(0, Integer.signum(key5.compareTo(key5)));
+        assertEquals(-1, Integer.signum(key1.compareTo(key2)));
+        assertEquals(1, Integer.signum(key2.compareTo(key1)));
+        assertEquals(-1, Integer.signum(key2.compareTo(key3)));
+        assertEquals(1, Integer.signum(key3.compareTo(key2)));
+        assertEquals(-1, Integer.signum(key3.compareTo(key4)));
+        assertEquals(1, Integer.signum(key4.compareTo(key3)));
+        assertEquals(-1, Integer.signum(key4.compareTo(key5)));
+        assertEquals(1, Integer.signum(key5.compareTo(key4)));
+        assertEquals(0, Integer.signum(key5.compareTo(key5)));
         keys.add(key5);
         keys.add(key4);
         keys.add(key3);
         keys.add(key2);
         keys.add(key1);
-        Assert.assertEquals("id1,id1:subpackage,id1:*:mypackage,id1:mygroup:mypackage,id1:mygroup:otherpackage", keys.stream().map(ValidatorSettingsKey::getKey).collect(Collectors.joining(",")));
+        assertEquals("id1,id1:subpackage,id1:*:mypackage,id1:mygroup:mypackage,id1:mygroup:otherpackage", keys.stream().map(ValidatorSettingsKey::getKey).collect(Collectors.joining(",")));
     }
 }

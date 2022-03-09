@@ -16,27 +16,23 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
-import java.io.IOException;
 import java.nio.file.Paths;
 
-import org.apache.maven.it.VerificationException;
-import org.junit.Test;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-public class ValidateFilesIT {
-
-    private static final String TEST_PROJECT_NAME = "/validator-projects/";
-
-    private ProjectBuilder verify(String projectName) throws VerificationException, IOException {
-        return new ProjectBuilder()
-                .setTestProjectDir(TEST_PROJECT_NAME + projectName)
-                .setTestGoals("clean", "package") // make sure the validate-files mojo is not skipped
-                .setBuildExpectedToFail(true)
-                .build()
-                .verifyExpectedLogLines(Paths.get("META-INF","vault","filter.xml").toString());
-    }
+@ExtendWith(ProjectBuilderExtension.class)
+class ValidateFilesIT {
 
     @Test
-    public void testInvalidProject() throws Exception {
-        verify("invalid-project");
+    void testInvalidProject(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir("/validator-projects/invalid-project")
+            .setTestGoals("clean", "package") // make sure the validate-files mojo is not skipped
+            .setBuildExpectedToFail(true)
+            .build()
+            .verifyExpectedLogLines(Paths.get("META-INF","vault","filter.xml").toString());
     }
 }

@@ -16,20 +16,24 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
-import org.junit.Test;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-public class AnalyzeClassesMultiModuleIT {
+@ExtendWith(ProjectBuilderExtension.class)
+class AnalyzeClassesMultiModuleIT {
 
     /**
      * Tests that the analyze classes module succeeds when run on
      * inter-module dependencies in a multi-module setup.
      */
     @Test
-    public void multi_module_build_succeeds() throws Exception {
-        new ProjectBuilder()
-                .setTestProjectDir("/analyze-classes-multimodule")
-                .setTestGoals("clean", "test")
-                .setVerifyPackageContents(false)
-                .build();
+    void multi_module_build_succeeds(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir("/analyze-classes-multimodule")
+            .setTestGoals("clean", "test")
+            .setVerifyPackageContents(false)
+            .build();
     }
 }

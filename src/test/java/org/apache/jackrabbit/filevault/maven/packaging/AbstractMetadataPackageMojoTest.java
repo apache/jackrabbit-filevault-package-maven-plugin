@@ -16,36 +16,36 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-
-public class AbstractMetadataPackageMojoTest {
+class AbstractMetadataPackageMojoTest {
 
     @Test
-    public void testGetRelativePath() {
+    void testGetRelativePath() {
         // absolute and relative path
         Path base = Paths.get(".");
         Path path = FileSystems.getDefault().getPath("").toAbsolutePath();
-        Assert.assertEquals("'" + FileSystems.getDefault().getPath("").toAbsolutePath() + "'", AbstractMetadataPackageMojo.getRelativePath(base, path));
+        assertEquals("'" + FileSystems.getDefault().getPath("").toAbsolutePath() + "'", AbstractMetadataPackageMojo.getRelativePath(base, path));
 
         // one path is parent of the other
         base = Paths.get("my", "base");
         path = Paths.get("my", "base", "child");
-        Assert.assertEquals("'child'", AbstractMetadataPackageMojo.getRelativePath(base, path));
+        assertEquals("'child'", AbstractMetadataPackageMojo.getRelativePath(base, path));
 
         // no common parent
         base = Paths.get("my", "base");
         path = Paths.get("other", "file");
-        Assert.assertEquals("'" +path.toString() + "'", AbstractMetadataPackageMojo.getRelativePath(base, path));
+        assertEquals("'" +path.toString() + "'", AbstractMetadataPackageMojo.getRelativePath(base, path));
  
         // paths have common parent (but one does not start with the other)
         base = Paths.get("my", "base");
         path = Paths.get("my", "other");
-        Assert.assertEquals("'" + path + "'", AbstractMetadataPackageMojo.getRelativePath(base, path));
+        assertEquals("'" + path + "'", AbstractMetadataPackageMojo.getRelativePath(base, path));
     }
 }

@@ -17,46 +17,39 @@
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.stream.Stream;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-@RunWith(Parameterized.class)
+@ExtendWith(ProjectBuilderExtension.class)
 public class DependencyCheckIT {
 
-    @Parameterized.Parameters(name="{index}: project {0}")
-    public static Collection<Object[]> data() {
-        return Arrays.asList(new Object[][]{
-                {"fail-missing-deps", true},
-                {"fail-missing-deps-implicit", true},
-                {"fail-no-maven-deps", true},
-                {"fail-no-contains", true},
-                {"fail-no-cover", true},
-                {"fail-undeclared-dependency", true},
-                {"fail-repo-structure-pkg-subtree", true},
-                {"no-errors", false},
-                {"repo-structure-pkg", false},
-                {"no-error-cleanup", false},
-                {"no-error-cleanup-filter", false},
-                {"no-error-unknown-dependency", false}
-        });
+    private static Stream<Arguments> test_dependency_checks() { 
+        return Stream.of(
+            Arguments.of("fail-missing-deps", true),
+            Arguments.of("fail-missing-deps-implicit", true),
+            Arguments.of("fail-no-maven-deps", true),
+            Arguments.of("fail-no-contains", true),
+            Arguments.of("fail-no-cover", true),
+            Arguments.of("fail-undeclared-dependency", true),
+            Arguments.of("fail-repo-structure-pkg-subtree", true),
+            Arguments.of("no-errors", false),
+            Arguments.of("repo-structure-pkg", false),
+            Arguments.of("no-error-cleanup", false),
+            Arguments.of("no-error-cleanup-filter", false),
+            Arguments.of("no-error-unknown-dependency", false)
+        );
     }
 
-    private final String projectName;
-
-    private final boolean expectToFail;
-
-    public DependencyCheckIT(String projectName, boolean expectToFail) {
-        this.projectName = projectName;
-        this.expectToFail = expectToFail;
-    }
-
-    @Test
-    public void test_dependency_checks() throws Exception {
-        new ProjectBuilder()
+    @ParameterizedTest(name = "{0}")
+    @MethodSource()
+    public void test_dependency_checks(String projectName, boolean expectToFail, ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
                 .setTestProjectsRoot(new File("target/test-classes/test-projects/validate-deps-projects"))
                 .setTestProjectDir(projectName)
                 .setBuildExpectedToFail(expectToFail)

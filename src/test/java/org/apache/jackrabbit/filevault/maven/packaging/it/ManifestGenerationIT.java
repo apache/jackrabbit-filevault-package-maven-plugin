@@ -16,44 +16,49 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.it;
 
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
 import org.apache.maven.it.VerificationException;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+@ExtendWith(ProjectBuilderExtension.class)
+class ManifestGenerationIT {
 
-public class ManifestGenerationIT {
-
-    private ProjectBuilder verify(String projectName) throws IOException, VerificationException {
-        return new ProjectBuilder()
+    private static void verify(ProjectBuilder projectBuilder, String projectName) throws IOException, VerificationException {
+        projectBuilder
                 .setTestProjectDir("manifest-generation/" + projectName)
                 .build()
                 .verifyExpectedManifest();
     }
 
     @Test
-    public void simple_manifest_generation() throws Exception {
-        verify("simple");
+    void simple_manifest_generation(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "simple");
     }
 
     @Test
-    public void bundle_manifest_generation() throws Exception {
-        verify("with-bundles");
+    void bundle_manifest_generation(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "with-bundles");
     }
 
     @Test
-    public void code_manifest_generation() throws Exception {
-        verify("with-code");
+    void code_manifest_generation(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "with-code");
     }
 
     @Test
-    public void unused_manifest_generation() throws Exception {
-        verify("with-unused-dependencies");
+    void unused_manifest_generation(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "with-unused-dependencies");
     }
 
     /**
@@ -61,13 +66,13 @@ public class ManifestGenerationIT {
      * see JCRVLT-214
      */
     @Test
-    public void unused_parent_manifest_generation() throws Exception {
-        ProjectBuilder builder = verify("with-unused-parent-dependencies");
+    void unused_parent_manifest_generation(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "with-unused-parent-dependencies");
 
         // also check if unused parent is not listed
         List<String> unusedBundles = new LinkedList<String>();
         boolean recording = false;
-        for (String line: builder.getBuildOutput()) {
+        for (String line: projectBuilder.getBuildOutput()) {
             if (line.contains("------")) {
                 continue;
             }
@@ -87,7 +92,7 @@ public class ManifestGenerationIT {
         Arrays.sort(unused);
 
         // the project should have at 1 unused bundle but not the one from the parent
-        assertTrue("unused bundles > 0", unused.length > 0);
-        assertEquals("unused bundle", "[org.jsoup:jsoup:jar:1.10.3]", Arrays.toString(unused));
+        assertTrue(unused.length > 0, "unused bundles > 0");
+        assertEquals("[org.jsoup:jsoup:jar:1.10.3]", Arrays.toString(unused), "unused bundle");
     }
 }

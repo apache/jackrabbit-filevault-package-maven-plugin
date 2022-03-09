@@ -20,22 +20,25 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
 import org.apache.maven.it.VerificationException;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.io.TempDir;
 
-public class FormattingIT {
+@ExtendWith(ProjectBuilderExtension.class)
+class FormattingIT {
 
-    @Rule
-    public TemporaryFolder tmpFolder = new TemporaryFolder();
+    @TempDir
+    File tmpFolder;
 
-    private void verify(String project, String... formattedFiles) throws VerificationException, IOException {
+    private void verify(ProjectBuilder projectBuilder, String project, String... formattedFiles) throws VerificationException, IOException {
         // copy project to tmp folder as the test modifies the project (allows re-execution without clean/recompile)
         File sourceDirectory = new File(ProjectBuilder.TEST_PROJECTS_ROOT + "/format-xml-tests/" + project);
-        FileUtils.copyDirectory(sourceDirectory, tmpFolder.getRoot());
-        ProjectBuilder builder = new ProjectBuilder()
-                .setTestProjectDir(tmpFolder.getRoot())
+        FileUtils.copyDirectory(sourceDirectory, tmpFolder);
+        projectBuilder
+                .setTestProjectDir(tmpFolder)
                 .setTestGoals("filevault-package:format-xml")
                 .setBuildExpectedToFail(false)
                 .setVerifyPackageContents(false)
@@ -43,18 +46,18 @@ public class FormattingIT {
 
         for (String formattedFile : formattedFiles) {
             // use uppercase drive letter on Windows
-            String path = new File(builder.getTestProjectDir(), formattedFile).getCanonicalPath();
-            builder.verifyExpectedLogLines(path);
+            String path = new File(projectBuilder.getTestProjectDir(), formattedFile).getCanonicalPath();
+            projectBuilder.verifyExpectedLogLines(path);
         }
     }
 
     @Test
-    public void test_format_xml_in_single_module() throws Exception {
-        verify("singlemodule", "src/main/content/jcr_root/.content.xml");
+    void test_format_xml_in_single_module(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "singlemodule", "src/main/content/jcr_root/.content.xml");
     }
 
     @Test
-    public void test_format_xml_in_reactor() throws Exception {
-        verify("multimodule", "a/src/main/content/jcr_root/.content.xml", "b/src/main/content/jcr_root/.content.xml");
+    void test_format_xml_in_reactor(ProjectBuilder projectBuilder) throws Exception {
+        verify(projectBuilder, "multimodule", "a/src/main/content/jcr_root/.content.xml", "b/src/main/content/jcr_root/.content.xml");
     }
 }
