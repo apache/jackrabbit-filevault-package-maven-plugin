@@ -30,7 +30,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 /**
  * Test the string filter
  */
-class FilterTest {
+class StringFilterTest {
 
     private static final String[] TEST_STRINGS = { "com.day.cq", "foo-bar", "com.day.cq.impl", "artifact1-test", "artifact2-test" };
 

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging;
+package org.apache.jackrabbit.filevault.maven.packaging.mojo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -26,11 +26,10 @@ import java.util.TreeSet;
 
 import org.junit.jupiter.api.Test;
 
-
-public class ValidateFilesMojoTest {
+class ValidateFilesMojoTest {
 
     @Test
-    public void testSortAndEnrichFilesAndFolders() {
+    void testSortAndEnrichFilesAndFolders() {
         SortedSet<Path> expectedPaths = new TreeSet<>();
         expectedPaths.add(Paths.get("apps"));
         expectedPaths.add(Paths.get("apps", ".content.xml"));

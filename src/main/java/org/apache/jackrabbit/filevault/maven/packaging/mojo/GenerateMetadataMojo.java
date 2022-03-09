@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging;
+package org.apache.jackrabbit.filevault.maven.packaging.mojo;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -49,6 +49,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.jackrabbit.filevault.maven.packaging.ArtifactCoordinates;
+import org.apache.jackrabbit.filevault.maven.packaging.Embedded;
+import org.apache.jackrabbit.filevault.maven.packaging.Filters;
+import org.apache.jackrabbit.filevault.maven.packaging.MavenBasedPackageDependency;
+import org.apache.jackrabbit.filevault.maven.packaging.SubPackage;
+import org.apache.jackrabbit.filevault.maven.packaging.SubPackageHandlingEntry;
 import org.apache.jackrabbit.util.Text;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.api.WorkspaceFilter;

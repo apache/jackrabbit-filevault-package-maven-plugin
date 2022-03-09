@@ -58,7 +58,7 @@ public class ValidatorSettings implements org.apache.jackrabbit.vault.validation
         return this;
     }
 
-    protected ValidatorSettings addOption(String key, String value) {
+    public ValidatorSettings addOption(String key, String value) {
         options.put(key, value);
         return this;
     }

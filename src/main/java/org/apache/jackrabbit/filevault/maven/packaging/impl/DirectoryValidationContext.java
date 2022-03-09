@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context;
+package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,9 +22,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.List;
 
-import org.apache.jackrabbit.filevault.maven.packaging.GenerateMetadataMojo;
+import org.apache.jackrabbit.filevault.maven.packaging.mojo.GenerateMetadataMojo;
 import org.apache.jackrabbit.vault.fs.api.WorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;

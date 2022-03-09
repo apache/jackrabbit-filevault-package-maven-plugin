@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging;
+package org.apache.jackrabbit.filevault.maven.packaging.mojo;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.jar.JarFile;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.jackrabbit.filevault.maven.packaging.Filters;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.maven.plugin.AbstractMojo;

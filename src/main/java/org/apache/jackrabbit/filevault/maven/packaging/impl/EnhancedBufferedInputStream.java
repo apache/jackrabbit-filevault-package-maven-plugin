@@ -14,37 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging.impl.util;
+package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.OutputStream;
+import java.io.InputStream;
 
 /**
  * Similar to {@link BufferedInputStream} but allows to access the delegate via {@link #getDelegate()}.
  */
-public class EnhancedBufferedOutputStream extends BufferedOutputStream {
+public class EnhancedBufferedInputStream extends BufferedInputStream {
 
-    private final OutputStream delegate;
+    private final InputStream delegate;
     
-    public EnhancedBufferedOutputStream(OutputStream out, int size) {
-        super(out, size);
-        this.delegate = out;
+    public EnhancedBufferedInputStream(InputStream in, int size) {
+        super(in, size);
+        this.delegate = in;
     }
 
-    public EnhancedBufferedOutputStream(OutputStream out) {
-        super(out);
-        this.delegate = out;
+    public EnhancedBufferedInputStream(InputStream in) {
+        super(in);
+        this.delegate = in;
     }
 
-    public OutputStream getDelegate() {
+    public InputStream getDelegate() {
         return delegate;
     }
 
-    public static OutputStream tryUnwrap(OutputStream output) {
-        while (output instanceof EnhancedBufferedOutputStream) {
-            output = EnhancedBufferedOutputStream.class.cast(output).getDelegate();
+    public static InputStream tryUnwrap(InputStream input) {
+        while (input instanceof EnhancedBufferedInputStream) {
+            input = EnhancedBufferedInputStream.class.cast(input).getDelegate();
         }
-        return output;
+        return input;
     }
 }

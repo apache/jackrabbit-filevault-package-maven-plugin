@@ -18,6 +18,7 @@ package org.apache.jackrabbit.filevault.maven.packaging;
 
 import java.util.Objects;
 
+import org.apache.jackrabbit.filevault.maven.packaging.mojo.AbstractValidateMojo;
 import org.apache.jackrabbit.vault.packaging.PackageId;
 
 /** 

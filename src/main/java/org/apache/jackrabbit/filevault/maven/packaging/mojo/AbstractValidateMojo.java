@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging;
+package org.apache.jackrabbit.filevault.maven.packaging.mojo;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +34,11 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context.DependencyResolver;
+import org.apache.jackrabbit.filevault.maven.packaging.MavenBasedPackageDependency;
+import org.apache.jackrabbit.filevault.maven.packaging.ValidatorSettings;
+import org.apache.jackrabbit.filevault.maven.packaging.ValidatorSettingsKey;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.DependencyResolver;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.ValidationHelper;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageId;

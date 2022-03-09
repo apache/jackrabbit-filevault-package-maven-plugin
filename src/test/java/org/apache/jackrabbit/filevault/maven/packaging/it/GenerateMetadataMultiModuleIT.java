@@ -18,8 +18,8 @@ package org.apache.jackrabbit.filevault.maven.packaging.it;
 
 import java.nio.file.Paths;
 
-import org.apache.jackrabbit.filevault.maven.packaging.VaultMojo;
 import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.jackrabbit.filevault.maven.packaging.mojo.VaultMojo;
 import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

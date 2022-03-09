@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging;
+package org.apache.jackrabbit.filevault.maven.packaging.mojo;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -31,10 +31,10 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
-public class VaultMojoTest {
+class VaultMojoTest {
 
     @Test
-    public void testUncoveredFiles() {
+    void testUncoveredFiles() {
         String prefix = "/prefix/";
         Set<String> excludes = Collections.emptySet();
         File sourceDirectory = new File(ProjectBuilder.TEST_PROJECTS_ROOT, "filter-tests/filter-not-covering-all-files/jcr_root");
@@ -43,7 +43,7 @@ public class VaultMojoTest {
     }
 
     @Test
-    public void testUncoveredFilesWithEverythingCovered() {
+    void testUncoveredFilesWithEverythingCovered() {
         Set<String> excludes = Collections.emptySet();
         File sourceDirectory = new File(ProjectBuilder.TEST_PROJECTS_ROOT, "filter-tests/filter-not-covering-all-files/jcr_root");
         Set<String> entryNames = Collections.singleton(new File("jcr_root/apps/.content.xml").getPath());
@@ -52,7 +52,7 @@ public class VaultMojoTest {
     }
 
     @Test
-    public void testCloneFileSet() {
+    void testCloneFileSet() {
         DefaultFileSet fileSet = new DefaultFileSet();
         fileSet.setIncludes(new String[] { "ab", "c" });
         fileSet.setExcludes(new String[] { "de", "f" });

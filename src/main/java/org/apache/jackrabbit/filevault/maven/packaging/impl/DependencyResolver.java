@@ -14,22 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context;
+package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 
-import org.apache.jackrabbit.filevault.maven.packaging.AbstractValidateMojo;
-import org.apache.jackrabbit.filevault.maven.packaging.MavenBasedPackageDependency;
 import org.apache.jackrabbit.vault.packaging.Dependency;
-import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageInfo;
-import org.apache.jackrabbit.vault.packaging.VersionRange;
 import org.apache.jackrabbit.vault.packaging.impl.DefaultPackageInfo;
 import org.apache.jackrabbit.vault.validation.context.AbstractDependencyResolver;
 import org.apache.maven.artifact.Artifact;

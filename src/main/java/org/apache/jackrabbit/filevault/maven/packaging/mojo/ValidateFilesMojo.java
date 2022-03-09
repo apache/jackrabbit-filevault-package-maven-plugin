@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging;
+package org.apache.jackrabbit.filevault.maven.packaging.mojo;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -35,7 +35,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.jackrabbit.filevault.maven.packaging.validator.impl.context.DirectoryValidationContext;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.DirectoryValidationContext;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.ValidationHelper;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.util.Constants;
 import org.apache.jackrabbit.vault.validation.ValidationExecutor;

@@ -28,7 +28,6 @@ import org.apache.jackrabbit.vault.packaging.VersionRange;
 import org.apache.jackrabbit.vault.packaging.impl.DefaultPackageInfo;
 import org.apache.jackrabbit.vault.validation.context.AbstractDependencyResolver;
 import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.shared.utils.StringUtils;
@@ -116,7 +115,7 @@ public class MavenBasedPackageDependency {
         
     }
 
-    static MavenBasedPackageDependency fromGroupNameAndVersion(String group, String name, String version) {
+    public static MavenBasedPackageDependency fromGroupNameAndVersion(String group, String name, String version) {
         MavenBasedPackageDependency dependency = new MavenBasedPackageDependency();
         dependency.group = group;
         dependency.name = name;

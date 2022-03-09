@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging;
+package org.apache.jackrabbit.filevault.maven.packaging.mojo;
 
 import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
@@ -35,7 +35,9 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.jackrabbit.filevault.maven.packaging.impl.util.PlexusIoNonExistingDirectoryResource;
+import org.apache.jackrabbit.filevault.maven.packaging.Filters;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.ContentPackageArchiver;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.PlexusIoNonExistingDirectoryResource;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.util.Constants;

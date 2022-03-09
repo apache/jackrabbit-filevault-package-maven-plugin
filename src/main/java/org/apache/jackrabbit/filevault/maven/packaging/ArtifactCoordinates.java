@@ -44,7 +44,7 @@ public class ArtifactCoordinates {
         this.coordinates = coordinates;
     }
 
-    Artifact toArtifact() {
+    public Artifact toArtifact() {
         return new DefaultArtifact(coordinates);
     }
 }

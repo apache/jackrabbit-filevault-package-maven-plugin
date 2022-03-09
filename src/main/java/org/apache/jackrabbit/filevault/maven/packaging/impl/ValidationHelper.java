@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging;
+package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 import java.io.Closeable;
 import java.io.File;
@@ -54,7 +54,7 @@ public class ValidationHelper implements Closeable {
     
     private CSVPrinter csvPrinter = null;
 
-    protected ValidationHelper() {
+    public ValidationHelper() {
     }
 
 
@@ -171,7 +171,7 @@ public class ValidationHelper implements Closeable {
         context.removeMessages(file);
     }
 
-    protected void failBuildInCaseOfViolations(boolean failForWarning) throws MojoFailureException {
+    public void failBuildInCaseOfViolations(boolean failForWarning) throws MojoFailureException {
         if (failForWarning && (noOfEmittedValidationMessagesWithLevelWarn > 0 || noOfEmittedValidationMessagesWithLevelError > 0)) {
             throw new MojoFailureException("Found " +noOfEmittedValidationMessagesWithLevelWarn+noOfEmittedValidationMessagesWithLevelError + " violation(s) (either ERROR or WARN). Check above warnings/errors for details");
         } else if (noOfEmittedValidationMessagesWithLevelError > 0) {

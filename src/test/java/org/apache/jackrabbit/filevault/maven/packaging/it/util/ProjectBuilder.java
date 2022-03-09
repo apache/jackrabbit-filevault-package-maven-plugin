@@ -50,7 +50,7 @@ import java.util.zip.ZipException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedReader;
-import org.apache.jackrabbit.filevault.maven.packaging.VaultMojo;
+import org.apache.jackrabbit.filevault.maven.packaging.mojo.VaultMojo;
 import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
 import org.apache.maven.model.Model;

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.jackrabbit.filevault.maven.packaging;
+package org.apache.jackrabbit.filevault.maven.packaging.mojo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -34,6 +34,7 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 
+import org.apache.jackrabbit.filevault.maven.packaging.MavenBasedPackageDependency;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.filter.DefaultPathFilter;
@@ -45,12 +46,12 @@ import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
-public class GenerateMetadataMojoTest {
+class GenerateMetadataMojoTest {
 
     private static final String MANIFEST_ATTRIBUTE_NAME = "test";
 
     @Test
-    public void testEscapeManifestValue() throws IOException {
+    void testEscapeManifestValue() throws IOException {
         assertEscapedValueWorksInManifest("Paragraph\r\rAnother paragraph");
         assertEscapedValueWorksInManifest("single line value");
         assertEscapedValueWorksInManifest("Paragraph\n\nAnother paragraph");
@@ -60,7 +61,7 @@ public class GenerateMetadataMojoTest {
     }
 
     @Test
-    public void testGetPathFilterSetForEmbeddedFile() throws ConfigurationException {
+    void testGetPathFilterSetForEmbeddedFile() throws ConfigurationException {
         // TODO: check filter
         // use OSGi bundle filename patterns first
         PathFilterSet expectedPathFilter = new PathFilterSet("/apps/install/jcr-2.0.jar");
@@ -85,7 +86,7 @@ public class GenerateMetadataMojoTest {
     }
 
     @Test
-    public void testWriteManifest() throws FileNotFoundException, ManifestException, DependencyResolutionRequiredException, IOException {
+    void testWriteManifest() throws FileNotFoundException, ManifestException, DependencyResolutionRequiredException, IOException {
         GenerateMetadataMojo mojo = new GenerateMetadataMojo();
         mojo.name = "mypackage";
         mojo.group = "mygroup";
@@ -128,7 +129,7 @@ public class GenerateMetadataMojoTest {
     }
 
     @Test
-    public void testComputeDependencies() throws IOException {
+    void testComputeDependencies() throws IOException {
         GenerateMetadataMojo mojo = new GenerateMetadataMojo();
         mojo.dependencies = new ArrayList<>();
         MavenBasedPackageDependency dependency = MavenBasedPackageDependency.fromGroupNameAndVersion("day/cq60/product", "cq-content", "[6.3.64,)");
