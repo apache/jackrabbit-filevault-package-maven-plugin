@@ -19,6 +19,7 @@ package org.apache.jackrabbit.filevault.maven.packaging.it;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
@@ -30,6 +31,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.maven.it.VerificationException;
 import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
 import org.hamcrest.Description;
 import org.hamcrest.MatcherAssert;
@@ -63,7 +65,7 @@ class ValidatePackageIT {
 
     @Test
     void testValidProjectWithZip(ProjectBuilder projectBuilder) throws Exception {
-        projectBuilder.setTestProjectDir(TEST_PROJECT_NAME + "project-with-zip");
+        projectBuilder.setTestProjectDir(TEST_PROJECT_NAME + "valid-project-with-zip");
         projectBuilder.build();
     }
 
@@ -84,6 +86,12 @@ class ValidatePackageIT {
         .build();
     }
 
+    @Test
+    void testValidationSettingsWithPackageRestrictions(ProjectBuilder projectBuilder) throws VerificationException, IOException {
+        projectBuilder.setTestProjectDir(TEST_PROJECT_NAME + "invalid-project-with-package-restrictions");
+        projectBuilder.build();
+    }
+    
     private static final class CSVRecordMatcher extends TypeSafeMatcher<CSVRecord> {
         private final CSVRecord expectedCsvRecord;
         private final Collection<Integer> ignoredValueIndices;

@@ -132,7 +132,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         try (Archive archive = new ZipArchive(file.toFile())) {
             archive.open(true);
             context = new ArchiveValidationContext(archive, file, resolver);
-            executor = validationExecutorFactory.createValidationExecutor(context, false, enforceRecursiveSubpackageValidation, getValidatorSettingsForPackage(context.getProperties().getId(), false));
+            executor = validationExecutorFactory.createValidationExecutor(context, false, enforceRecursiveSubpackageValidation, getEffectiveValidatorSettingsForPackage(context.getProperties().getId(), false));
             if (executor != null) {
                 validationHelper.printUsedValidators(getLog(), executor, context, true);
                 validateArchive(validationHelper, archive, file, context, executor);
@@ -192,7 +192,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
                         getLog().info("Start validating sub package '" + subPackagePath + "'...");
                         SubPackageInArchiveValidationContext subPackageValidationContext = new SubPackageInArchiveValidationContext(context, subArchive, subPackagePath, resolver);
                         ValidationExecutor subPackageValidationExecutor = validationExecutorFactory
-                                .createValidationExecutor(subPackageValidationContext, true, enforceRecursiveSubpackageValidation, getValidatorSettingsForPackage(subPackageValidationContext.getProperties().getId(), true));
+                                .createValidationExecutor(subPackageValidationContext, true, enforceRecursiveSubpackageValidation, getEffectiveValidatorSettingsForPackage(subPackageValidationContext.getProperties().getId(), true));
                         if (subPackageValidationExecutor != null) {
                             validationHelper.printUsedValidators(getLog(), executor, subPackageValidationContext, false);
                             validateArchive(validationHelper, subArchive, subPackagePath, subPackageValidationContext, subPackageValidationExecutor);
