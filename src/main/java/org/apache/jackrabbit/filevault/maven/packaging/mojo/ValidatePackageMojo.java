@@ -79,13 +79,14 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     /**
      * If given validates all attached artifacts with one of the given classifiers (potentially in addition to the one given in {@link #packageFile}).
      * This list is merged with the classifier given in parameter {@link #classifier}.
+     * @since 1.1.4
      */
     @Parameter()
     private List<String> classifiers;
 
     /**
      * The given classifier is merged with the ones given in parameter {@link #classifiers} and all matching attached artifacts are validated (potentially in addition to the one given in {@link #packageFile})
-     * @since 1.1.10
+     * @since 1.2.2
      */
     @Parameter(property = "vault.classifier")
     protected String classifier = "";
