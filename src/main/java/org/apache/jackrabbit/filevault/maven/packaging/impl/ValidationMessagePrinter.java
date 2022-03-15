@@ -197,7 +197,7 @@ public class ValidationMessagePrinter implements Closeable {
     @Override
     public void close() throws IOException {
         if (csvPrinter != null) {
-            log.info("Written CSV report to '" + csvReportFile + "'");
+            log.info("CSV report written to '" + csvReportFile + "'");
             csvPrinter.close();
         }
     }
