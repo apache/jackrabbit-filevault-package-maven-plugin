@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.jackrabbit.filevault.maven.packaging.ValidatorSettings;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.ValidationHelper;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.ValidationMessagePrinter;
 import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.maven.artifact.DefaultArtifact;
@@ -115,7 +115,7 @@ public class AbstractValidateMojoTest {
     public void testGetProjectRelativeFilePathWithoutRealProject() {
         AbstractValidateMojo mojo = new AbstractValidateMojo() {
             @Override
-            public void doExecute(ValidationHelper validationHelper) throws MojoExecutionException, MojoFailureException {
+            public void doExecute(ValidationMessagePrinter validationHelper) throws MojoExecutionException, MojoFailureException {
                 throw new UnsupportedOperationException();
             }
         };

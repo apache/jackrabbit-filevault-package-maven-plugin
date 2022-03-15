@@ -28,7 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.jackrabbit.filevault.maven.packaging.impl.ValidationHelper;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.ValidationMessagePrinter;
 import org.apache.jackrabbit.vault.fs.io.Archive;
 import org.apache.jackrabbit.vault.fs.io.ZipArchive;
 import org.apache.jackrabbit.vault.fs.io.ZipStreamArchive;
@@ -94,7 +94,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     }
 
     @Override
-    public void doExecute(ValidationHelper validationHelper) throws MojoExecutionException, MojoFailureException {
+    public void doExecute(ValidationMessagePrinter validationHelper) throws MojoExecutionException, MojoFailureException {
         boolean foundPackage = false;
         if (packageFile != null && !packageFile.toString().isEmpty() && !packageFile.isDirectory()) {
             validatePackage(validationHelper, packageFile.toPath());
@@ -122,7 +122,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         validationHelper.failBuildInCaseOfViolations(failOnValidationWarnings);
     }
 
-    private void validatePackage(ValidationHelper validationHelper, Path file) throws MojoExecutionException, MojoFailureException {
+    private void validatePackage(ValidationMessagePrinter validationHelper, Path file) throws MojoExecutionException, MojoFailureException {
         getLog().info("Start validating package " + getProjectRelativeFilePath(file) + "...");
 
         // open file to extract the meta data for the validation context
@@ -144,13 +144,13 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         }
     }
 
-    private void validateArchive(ValidationHelper validationHelper, Archive archive, Path path, ArchiveValidationContext context,
+    private void validateArchive(ValidationMessagePrinter validationHelper, Archive archive, Path path, ArchiveValidationContext context,
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException, MojoFailureException {
         validateEntry(validationHelper, archive, archive.getRoot(), Paths.get(""), path, context, executor);
-        validationHelper.printMessages(executor.done(), getLog(), buildContext, path);
+        validationHelper.printMessages(executor.done(), buildContext, path);
     }
 
-    private void validateEntry(ValidationHelper validationHelper, Archive archive, Archive.Entry entry, Path entryPath, Path packagePath, ArchiveValidationContext context,
+    private void validateEntry(ValidationMessagePrinter validationHelper, Archive archive, Archive.Entry entry, Path entryPath, Path packagePath, ArchiveValidationContext context,
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException, MojoFailureException {
         // sort children to make sure that .content.xml comes first!
         List<Archive.Entry> sortedEntryList = new ArrayList<>(entry.getChildren());
@@ -168,7 +168,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         }
     }
 
-    private void validateInputStream(ValidationHelper validationHelper, @Nullable InputStream inputStream, Path entryPath, Path packagePath, ArchiveValidationContext context,
+    private void validateInputStream(ValidationMessagePrinter validationHelper, @Nullable InputStream inputStream, Path entryPath, Path packagePath, ArchiveValidationContext context,
             ValidationExecutor executor) throws IOException, SAXException, ParserConfigurationException, MojoFailureException {
         Collection<ValidationViolation> messages = new LinkedList<>();
         if (entryPath.startsWith(Constants.META_INF)) {
@@ -205,7 +205,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
         } else {
             messages.add(new ValidationViolation(ValidationMessageSeverity.WARN, "Found unexpected file outside of " + Constants.ROOT_DIR + " and " + Constants.META_INF, entryPath, packagePath, null, 0,0, null));
         }
-        validationHelper.printMessages(messages, getLog(), buildContext, packagePath);
+        validationHelper.printMessages(messages, buildContext, packagePath);
     }
 
 }

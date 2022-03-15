@@ -18,10 +18,9 @@ package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 import java.io.Closeable;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
 import java.util.Collection;
@@ -37,10 +36,12 @@ import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
 import org.apache.jackrabbit.vault.validation.spi.Validator;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.sonatype.plexus.build.incremental.BuildContext;
 import org.sonatype.plexus.build.incremental.DefaultBuildContext;
 
-public class ValidationHelper implements Closeable {
+public class ValidationMessagePrinter implements Closeable {
 
     /**
      * Set to {@code true} if at least one {@link ValidationViolation} has been given out
@@ -52,21 +53,31 @@ public class ValidationHelper implements Closeable {
      */
     private int noOfEmittedValidationMessagesWithLevelError = 0;
     
-    private CSVPrinter csvPrinter = null;
+    private final @Nullable Path csvReportFile;
+    private final @Nullable CSVPrinter csvPrinter;
 
-    public ValidationHelper() {
+    private final Log log;
+
+    public ValidationMessagePrinter(@NotNull Log log, @Nullable Path csvReportFile) throws IOException {
+        this.log = log;
+        this.csvReportFile = csvReportFile;
+        if (csvReportFile != null) {
+            csvPrinter = new CSVPrinter(Files.newBufferedWriter(csvReportFile, StandardCharsets.UTF_8), CSVFormat.EXCEL);
+            csvPrinter.printRecord("Severity", "Validator ID", "Message", "File", "Line:Column", "Node Path");
+        } else {
+            csvPrinter = null;
+        }
     }
-
 
     /**
      * 
      * @param violations
      * @param log
      * @param buildContext
-     * @param baseDirectory the directory to which all absolute paths should be made relative (i.e. the Maven basedir)
+     * @param baseDirectory the directory to which all absolute paths should be made relative (e.g. the Maven basedir or the content package path)
      * @throws IOException 
      */
-    public void printMessages(Collection<ValidationViolation> violations, Log log, BuildContext buildContext, Path baseDirectory) throws IOException {
+    public void printMessages(Collection<ValidationViolation> violations, BuildContext buildContext, Path baseDirectory)  throws IOException {
         for (ValidationViolation violation : violations) {
             final int buildContextSeverity;
                 switch (violation.getSeverity()) {
@@ -126,7 +137,7 @@ public class ValidationHelper implements Closeable {
 
     public void printUsedValidators(Log log, ValidationExecutor executor, ValidationContext context, boolean printUnusedValidators) {
         String packageType = context.getProperties().getPackageType() != null ? context.getProperties().getPackageType().toString() : "unknown";
-        log.info("Using " + executor.getAllValidatorsById().entrySet().size() + " validators for package of type " + packageType + ": " + ValidationHelper.getValidatorNames(executor, ", "));
+        log.info("Using " + executor.getAllValidatorsById().entrySet().size() + " validators for package of type " + packageType + ": " + ValidationMessagePrinter.getValidatorNames(executor, ", "));
         if (printUnusedValidators) {
             Map<String, Validator> unusedValidatorsById = executor.getUnusedValidatorsById();
             if (!unusedValidatorsById.isEmpty()) {
@@ -179,11 +190,6 @@ public class ValidationHelper implements Closeable {
         }
     }
 
-    public void setCsvFile(File csvReportFile, Charset charset, CSVFormat format) throws IOException {
-        csvPrinter = new CSVPrinter(new OutputStreamWriter(new FileOutputStream(csvReportFile), charset), format);
-        csvPrinter.printRecord("Severity", "Validator ID", "Message", "File", "Line:Column", "Node Path");
-    }
-
     private void printToCsvFile(ValidationViolation violation) throws IOException {
         csvPrinter.printRecord(violation.getSeverity(), violation.getValidatorId(), violation.getMessage(), violation.getAbsoluteFilePath(), MessageFormat.format("{0}:{1}", violation.getLine(), violation.getColumn()), violation.getNodePath());
     }
@@ -191,6 +197,7 @@ public class ValidationHelper implements Closeable {
     @Override
     public void close() throws IOException {
         if (csvPrinter != null) {
+            log.info("Written CSV report to '" + csvReportFile + "'");
             csvPrinter.close();
         }
     }

@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
@@ -32,13 +31,12 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.MavenBasedPackageDependency;
 import org.apache.jackrabbit.filevault.maven.packaging.ValidatorSettings;
 import org.apache.jackrabbit.filevault.maven.packaging.ValidatorSettingsKey;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.DependencyResolver;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.ValidationHelper;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.ValidationMessagePrinter;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageId;
@@ -63,6 +61,8 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.osgi.framework.Version;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
@@ -207,20 +207,31 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     private static Version fileVaultValidationBundleVersion = null;
     private static final Version VERSION_3_5_4 = Version.parseVersion("3.5.4");
 
+    public AbstractValidateMojo() {
+        super();
+        this.validationExecutorFactory = new ValidationExecutorFactory(this.getClass().getClassLoader());
+    }
+
     protected String getProjectRelativeFilePath(Path path) {
-        final Path shortenedPath;
+        final Path baseDir;
         if (project != null && project.getBasedir() != null) {
-            shortenedPath = project.getBasedir().toPath().relativize(path);
+            baseDir = project.getBasedir().toPath();
+        } else {
+            baseDir = null;
+        }
+        return getRelativeFilePath(path, baseDir);
+    }
+
+    public static String getRelativeFilePath(@NotNull Path path, @Nullable Path baseDir) {
+        final Path shortenedPath;
+        if (baseDir != null) {
+            shortenedPath = baseDir.relativize(path);
         } else {
             shortenedPath = path;
         }
         return "'" + shortenedPath.toString() + "'";
     }
 
-    public AbstractValidateMojo() {
-        super();
-        this.validationExecutorFactory = new ValidationExecutorFactory(this.getClass().getClassLoader());
-    }
 
     static Map<Dependency, Artifact> resolveMap(Collection<String> mapPackageDependencyToMavenGa) {
         // resolve mapping map
@@ -258,10 +269,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
         
         // repository structure only defines valid roots
         // https://github.com/apache/jackrabbit-filevault-package-maven-plugin/blob/02a853e64d985f075fe88d19101d7c66d741767f/src/main/java/org/apache/jackrabbit/filevault/maven/packaging/impl/DependencyValidator.java#L51
-        try (ValidationHelper validationHelper = new ValidationHelper()) {
-            if (csvReportFile != null) {
-                validationHelper.setCsvFile(csvReportFile, StandardCharsets.UTF_8, CSVFormat.EXCEL);
-            }
+        try (ValidationMessagePrinter validationHelper = new ValidationMessagePrinter(getLog(), csvReportFile != null ? csvReportFile.toPath() : null)) {
             if (project != null) {
                 getLog().debug("Clear markers in " + project.getBasedir());
                 validationHelper.clearPreviousValidationMessages(buildContext, project.getBasedir());
@@ -384,7 +392,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
         return fileVaultValidationBundleVersion;
     }
 
-    public abstract void doExecute(ValidationHelper validationHelper) throws MojoExecutionException, MojoFailureException;
+    public abstract void doExecute(ValidationMessagePrinter validationHelper) throws MojoExecutionException, MojoFailureException;
 
     protected Map<String, ValidatorSettings> getValidatorSettingsForPackage(PackageId packageId, boolean isSubPackage) throws MojoFailureException {
         try {
