@@ -18,9 +18,6 @@ package org.apache.jackrabbit.filevault.maven.packaging.mojo;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.JarURLConnection;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Comparator;
@@ -46,7 +43,6 @@ import org.apache.jackrabbit.vault.validation.ValidationExecutorFactory;
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
 import org.apache.jackrabbit.vault.validation.spi.impl.AdvancedFilterValidatorFactory;
 import org.apache.jackrabbit.vault.validation.spi.impl.DependencyValidatorFactory;
-import org.apache.jackrabbit.vault.validation.spi.impl.PackageTypeValidatorFactory;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.repository.DefaultRepositoryRequest;
@@ -63,7 +59,6 @@ import org.apache.maven.project.MavenProject;
 import org.apache.maven.repository.RepositorySystem;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.osgi.framework.Version;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
@@ -198,14 +193,11 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     protected final ValidationExecutorFactory validationExecutorFactory;
 
     protected DependencyResolver resolver;
-    
+
     /**
      * Artificial Maven artifact which indicates that it should not be considered for further lookup!
      */
     public static final Artifact IGNORE_ARTIFACT = new DefaultArtifact("ignore", "ignore", "1.0", "", "", "", null);
-    
-    private static Version fileVaultValidationBundleVersion = null;
-    private static final Version VERSION_3_5_4 = Version.parseVersion("3.5.4");
 
     public AbstractValidateMojo() {
         super();
@@ -260,11 +252,6 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
             return;
         }
         translateLegacyParametersToValidatorParameters();
-        try {
-            fixWrongDefaultForValidatorParameters();
-        } catch (IOException e) {
-            getLog().error("Could not fix the default values of validators because retrieving the FileVault validation bundle version failed: " + e.getMessage(), e);
-        }
         final Collection<PackageInfo> resolvedDependencies = new LinkedList<>();
         
         // repository structure only defines valid roots
@@ -355,41 +342,6 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
             }
             filterValidatorSettings.addOption(AdvancedFilterValidatorFactory.OPTION_SEVERITY_FOR_UNCOVERED_ANCESTOR_NODES, ValidationMessageSeverity.DEBUG.toString().toLowerCase(Locale.ROOT));
         }
-    }
-
-    // https://issues.apache.org/jira/browse/JCRVLT-564
-    // TODO: remove once depending on FileVault 3.5.5 or newer
-    private void fixWrongDefaultForValidatorParameters() throws IOException {
-        if (getFileVaultValidationBundleVersion().equals(VERSION_3_5_4)) {
-            if (validatorsSettings == null) {
-                validatorsSettings = new HashMap<>();
-            }
-            ValidatorSettings packageTypeValidatorSettings = validatorsSettings.get("jackrabbit-packagetype");
-            if (packageTypeValidatorSettings == null) {
-                packageTypeValidatorSettings = new ValidatorSettings();
-                validatorsSettings.put("jackrabbit-packagetype", packageTypeValidatorSettings);
-            }
-            if (!packageTypeValidatorSettings.getOptions().containsKey(PackageTypeValidatorFactory.OPTION_JCR_INSTALLER_ADDITIONAL_FILE_NODE_PATH_REGEX)) {
-                packageTypeValidatorSettings.addOption(PackageTypeValidatorFactory.OPTION_JCR_INSTALLER_ADDITIONAL_FILE_NODE_PATH_REGEX, ".*\\.(config|cfg|cfg\\.json|jar)");
-                getLog().info("Overriding wrong default value for validator option '" + PackageTypeValidatorFactory.OPTION_JCR_INSTALLER_ADDITIONAL_FILE_NODE_PATH_REGEX + "' (see https://issues.apache.org/jira/browse/JCRVLT-564)");
-            }
-        }
-    }
-
-    static synchronized Version getFileVaultValidationBundleVersion() throws IOException {
-        if (fileVaultValidationBundleVersion == null) {
-            URL url = AbstractValidateMojo.class.getClassLoader().getResource("org/apache/jackrabbit/vault/validation/ValidationExecutor.class");
-            if (url == null) {
-                throw new IllegalStateException("This classloader does not see the ValidationExecutor class from FileVault Validation");
-            }
-            URLConnection connection =  url.openConnection();
-            if (connection instanceof JarURLConnection) {
-                fileVaultValidationBundleVersion = Version.parseVersion(((JarURLConnection)connection).getMainAttributes().getValue("Bundle-Version"));
-            } else {
-                fileVaultValidationBundleVersion = Version.emptyVersion;
-            }
-        }
-        return fileVaultValidationBundleVersion;
     }
 
     public abstract void doExecute(ValidationMessagePrinter validationHelper) throws MojoExecutionException, MojoFailureException;

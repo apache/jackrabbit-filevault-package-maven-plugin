@@ -18,9 +18,7 @@ package org.apache.jackrabbit.filevault.maven.packaging.mojo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -41,12 +39,11 @@ import org.apache.maven.project.MavenProject;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import org.osgi.framework.Version;
 
-public class AbstractValidateMojoTest {
+class AbstractValidateMojoTest {
 
     @Test
-    public void testValidMapWithIgnoredArtifacts() {
+    void testValidMapWithIgnoredArtifacts() {
         MatcherAssert.assertThat(AbstractValidateMojo.resolveMap(Arrays.asList("group1:name1=ignore", "group2:name2=groupId2:artifactId2")), 
                 Matchers.allOf(
                     Matchers.hasEntry(Dependency.fromString("group1:name1"), AbstractValidateMojo.IGNORE_ARTIFACT),
@@ -55,7 +52,7 @@ public class AbstractValidateMojoTest {
     }
 
     @Test
-    public void testValidMap() {
+    void testValidMap() {
         MatcherAssert.assertThat(AbstractValidateMojo.resolveMap(Arrays.asList("group1:name1=groupId1:artifactId1", "group2:name2=groupId2:artifactId2")), 
                 Matchers.allOf(
                     Matchers.hasEntry(Dependency.fromString("group1:name1"), new DefaultArtifact("groupId1", "artifactId1", "", "", "", "", null)),
@@ -64,17 +61,17 @@ public class AbstractValidateMojoTest {
     }
 
     @Test
-    public void testInvalidMap1() {
+    void testInvalidMap1() {
         assertThrows(IllegalArgumentException.class, () -> AbstractValidateMojo.resolveMap(Arrays.asList("group1:=artifactId1"))); 
     }
 
     @Test
-    public void testInvalidMap2() {
+    void testInvalidMap2() {
         assertThrows(InvalidArtifactRTException.class, () -> AbstractValidateMojo.resolveMap(Arrays.asList("group1:=:groupId"))); 
     }
 
     @Test
-    public void testGetValidatorSettingsForPackage() {
+    void testGetValidatorSettingsForPackage() {
         Map<String, ValidatorSettings> validatorsSettings = new HashMap<>();
         validatorsSettings.put("id1", new ValidatorSettings().addOption("id1", "foo"));
         validatorsSettings.put("id2:mygroup:myname", new ValidatorSettings().addOption("id2", "foo"));
@@ -100,19 +97,14 @@ public class AbstractValidateMojoTest {
     }
 
     @Test
-    public void testDotContentXmlFirstComparator() {
+    void testDotContentXmlFirstComparator() {
         List<String> list = Arrays.asList("someEntryA", ".content.xml", "someEntryB", ".content.xml");
         list.sort(new AbstractValidateMojo.DotContentXmlFirstComparator());
         MatcherAssert.assertThat(list, Matchers.contains(".content.xml", ".content.xml", "someEntryA", "someEntryB"));
     }
 
     @Test
-    public void testGetFileVaultValidatorVersion() throws IOException {
-        assertTrue(AbstractValidateMojo.getFileVaultValidationBundleVersion().compareTo(Version.parseVersion("3.5.4")) >= 0, "FileVault version being detected is " + AbstractValidateMojo.getFileVaultValidationBundleVersion());
-    }
-
-    @Test
-    public void testGetProjectRelativeFilePathWithoutRealProject() {
+    void testGetProjectRelativeFilePathWithoutRealProject() {
         AbstractValidateMojo mojo = new AbstractValidateMojo() {
             @Override
             public void doExecute(ValidationMessagePrinter validationHelper) throws MojoExecutionException, MojoFailureException {
