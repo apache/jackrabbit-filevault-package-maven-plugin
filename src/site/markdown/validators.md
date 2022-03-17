@@ -29,7 +29,7 @@ Look there on which validators are contained and what options they provide.
 
 Configuration
 --------
-It is possible to adjust every validator registered in the system (both default and external validators) with the parameter `validatorsSettings`. This is a map with the keys being the validator ids (and optionally suffixed by `:<package group>:<package name>` to restrict to only certain package ids) and the values being complex objects.
+It is possible to adjust every validator registered in the system (both default and external validators) with the parameter `validatorsSettings`. This is a map with the keys being the validator ids (optionally suffixed by `__` and some arbitrary string) and the values being complex objects.
 Here is an example configuration
 
 ```
@@ -51,6 +51,31 @@ Here is an example configuration
 ```
 
 The options for the individual validators together with the validator ids are documented at [Jackrabbit FileVault Validation Framework][vlt.validation].
+
+### Package Restriction
+
+It is possible to restrict a setting for a particular validator id to certain packages only.
+
+```
+<configuration>
+  <validatorsSettings>
+    <!-- more specific items  potentially overwrite more generic items -->
+    <jackrabbit-filter__formypackage>
+      <isDisabled>true</isDisabled><!-- disable the validator for a specific package -->
+      <packageRestriction>
+        <name>myPackageName</name><!-- optional, if set the surrounding settings apply only to packages with the given name -->
+        <group>myPackageGroup</group><!-- optional, if set the surrounding settings apply only to packages with the given group -->
+        <subPackageOnly>true</subPackageOnly><!-- optional, if set to true the surrounding settings apply only to subpackages otherwise to all package types -->
+      </packageRestriction>
+    </jackrabbit-filter__formypackage>
+  </validatorsSettings>
+</configuration>
+
+```
+
+** It is necessary that each element below `validatorsSettings` has a unique name (as otherwise it will overwrite previous elements with the same name **
+
+In order to achieve that the validator id can be suffixed with `__` and an arbitrary string in the configuration element name.
 
 Severities
 ------

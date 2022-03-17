@@ -20,18 +20,20 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.MavenBasedPackageDependency;
 import org.apache.jackrabbit.filevault.maven.packaging.ValidatorSettings;
-import org.apache.jackrabbit.filevault.maven.packaging.ValidatorSettingsKey;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.DependencyResolver;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.ValidationMessagePrinter;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
@@ -52,7 +54,6 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
@@ -70,9 +71,8 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     @Parameter(property = "vault.skipValidation", defaultValue = "false", required = true)
     boolean skipValidation;
 
-    /** All validator settings in a map. The keys are the validator ids (optionally suffixed by {@code :<package group>:<package name>} to be restricted to certain packages).
-     * You can use {@code *} as wildcard value for {@code package group}.
-     * Alternatively you can use the suffix {@code :subpackages} to influence the settings for all sub packages only!
+    /** All validator settings in a map. The keys are the validator ids (optionally suffixed by {@code __} and some arbitrary string).
+     * Each key must only appear once. Use the suffix if you have validator settings for the same id with different restrictions.
      * The values are a complex object of type {@link ValidatorSettings}.
      * An example configuration looks like
      * <pre>
@@ -85,14 +85,28 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
      * 
      * Each validator settings consists of the fields {@code isDisabled}, {@code defaultSeverity} and {@code options}.
      * 
-     * As potentially multiple map entries may affect the same validator id (due to different suffixes) the settings for a single validator id are merged in the order from more specific to more generic keys:
+     * In addition the settings may be restricted to certain packages only with the help of field {@code packageRestriction}.
+     *  <pre>
+     *  &lt;jackrabbit-filter__restricted1&gt;
+     *      &lt;options&gt;
+     *          &lt;severityForUncoveredAncestorNodes&gt;warning&lt;/severityForUncoveredAncestorNodes&gt;
+     *      &lt;/options&gt;
+     *      &lt;packageRestriction&gt;
+     *          &lt;group&gt;somegroup&lt;/group&gt; &lt;!-- optional, if set the enclosing settings apply only to packages with the given group --&gt;
+     *          &lt;name&gt;somename&lt;/name&gt; &lt;!-- optional, if set the enclosing settings apply only to packages with the given name --&gt;
+     *          &lt;subPackageOnly&gt;true&lt;/subPackageOnly&gt; &lt;!-- if set to true, the enclosing settings apply only to subpackages otherwise to all kinds of packages --&gt;
+     *      &lt;packageRestriction&gt;
+     *  &lt;/jackrabbit-filter__restricted1&gt;
+     * </pre>
+     * 
+     * As potentially multiple map entries may affect the same validator id (due to different suffixes) the settings for a single validator id are merged in the order from more specific to more generic settings:
      * <ol>
-     * <li>settings for a specific groupId and artifactId</li>
-     * <li>settings for any groupId (*) and a specific artifactId</li>
-     * <li>settings for subpackages</li>
+     * <li>settings for a specific package group and a specific package name</li>
+     * <li>settings for any package group and a specific package name</li>
+     * <li>settings for a specific package group and any package name</li>
      * <li>settings without restrictions</li>
      * </ol>
-     * Merging will only overwrite non-existing fields, i.e. same-named options from more specific keys will overwrite those from more generic keys (for the same validator id).
+     * Merging will only overwrite non-existing fields, i.e. same-named options from more specific settings will overwrite those from more generic ones (for the same validator id).
      */
     @Parameter
     private Map<String, ValidatorSettings> validatorsSettings;
@@ -346,35 +360,44 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
 
     public abstract void doExecute(ValidationMessagePrinter validationHelper) throws MojoExecutionException, MojoFailureException;
 
-    protected Map<String, ValidatorSettings> getValidatorSettingsForPackage(PackageId packageId, boolean isSubPackage) throws MojoFailureException {
+    protected Map<String, ValidatorSettings> getEffectiveValidatorSettingsForPackage(PackageId packageId, boolean isSubPackage) throws MojoFailureException {
         try {
-            return getValidatorSettingsForPackage(getLog(), validatorsSettings, packageId, isSubPackage);
+            return getEffectiveValidatorSettingsForPackage(validatorsSettings, packageId, isSubPackage);
         }
         catch (IllegalArgumentException e) {
             throw new MojoFailureException("Invalid value for 'validatorsSettings': " + e.getMessage(), e);
         }
     }
 
-    protected static Map<String, ValidatorSettings> getValidatorSettingsForPackage(Log log, Map<String, ValidatorSettings> validatorsSettings, PackageId packageId, boolean isSubPackage) {
-        Map<String, ValidatorSettings> validatorSettingsById = new HashMap<>();
+    protected static Map<String, ValidatorSettings> getEffectiveValidatorSettingsForPackage(Map<String, ValidatorSettings> validatorsSettings, PackageId packageId, boolean isSubPackage) {
         if (validatorsSettings == null) {
-            return validatorSettingsById;
+            return Collections.emptyMap();
         }
-        // from most specific to least specific
-        List<ValidatorSettingsKey> sortedKeys = validatorsSettings.keySet().stream().map(ValidatorSettingsKey::fromString).sorted(Comparator.reverseOrder()).collect(Collectors.toList());
-        
-        for (ValidatorSettingsKey key : sortedKeys) {
-            if (key.matchesForPackage(packageId, isSubPackage)) {
-                ValidatorSettings settings = validatorSettingsById.get(key.getValidatorId());
-                if (settings != null) {
-                    settings = settings.merge(validatorsSettings.get(key.getKey()));
-                } else {
-                    settings = validatorsSettings.get(key.getKey());
-                }
-                validatorSettingsById.put(key.getValidatorId(), settings);
+        // first sort applicable map entry values
+        Map<String, SortedSet<ValidatorSettings>> validatorSettingsById = new HashMap<>();
+        for (Entry<String, ValidatorSettings> entry : validatorsSettings.entrySet()) {
+            if (entry.getValue().isApplicable(packageId, isSubPackage)) {
+                // first extract key
+                final String validatorId = entry.getKey().split("__")[0];
+                SortedSet<ValidatorSettings> settings = validatorSettingsById.computeIfAbsent(validatorId, s -> new TreeSet<ValidatorSettings>());
+                settings.add(entry.getValue());
             }
         }
-        return validatorSettingsById;
+        
+        // then merge all applicable ones
+        Map<String, ValidatorSettings> effectiveValidatorSettingsById = new HashMap<>();
+        for (Entry<String, SortedSet<ValidatorSettings>> entry : validatorSettingsById.entrySet()) {
+            ValidatorSettings mergedSettings = null;
+            for (ValidatorSettings settings : entry.getValue()) {
+                if (mergedSettings == null) {
+                    mergedSettings = settings;
+                } else {
+                    mergedSettings = mergedSettings.merge(settings);
+                }
+            }
+            effectiveValidatorSettingsById.put(entry.getKey(), mergedSettings);
+        }
+        return effectiveValidatorSettingsById;
     }
 
     /** 

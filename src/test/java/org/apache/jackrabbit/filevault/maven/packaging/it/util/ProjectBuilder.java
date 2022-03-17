@@ -247,7 +247,7 @@ public class ProjectBuilder implements AutoCloseable {
 
         StringBuilder mavenOpts = new StringBuilder();
 
-        // verifier.setDebugJvm(true);
+        //verifier.setDebugJvm(true);
         // verifier.setMavenDebug(true);
         // propagate jacoco agent settings
         String jacocoAgentSettings = System.getProperty("jacoco.command");

@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.jackrabbit.filevault.maven.packaging.PackageRestriction;
 import org.apache.jackrabbit.filevault.maven.packaging.ValidatorSettings;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.ValidationMessagePrinter;
 import org.apache.jackrabbit.vault.packaging.Dependency;
@@ -34,7 +35,6 @@ import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.InvalidArtifactRTException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugin.logging.SystemStreamLog;
 import org.apache.maven.project.MavenProject;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
@@ -71,27 +71,27 @@ class AbstractValidateMojoTest {
     }
 
     @Test
-    void testGetValidatorSettingsForPackage() {
+    void testGetEffectiveValidatorSettingsForPackage() {
         Map<String, ValidatorSettings> validatorsSettings = new HashMap<>();
         validatorsSettings.put("id1", new ValidatorSettings().addOption("id1", "foo"));
-        validatorsSettings.put("id2:mygroup:myname", new ValidatorSettings().addOption("id2", "foo"));
-        validatorsSettings.put("id3:subpackage", new ValidatorSettings().addOption("id3", "foo"));
-        validatorsSettings.put("id5:othergroup:myname", new ValidatorSettings().addOption("id5", "foo"));
-        validatorsSettings.put("id6:mygroup:myothername", new ValidatorSettings().addOption("id3", "foo"));
-        validatorsSettings.put("id1:*:myname", new ValidatorSettings().addOption("id2", "bar"));
-        validatorsSettings.put("id3", new ValidatorSettings().addOption("id3", "bar"));
-        Map<String, ValidatorSettings> actualValidatorSettings = AbstractValidateMojo.getValidatorSettingsForPackage(new SystemStreamLog(), validatorsSettings, PackageId.fromString("mygroup:myname:1.0.0"), false);
+        validatorsSettings.put("id2", new ValidatorSettings().addOption("id2", "foo").setPackageRestriction(new PackageRestriction("mygroup", "myname")));
+        validatorsSettings.put("id3", new ValidatorSettings().addOption("id3", "foo").setPackageRestriction(new PackageRestriction(null, null, false)));
+        validatorsSettings.put("id5", new ValidatorSettings().addOption("id5", "foo").setPackageRestriction(new PackageRestriction("othergroup", "othername")));
+        validatorsSettings.put("id6", new ValidatorSettings().addOption("id3", "foo").setPackageRestriction(new PackageRestriction("mygroiup", "myothername")));
+        validatorsSettings.put("id1__1", new ValidatorSettings().addOption("id2", "bar").setPackageRestriction(new PackageRestriction(null, "myname")));
+        validatorsSettings.put("id3__2", new ValidatorSettings().addOption("id3", "bar"));
+        Map<String, ValidatorSettings> actualValidatorSettings = AbstractValidateMojo.getEffectiveValidatorSettingsForPackage(validatorsSettings, PackageId.fromString("mygroup:myname:1.0.0"), false);
         Map<String, ValidatorSettings> expectedValidatorSettings = new HashMap<>();
         expectedValidatorSettings.put("id1", new ValidatorSettings().addOption("id1", "foo").addOption("id2", "bar"));
         expectedValidatorSettings.put("id2", new ValidatorSettings().addOption("id2", "foo"));
-        expectedValidatorSettings.put("id3", new ValidatorSettings().addOption("id3", "bar"));
-        MatcherAssert.assertThat(actualValidatorSettings, Matchers.equalTo(expectedValidatorSettings));
-        
-        actualValidatorSettings = AbstractValidateMojo.getValidatorSettingsForPackage(new SystemStreamLog(), validatorsSettings, PackageId.fromString("mygroup:myname:1.0.0"), true);
         expectedValidatorSettings.put("id3", new ValidatorSettings().addOption("id3", "foo"));
         MatcherAssert.assertThat(actualValidatorSettings, Matchers.equalTo(expectedValidatorSettings));
         
-        actualValidatorSettings = AbstractValidateMojo.getValidatorSettingsForPackage(new SystemStreamLog(), null, PackageId.fromString("mygroup:myname:1.0.0"), true);
+        actualValidatorSettings = AbstractValidateMojo.getEffectiveValidatorSettingsForPackage(validatorsSettings, PackageId.fromString("mygroup:myname:1.0.0"), true);
+        expectedValidatorSettings.put("id3", new ValidatorSettings().addOption("id3", "foo"));
+        MatcherAssert.assertThat(actualValidatorSettings, Matchers.equalTo(expectedValidatorSettings));
+        
+        actualValidatorSettings = AbstractValidateMojo.getEffectiveValidatorSettingsForPackage(null, PackageId.fromString("mygroup:myname:1.0.0"), true);
         expectedValidatorSettings.clear();
         MatcherAssert.assertThat(actualValidatorSettings, Matchers.equalTo(expectedValidatorSettings));
     }

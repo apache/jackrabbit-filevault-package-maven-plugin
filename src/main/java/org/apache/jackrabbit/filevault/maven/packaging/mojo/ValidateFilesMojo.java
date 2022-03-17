@@ -197,7 +197,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
             File generatedMetaInfRootDirectory = new File(AbstractMetadataPackageMojo.getWorkDirectory(getLog(), false, workDirectory, classifier), Constants.META_INF);
             getLog().info("Validate files in generatedMetaInfRootDirectory " + getProjectRelativeFilePath(generatedMetaInfRootDirectory.toPath()) + " and metaInfRootDir " + getProjectRelativeFilePath(generatedMetaInfRootDirectory.toPath()));
             ValidationContext context = new DirectoryValidationContext(buildContext.isIncremental(), generatedMetaInfRootDirectory, metaInfRootDirectory, resolver, getLog());
-            ValidationExecutor executor = validationExecutorFactory.createValidationExecutor(context, false, false, getValidatorSettingsForPackage(context.getProperties().getId(), false));
+            ValidationExecutor executor = validationExecutorFactory.createValidationExecutor(context, false, false, getEffectiveValidatorSettingsForPackage(context.getProperties().getId(), false));
             if (executor == null) {
                 throw new MojoExecutionException("No registered validators found!");
             }

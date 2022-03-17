@@ -20,19 +20,22 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
 
 /**
- * Mutable implementation of org.apache.jackrabbit.vault.validation.spi.ValidatorSettings. Used as mojo parameter type.
+ * Mutable implementation of org.apache.jackrabbit.vault.validation.spi.ValidatorSettings. Used as Mojo parameter type.
  */
-public class ValidatorSettings implements org.apache.jackrabbit.vault.validation.spi.ValidatorSettings {
+public class ValidatorSettings implements org.apache.jackrabbit.vault.validation.spi.ValidatorSettings, Comparable<ValidatorSettings> {
 
     private Boolean isDisabled;
-    
+
     private ValidationMessageSeverity defaultSeverity;
 
     private final Map<String, String> options;
-    
+
+    private PackageRestriction packageRestriction;
+
     public ValidatorSettings() {
         options = new HashMap<>();
     }
@@ -63,6 +66,11 @@ public class ValidatorSettings implements org.apache.jackrabbit.vault.validation
         return this;
     }
 
+    public ValidatorSettings setPackageRestriction(PackageRestriction packageRestriction) {
+        this.packageRestriction = packageRestriction;
+        return this;
+    }
+
     @Override
     public ValidationMessageSeverity getDefaultSeverity() {
         return defaultSeverity != null ? defaultSeverity : ValidationMessageSeverity.ERROR;
@@ -84,9 +92,8 @@ public class ValidatorSettings implements org.apache.jackrabbit.vault.validation
 
     @Override
     public String toString() {
-        return "ValidatorSettings [" + (isDisabled != null ? "isDisabled=" + isDisabled + ", " : "")
-                + (defaultSeverity != null ? "defaultSeverity=" + defaultSeverity + ", " : "")
-                + (options != null ? "options=" + options : "") + "]";
+        return "ValidatorSettings [isDisabled=" + isDisabled + ", defaultSeverity=" + defaultSeverity + ", options=" + options
+                + "]";
     }
 
     @Override
@@ -103,9 +110,40 @@ public class ValidatorSettings implements org.apache.jackrabbit.vault.validation
         if (getClass() != obj.getClass())
             return false;
         ValidatorSettings other = (ValidatorSettings) obj;
-        return defaultSeverity == other.defaultSeverity && Objects.equals(isDisabled, other.isDisabled)
-                && Objects.equals(options, other.options);
+        return defaultSeverity == other.defaultSeverity && Objects.equals(isDisabled, other.isDisabled) && Objects.equals(options, other.options);
     }
 
-    
+    @Override
+    public int compareTo(ValidatorSettings o) {
+        // sort from most specific to least specific
+        if (this.packageRestriction == null) {
+            if (o.packageRestriction == null) {
+                return 0;
+            } else {
+                return 1;
+            }
+        } else {
+            if (o.packageRestriction == null) {
+                return -1;
+            } else {
+                return this.packageRestriction.compareTo(o.packageRestriction);
+            }
+        }
+    }
+
+    public boolean isApplicable(PackageId packageId, boolean isSubPackage) {
+        if (packageRestriction == null) {
+            return true;
+        }
+        if (packageRestriction.name != null && !packageRestriction.name.equals(packageId.getName())) {
+            return false;
+        }
+        if (packageRestriction.group != null && !packageRestriction.group.equals(packageId.getGroup())) {
+            return false;
+        }
+        if (packageRestriction.subPackageOnly && !isSubPackage) {
+            return false;
+        }
+        return true;
+    }
 }
