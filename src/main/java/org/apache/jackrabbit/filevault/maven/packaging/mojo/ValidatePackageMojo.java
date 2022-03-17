@@ -51,6 +51,8 @@ import org.xml.sax.SAXException;
 
 /**
  * Validates a package (and optionally in addition all attached packages with the given classifiers) with all registered validators.
+ * <p>
+ * <i>This goal is executed/bound by default for Maven modules of type {@code content-package}.</i>
  * @see <a href="https://jackrabbit.apache.org/filevault-package-maven-plugin/validators.html">Validators</a>
  * @since 1.1.0
  */

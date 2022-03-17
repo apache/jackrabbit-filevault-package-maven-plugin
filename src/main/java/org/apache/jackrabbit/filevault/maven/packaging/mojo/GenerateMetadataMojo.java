@@ -104,11 +104,13 @@ import aQute.bnd.osgi.Processor;
  * In addition performs some validations.
  * Also configures artifacts (like OSGi bundles or subpackages) to be embedded in the content package as those may affect metadata as well.
  * The generated metadata is usually packaged in a content package in a subsequent goal {@code package}.
+ * <p>
+ * <i>This goal is executed/bound by default for Maven modules of type {@code content-package}.</i>
  * @since 1.0.3
  */
 @Mojo(
         name = "generate-metadata",
-        defaultPhase = LifecyclePhase.GENERATE_SOURCES, // to make sure it runs after "analyze-classes"
+        defaultPhase = LifecyclePhase.GENERATE_TEST_SOURCES, // to make sure it runs after "analyze-classes"
         requiresDependencyResolution = ResolutionScope.COMPILE,
         threadSafe = true
 )
