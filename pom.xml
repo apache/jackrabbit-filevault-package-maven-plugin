@@ -311,6 +311,11 @@
             <groupId>org.apache.jackrabbit</groupId>
             <artifactId>oak-jackrabbit-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.framework</artifactId>
+            <scope>compile</scope><!-- overwrite scope from parent -->
+        </dependency>
         <!-- Maven Core artifacts, version is determined by Maven distribution
              contained in https://github.com/apache/maven/blob/master/maven-core/src/main/resources/META-INF/maven/extension.xml#L133-L193, should have scope provided -->
         <dependency>
@@ -384,14 +389,14 @@
         <dependency>
             <groupId>biz.aQute.bnd</groupId>
             <artifactId>biz.aQute.bndlib</artifactId>
-            <version>5.3.0</version>
+            <version>6.2.0</version>
         </dependency>
 
         <!-- used in the CheckSignature mojo -->
         <dependency>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>animal-sniffer-maven-plugin</artifactId>
-            <version>1.20</version>
+            <version>1.21</version>
             <exclusions>
               <exclusion>
                 <groupId>org.apache.maven</groupId>
@@ -402,14 +407,14 @@
         <dependency>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>animal-sniffer</artifactId>
-            <version>1.20</version>
+            <version>1.21</version>
         </dependency>
 
         <!-- class analyzer -->
         <dependency>
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
-            <version>4.8.138</version>
+            <version>4.8.141</version>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
@@ -462,30 +467,12 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>4.2.0</version>
+            <version>4.4.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven.plugin-testing</groupId>
-            <artifactId>maven-plugin-testing-harness</artifactId>
-            <version>3.3.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.sling</groupId>
-            <artifactId>org.apache.sling.commons.json</artifactId>
-            <version>2.0.6</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.maven</groupId>
-            <artifactId>maven-aether-provider</artifactId>
-            <version>${maven.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
