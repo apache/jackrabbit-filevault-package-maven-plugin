@@ -50,7 +50,6 @@ import java.util.zip.ZipException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BoundedReader;
-import org.apache.commons.lang3.SystemUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.mojo.VaultMojo;
 import org.apache.maven.it.VerificationException;
 import org.apache.maven.it.Verifier;
@@ -246,11 +245,7 @@ public class ProjectBuilder implements AutoCloseable {
         verifier.setDebug(true);
         verifier.setAutoclean(false);
 
-        // workaround for https://bugs.openjdk.java.net/browse/JDK-8057894
         StringBuilder mavenOpts = new StringBuilder();
-        if (SystemUtils.IS_OS_WINDOWS) {
-            mavenOpts.append("-Djava.security.egd=file:/dev/urandom ");
-        }
 
         // verifier.setDebugJvm(true);
         // verifier.setMavenDebug(true);
