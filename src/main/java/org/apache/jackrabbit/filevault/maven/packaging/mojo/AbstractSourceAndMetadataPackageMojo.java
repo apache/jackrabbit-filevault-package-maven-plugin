@@ -82,7 +82,7 @@ public abstract class AbstractSourceAndMetadataPackageMojo extends AbstractMetad
      * &#42;&#42;/.darcsrepo/&#42;&#42;&#42;&#42;/-darcs-backup&#42;, &#42;&#42;/.darcs-temp-mail
      * </ul>
      *
-     * @see {@link DirectoryScanner#DEFAULTEXCLUDES}
+     * @see DirectoryScanner#DEFAULTEXCLUDES
      * @since 1.1.0
      */
     @Parameter(defaultValue = "true")
