@@ -72,7 +72,6 @@ public class ValidationMessagePrinter implements Closeable {
     /**
      * 
      * @param violations
-     * @param log
      * @param buildContext
      * @param baseDirectory the directory to which all absolute paths should be made relative (e.g. the Maven basedir or the content package path)
      * @throws IOException 
