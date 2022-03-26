@@ -81,8 +81,8 @@ Release management tasks
  
 8. If the vote is successful, close the vote by publishing the results
 
-9. copy the release candidate from `dev/jackrabbit` to `release/jackrabbit` in 
-   https://dist.apche.org/repos/dist/, and delete any older releases from the same branch 
+9. Copy the release candidate from `dev/jackrabbit` to `release/jackrabbit` in 
+   <https://dist.apache.org/repos/dist/>, and delete any older releases from the same branch 
    (they're automatically archived):
 
     ```` 
@@ -91,9 +91,9 @@ Release management tasks
         https://dist.apache.org/repos/dist/release/jackrabbit/filevault-package-maven-plugin/$version
     ````
 
-10. release the [staged repository][2] for synchronization to Maven central.
+10. Release the [staged repository][2] for synchronization to Maven Central.
 
-11. mark the version as released in [Jira][3]:
+11. Mark the version as released in [Jira][3]:
     _Jira Project Home_ -> _Project Summary_ -> _Administer Project_. 
         
     Under Versions, you'll see all the defined project versions. 
