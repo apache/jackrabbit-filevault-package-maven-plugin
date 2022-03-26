@@ -1,0 +1,12 @@
+# https://cwiki.apache.org/confluence/display/INFRA/git+-+.asf.yaml+features#Git.asf.yamlfeatures-GitHubsettings
+github:
+  description: "Apache Jackrabbit FileVault Package Maven Plugin"
+  homepage: https://jackrabbit.apache.org/filevault-package-maven-plugin/index.html
+  labels:
+    - java
+    - jcr
+    - jackrabbit
+    - oak
+    - repository
+    - content-package
+    - maven-plugin
