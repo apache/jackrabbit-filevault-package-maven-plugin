@@ -34,7 +34,7 @@ You can build FileVault Package Maven Plugin using Maven:
     cd jackrabbit-filevault-package-maven-plugin
     mvn clean install
 
-You need Maven 3.3.9 (or higher) with Java 8 (or higher) for the build.
+You need Maven 3.3.9 (or higher) with Java 11 (or higher) for the build.
 For more instructions, please see the documentation at <https://jackrabbit.apache.org/building-jackrabbit.html>
 
 Issue Tracker
