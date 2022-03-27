@@ -395,8 +395,8 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
     private MavenArchiveConfiguration archive;
 
     /**
-     * Optional reference to PNG image that should be used as thumbnail for the content package.
-     * @since 
+     * Optional reference to PNG image that should be used as thumbnail for the content package. Should have a width of 64 pixels.
+     * @since 1.0.1
      */
     @Parameter
     private File thumbnailImage;
