@@ -21,6 +21,7 @@
                 <goals>
                     <goal>analyze-classes</goal>
                     <goal>check-signature</goal>
+                    <goal>generate-cnd</goal>
                 </goals>
             </pluginExecutionFilter>
             <action>
