@@ -27,8 +27,10 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -48,6 +50,11 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.jcr.NamespaceException;
+import javax.jcr.PropertyType;
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.stream.XMLStreamException;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.ArtifactCoordinates;
 import org.apache.jackrabbit.filevault.maven.packaging.Embedded;
@@ -55,6 +62,10 @@ import org.apache.jackrabbit.filevault.maven.packaging.Filters;
 import org.apache.jackrabbit.filevault.maven.packaging.MavenBasedPackageDependency;
 import org.apache.jackrabbit.filevault.maven.packaging.SubPackage;
 import org.apache.jackrabbit.filevault.maven.packaging.SubPackageHandlingEntry;
+import org.apache.jackrabbit.spi.Name;
+import org.apache.jackrabbit.spi.commons.name.NameConstants;
+import org.apache.jackrabbit.spi.commons.name.NameFactoryImpl;
+import org.apache.jackrabbit.spi.commons.namespace.NamespaceMapping;
 import org.apache.jackrabbit.util.Text;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.api.WorkspaceFilter;
@@ -62,18 +73,24 @@ import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.config.DefaultWorkspaceFilter;
 import org.apache.jackrabbit.vault.fs.filter.DefaultPathFilter;
 import org.apache.jackrabbit.vault.fs.io.AccessControlHandling;
+import org.apache.jackrabbit.vault.fs.io.DocViewFormat;
 import org.apache.jackrabbit.vault.packaging.Dependency;
+import org.apache.jackrabbit.vault.packaging.JcrPackage;
 import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.packaging.PackageProperties;
 import org.apache.jackrabbit.vault.packaging.PackageType;
 import org.apache.jackrabbit.vault.packaging.SubPackageHandling;
 import org.apache.jackrabbit.vault.util.Constants;
+import org.apache.jackrabbit.vault.util.DocViewNode2;
+import org.apache.jackrabbit.vault.util.DocViewProperty2;
+import org.apache.jackrabbit.vault.util.xml.serialize.FormattingXmlStreamWriter;
 import org.apache.maven.archiver.ManifestConfiguration;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
+import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -196,7 +213,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
     private boolean failOnEmptyFilter;
 
     /**
-     * Specifies additional properties to be set in the properties.xml file.
+     * Specifies additional <a href="https://jackrabbit.apache.org/filevault/properties.html">package properties</a> to be set in the properties.xml file.
      * These properties cannot overwrite the following predefined properties:
      * <p>
      * <table>
@@ -218,6 +235,14 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      */
     @Parameter
     private final Properties properties = new Properties();
+
+    /**
+     * Specifies <a href="https://jackrabbit.apache.org/filevault/packagedefinition.html">JCR package definition properties</a> to be serialized into the {@code META-INF/vault/definition/.content.xml} file.
+     * Those are implementation-specific and not standardized by FileVault. Only non-namespaced string properties are allowed here.
+     * Properties canonically stored somewhere else (like package properties or filter rules) should not be set.
+     */
+    @Parameter
+    private final Map<String,String> packageDefinitionProperties = new HashMap<>();
 
     /**
      * Defines the list of dependencies
@@ -558,38 +583,71 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             writeFilters(sourceFilters);
             copyFile("/vault/config.xml", new File(vaultDir, Constants.CONFIG_XML));
             copyFile("/vault/settings.xml", new File(vaultDir, Constants.SETTINGS_XML));
-            
-            // add package thumbnail
-            if (thumbnailImage != null && thumbnailImage.exists()) {
-                File vaultDefinitionFolder = new File(vaultDir, "definition");
-                if (!vaultDefinitionFolder.exists()) {
-                    vaultDefinitionFolder.mkdir();
-                }
-                copyFile("/vault/definition/.content.xml", new File(vaultDefinitionFolder, ".content.xml"));
-                // copy thumbnail image only when it's not already placed in the source META-INF directory
-                if (!thumbnailImage.equals(new File(metaInfDirectory, "/definition/thumbnail.png"))) {
-                    FileUtils.copyFile(thumbnailImage, new File(vaultDefinitionFolder, "thumbnail.png"));
-                }
+            File packageDefinitionXml = new File(vaultDir, Constants.PACKAGE_DEFINITION_XML);
+            if (!packageDefinitionXml.getParentFile().exists()) {
+                packageDefinitionXml.getParentFile().mkdir();
             }
-
+            try (OutputStream output = new FileOutputStream( packageDefinitionXml )) {
+                writePackageDefinition(output);
+            }
+            if (thumbnailImage != null && thumbnailImage.exists()) {
+                FileUtils.copyFile(thumbnailImage, new File(packageDefinitionXml.getParentFile(), "thumbnail.png"));
+            }
             writeManifest(getGeneratedManifestFile(true), dependenciesString, dependenciesLocations, vaultProperties);
-        } catch (IOException | ManifestException | DependencyResolutionRequiredException | ConfigurationException e) {
+        } catch (IOException | ManifestException | DependencyResolutionRequiredException | ConfigurationException | NamespaceException | XMLStreamException e) {
             throw new MojoExecutionException(e.toString(), e);
         }
         buildContext.refresh(vaultDir);
+    }
+
+    void writePackageDefinition(OutputStream outputStream) throws XMLStreamException, FactoryConfigurationError, NamespaceException, IllegalArgumentException, IOException {
+        NamespaceMapping namespaceResolver = new NamespaceMapping(); // no namespaces necessary
+        namespaceResolver.setMapping(Name.NS_EMPTY_PREFIX, Name.NS_DEFAULT_URI);
+        namespaceResolver.setMapping(Name.NS_JCR_PREFIX, Name.NS_JCR_URI);
+        try (FormattingXmlStreamWriter xmlWriter = FormattingXmlStreamWriter.create(outputStream, new DocViewFormat().getXmlOutputFormat())) {
+            Collection<DocViewProperty2> packDefProps = new ArrayList<>();
+            packDefProps.add(new DocViewProperty2(NameConstants.JCR_PRIMARYTYPE, JcrPackage.NT_VLT_PACKAGE_DEFINITION));
+            packDefProps.add(new DocViewProperty2(NameFactoryImpl.getInstance().create(Name.NS_DEFAULT_URI, "builtWith"), getCreatedBy(), PropertyType.STRING));
+            for (Map.Entry<String, String> propertyEntry : packageDefinitionProperties.entrySet()) {
+                packDefProps.add(new DocViewProperty2(NameFactoryImpl.getInstance().create(Name.NS_DEFAULT_URI, propertyEntry.getKey()), propertyEntry.getValue(), PropertyType.STRING));
+            }
+            DocViewNode2 docViewNode = new DocViewNode2(NameConstants.JCR_ROOT, packDefProps);
+            docViewNode.writeStart(xmlWriter, namespaceResolver, Collections.singleton(Name.NS_JCR_PREFIX));
+            DocViewNode2.writeEnd(xmlWriter);
+        }
     }
 
     void writeManifest(File file, String dependenciesString, String dependenciesLocations, final Properties vaultProperties)
             throws ManifestException, DependencyResolutionRequiredException, IOException, FileNotFoundException {
         // generate manifest file
         MavenArchiver mavenArchiver = new MavenArchiver();
-        mavenArchiver.setCreatedBy("Apache Jackrabbit FileVault - Package Maven Plugin", "org.apache.jackrabbit", "filevault-package-maven-plugin");
+        // it is not possible to manually set the version
+        mavenArchiver.setCreatedBy(getMavenProjectProperties().getProperty("name"), "org.apache.jackrabbit", "filevault-package-maven-plugin");
         Manifest manifest = mavenArchiver.getManifest(session, project, getMavenArchiveConfiguration(vaultProperties, dependenciesString, dependenciesLocations));
         try (OutputStream out = new FileOutputStream(file)) {
             manifest.write(out);
         }
     }
-    
+
+    /**
+     * Properties contain some resolved properties from this project's Maven model
+     * @return some resolved Maven project properties
+     * @throws IOException in case the underlying file could not be accessed
+     */
+    static Properties getMavenProjectProperties() throws IOException {
+        final Properties properties = new Properties();
+        try (InputStream input = GenerateMetadataMojo.class.getResourceAsStream("/maven-project.properties")) {
+            properties.load(input);
+        }
+        return properties;
+    }
+
+    static String getCreatedBy() throws IOException {
+        Properties properties = getMavenProjectProperties();
+        // name and version of the current project's Maven model
+        return properties.getProperty("name") + " " + properties.getProperty("version");
+    }
+
     /**
      * Computes the package filters.
      *
