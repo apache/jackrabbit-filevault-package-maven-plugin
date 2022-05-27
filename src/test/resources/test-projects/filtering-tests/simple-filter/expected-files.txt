@@ -7,6 +7,8 @@ META-INF/maven/org.apache.jackrabbit.filevault/package-plugin-test-pkg/pom.prope
 META-INF/maven/org.apache.jackrabbit.filevault/package-plugin-test-pkg/pom.xml
 META-INF/vault/
 META-INF/vault/config.xml
+META-INF/vault/definition/
+META-INF/vault/definition/.content.xml
 META-INF/vault/filter.xml
 META-INF/vault/properties.xml
 META-INF/vault/settings.xml
