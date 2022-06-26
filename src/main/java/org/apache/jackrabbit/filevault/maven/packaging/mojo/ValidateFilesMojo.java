@@ -62,7 +62,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.apache.maven.shared.utils.io.DirectoryScanner;
 import org.codehaus.plexus.util.AbstractScanner;
 import org.codehaus.plexus.util.Scanner;
 

@@ -21,7 +21,6 @@ import java.util.Set;
 
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.shared.utils.io.DirectoryScanner;
 import org.jetbrains.annotations.Nullable;
 
 /**

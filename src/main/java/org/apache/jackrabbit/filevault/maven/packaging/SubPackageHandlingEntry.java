@@ -20,7 +20,7 @@ import org.apache.jackrabbit.vault.fs.io.AccessControlHandling;
 import org.apache.jackrabbit.vault.packaging.SubPackageHandling.Entry;
 import org.apache.jackrabbit.vault.packaging.SubPackageHandling.Option;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.shared.utils.StringUtils;
+import org.codehaus.plexus.util.StringUtils;
 
 /** 
  * Defines a sub package handling entry encapsulating option, groupName and packageName.
