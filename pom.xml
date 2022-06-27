@@ -125,18 +125,11 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- validate that all necessary dependencies are part of the Maven plugin classpath -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.apache.sling</groupId>
-                        <artifactId>maven-enforcer-rules</artifactId>
-                        <version>1.0.0</version>
-                    </dependency>
-                </dependencies>
                 <executions>
+                    <!-- validate that all necessary dependencies are part of the Maven plugin classpath, https://github.com/apache/sling-maven-enforcer-rules/blob/master/README.md#require-provided-dependencies-in-runtime-classpath-since-version-100 -->
                     <execution>
                         <id>enforce-complete-plugin-classpath</id>
                         <goals>
@@ -153,6 +146,7 @@
                                         <exclude>*:stax2-api</exclude><!-- embedded in vault-core -->
                                         <exclude>*:maven-artifact</exclude><!-- embedded in vault-core -->
                                         <exclude>*:h2</exclude><!-- embedded in vault-core -->
+                                        <exclude>org.apache.jackrabbit:jackrabbit-jcr2spi</exclude><!-- embedded in vault-core -->
                                         <exclude>org.apache.jackrabbit:jackrabbit-spi2dav</exclude><!-- not used in this context -->
                                         <!-- the following artifacts are not supposed to be used in OSGi/container context -->
                                         <exclude>org.apache.maven:maven-archiver</exclude>
@@ -352,30 +346,39 @@
             <groupId>org.apache.jackrabbit.vault</groupId>
             <artifactId>org.apache.jackrabbit.vault</artifactId>
             <version>${filevault.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.jackrabbit.vault</groupId>
             <artifactId>vault-validation</artifactId>
             <version>${filevault.version}</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>javax.jcr</groupId>
             <artifactId>jcr</artifactId>
-            <scope>compile</scope><!-- overwrite scope from parent -->
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.jackrabbit</groupId>
             <artifactId>jackrabbit-jcr-commons</artifactId>
+            <scope>compile</scope>
         </dependency>
         <!-- only a transitive dependency but must be declared due to https://issues.apache.org/jira/browse/JCRVLT-394 -->
         <dependency>
             <groupId>org.apache.jackrabbit</groupId>
             <artifactId>oak-jackrabbit-api</artifactId>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.jackrabbit</groupId>
+            <artifactId>jackrabbit-spi-commons</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.framework</artifactId>
-            <scope>compile</scope><!-- overwrite scope from parent -->
+            <scope>compile</scope>
         </dependency>
         <!-- Maven Core artifacts, version is determined by Maven distribution
              contained in https://github.com/apache/maven/blob/master/maven-core/src/main/resources/META-INF/maven/extension.xml#L133-L193, should have scope provided -->
@@ -424,17 +427,20 @@
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-utils</artifactId>
             <version>3.4.2</version>
+            <scope>compile</scope>
         </dependency>
         <!-- This is not a core artifact, i.e. must not be used with scope "provided" despite having group id "org.apache.maven", https://issues.apache.org/jira/browse/MPLUGIN-385 -->
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-archiver</artifactId>
             <version>3.6.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-archiver</artifactId>
             <version>4.4.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
@@ -445,6 +451,7 @@
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
             <version>${slf4j.version}</version>
+            <scope>compile</scope>
         </dependency>
 
         <!-- bundle tools -->
@@ -452,6 +459,7 @@
             <groupId>biz.aQute.bnd</groupId>
             <artifactId>biz.aQute.bndlib</artifactId>
             <version>6.2.0</version>
+            <scope>compile</scope>
         </dependency>
 
         <!-- used in the CheckSignature mojo -->
@@ -459,6 +467,7 @@
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>animal-sniffer-maven-plugin</artifactId>
             <version>1.21</version>
+            <scope>compile</scope>
             <exclusions>
               <exclusion>
                 <groupId>org.apache.maven</groupId>
@@ -470,6 +479,7 @@
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>animal-sniffer</artifactId>
             <version>1.21</version>
+            <scope>compile</scope>
         </dependency>
 
         <!-- class analyzer -->
@@ -477,11 +487,13 @@
             <groupId>io.github.classgraph</groupId>
             <artifactId>classgraph</artifactId>
             <version>4.8.141</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-common-artifact-filters</artifactId>
             <version>3.3.0</version>
+            <scope>compile</scope>
             <exclusions>
               <exclusion>
                 <groupId>org.apache.maven</groupId>
@@ -495,6 +507,7 @@
             <groupId>org.sonatype.plexus</groupId>
             <artifactId>plexus-build-api</artifactId>
             <version>0.0.7</version>
+            <scope>compile</scope>
         </dependency>
 
         <!-- for Maven filtering -->
@@ -502,6 +515,7 @@
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-filtering</artifactId>
             <version>3.3.0</version>
+            <scope>compile</scope>
             <exclusions>
               <exclusion>
                 <groupId>org.apache.maven</groupId>
@@ -513,6 +527,7 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
             <version>1.9.0</version>
+            <scope>compile</scope>
         </dependency>
         <!-- testing -->
         <dependency>
