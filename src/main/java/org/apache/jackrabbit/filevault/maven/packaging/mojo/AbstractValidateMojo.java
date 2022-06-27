@@ -68,6 +68,9 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 public abstract class AbstractValidateMojo extends AbstractMojo {
     public static final String IGNORE_GAV = "ignore";
 
+    /**
+     * Skips validation.
+     */
     @Parameter(property = "vault.skipValidation", defaultValue = "false", required = true)
     boolean skipValidation;
 
@@ -141,7 +144,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     @Parameter(property = "vault.failOnValidationWarning", defaultValue = "false")
     protected boolean failOnValidationWarnings;
 
-    /** Defines the list of dependencies A dependency is declared as a {@code <dependency>} element of a list style {@code <dependencies>}
+    /** Defines the list of dependencies. A dependency is declared as a {@code <dependency>} element of a list style {@code <dependencies>}
      * element:
      * 
      * <pre>
@@ -167,14 +170,17 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     @Parameter(property = "vault.dependencies")
     protected Collection<MavenBasedPackageDependency> dependencies = new LinkedList<>();
 
-    /** Defines the packages that define the repository structure. For the format description look at {@link #dependencies}.
+    /** Defines the packages that define the repository structure. They are sharing the same format as the elements used in {@link #dependencies}.
      * <p>
-     * The repository-init feature of sling-start can define initial content that will be available in the repository before the first
-     * package is installed. Packages that depend on those nodes have no way to reference any dependency package that provides these nodes.
-     * A "real" package that would creates those nodes cannot be installed in the repository, because it would void the repository init
-     * structure. On the other hand would filevault complain, if the package was listed as dependency but not installed in the repository.
-     * So therefore this repository-structure packages serve as indicator packages that helps satisfy the structural dependencies, but are
-     * not added as real dependencies to the package. */
+     * The <a href="https://sling.apache.org/documentation/bundles/repository-initialization.html">repoinit feature</a> of Sling can define initial content that will be available in the repository before the first
+     * package is installed. Packages that depend on those nodes have no way to reference a regular dependency package that provides these nodes.
+     * A "real" package that would creates those nodes cannot be installed in the repository, because it would void the repoinit
+     * structure. On the other hand FileVault would complain, if the package was listed as dependency but not installed in the repository.
+     * Therefore these repository-structure packages serve as build-time only dependency that help satisfy the structural dependencies, but are
+     * not added as real (i.e. run-time) dependencies to the package. 
+     * Repository-structure packages are only evaluated for their contained <a href="https://jackrabbit.apache.org/filevault/filter.html">filter rules' root attributes</a>.
+     * Currently these packages are only used to define the <a href="https://jackrabbit.apache.org/filevault/validation.html#standard-validators">{@code validRoots} of the validator {@code jackrabbit-filter}</a>.
+     */
     @Parameter(property = "vault.repository.structure.packages")
     protected Collection<MavenBasedPackageDependency> repositoryStructurePackages = new LinkedList<>();
 

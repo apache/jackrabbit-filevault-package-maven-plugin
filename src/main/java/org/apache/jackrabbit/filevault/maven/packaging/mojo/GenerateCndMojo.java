@@ -88,7 +88,7 @@ public class GenerateCndMojo extends AbstractSourceAndMetadataPackageMojo {
      * <a href="https://sling.apache.org/documentation/bundles/content-loading-jcr-contentloader.html#declared-node-type-registration">{@code Sling-Nodetypes} manifest header</a>.
      * part from the <a href="https://docs.oracle.com/javase/8/docs/api/java/net/URL.html#URL-java.lang.String-java.lang.String-int-java.lang.String-"standard protocols</a> the scheme {@code tccl} 
      * can be used to reference names from the <a href="https://docs.oracle.com/javase/8/docs/api/java/lang/Thread.html#getContextClassLoader--">Thread's context class loader</a>.
-     * In the Maven plugin context this is the <a href="http://maven.apache.org/guides/mini/guide-maven-classloading.html?ref=driverlayer.com/web#3-plugin-classloaders">plugin classloader.
+     * In the Maven plugin context this is the <a href="http://maven.apache.org/guides/mini/guide-maven-classloading.html?ref=driverlayer.com/web#3-plugin-classloaders">plugin classloader</a>.
      */
     @Parameter(property = "vault.inputCndUrls")
     List<String> additionalInputCndUrls = new LinkedList<>();
