@@ -20,14 +20,51 @@ Introduction
 
 Welcome to Apache Jackrabbit FileVault Package Maven Plugin.
 
-The Apache Jackrabbit FileVault Package Maven plugin is an Apache Maven plugin that simplifies the creation of
-content package Maven artifacts. The content packages can later be used to install content into a JCR repository
+The Apache Jackrabbit FileVault Package Maven Plugin is an Apache Maven Plugin that simplifies the creation of
+content package artifacts. The content packages can later be used to install content into a JCR repository
 using the Apache Jackrabbit FileVault packaging runtime.
 
 Apache Jackrabbit FileVault is a project of the Apache Software Foundation.
 
+Usage
+------
+
+As this Maven plugin comes with [Maven extensions](https://maven.apache.org/guides/mini/guide-using-extensions.html) (for defining custom bindings for `default` lifecycle and a custom artifact handler for type/packaging `content-package`) it needs to be loaded accordingly
+
+```
+<plugin>
+  <groupId>org.apache.jackrabbit</groupId>
+  <artifactId>filevault-package-maven-plugin</artifactId>
+  <version>1.3.0</version>
+  <extensions>true</extensions>
+</plugin>
+```
+
+Further details on the individual goals are available at [Goals](plugin-info.html).
+
+### Plugin bindings for `content-package` packaging
+
+```
+<phases>
+  <process-resources>org.apache.maven.plugins:maven-resources-plugin:resources</process-resources>
+  <compile>org.apache.maven.plugins:maven-compiler-plugin:compile</compile>
+  <generate-test-sources>org.apache.jackrabbit:filevault-package-maven-plugin:generate-metadata</generate-test-sources>
+  <process-test-sources>org.apache.jackrabbit:filevault-package-maven-plugin:validate-files</process-test-sources>
+  <process-test-resources>org.apache.maven.plugins:maven-resources-plugin:testResources</process-test-resources>
+  <test-compile>org.apache.maven.plugins:maven-compiler-plugin:testCompile</test-compile>
+  <test>org.apache.maven.plugins:maven-surefire-plugin:test</test>
+  <package>org.apache.jackrabbit:filevault-package-maven-plugin:package</package>
+  <verify>org.apache.jackrabbit:filevault-package-maven-plugin:validate-package</verify>
+  <install>org.apache.maven.plugins:maven-install-plugin:install</install>
+  <deploy>org.apache.maven.plugins:maven-deploy-plugin:deploy</deploy>
+</phases>
+```
+
+The default bindings for other packagings are documented at [Plugin Bindings for Default Lifecycle Reference](https://maven.apache.org/ref/3.8.6/maven-core/default-bindings.html).
+
 Downloads
 ---------
+
 The latest FileVault Package Maven Plugin sources are available at <https://github.com/apache/jackrabbit-filevault-package-maven-plugin>.
 
 See also our [releases](https://jackrabbit.apache.org/downloads.html) on the Jackrabbit
@@ -43,6 +80,7 @@ Jackrabbit mailing lists as well as links to list archives, please see the [Mail
 
 Latest development
 ------------------
+
 See the [development overview](dev.html) page for more information.
 
 Credits

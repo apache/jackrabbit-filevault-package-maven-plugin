@@ -30,7 +30,7 @@ was removed, so that both plugins can now be used in the same project (pom).
 Projects that want to migrate to Jackrabbit's plugin just need to replace the Maven coordinates of the
 content package plugin. And, if the package manager goals are still needed, add Adobe's plugin again.
 
-The Adobe plugin since 1.0.2 does no longer come with any extensions or custom lifecycle mapping, so you can remove `<extensions>true</extension>` on it.
+The Adobe plugin since 1.0.2 does no longer come with any extensions or custom lifecycle mapping, so you can remove `<extensions>true</extensions>` on it.
 
 Example
 -------
