@@ -18,11 +18,12 @@
  * under the License.
  */
 // use the shared library from https://github.com/apache/jackrabbit-filevault-jenkins-lib
-library "filevault@master"
+@Library('filevault@master') _
 
 vaultPipeline('ubuntu', 11, '3', {
-   vaultStageBuild(['ubuntu', 'Windows'], [11, 17], ['3', '3.6.3'], 'apache_jackrabbit-filevault-package-maven-plugin', [ hasSeparateItExecution: true ]) 
-   vaultStageIT(['ubuntu', 'Windows'], [8, 11, 17], ['3.3.9', '3.5.4', '3.6.3', '3'])
-   vaultStageDeploy()
-  }
+  vaultStageSanityCheck()
+  vaultStageBuild(['Windows'], [17], ['3.6.3'], 'apache_jackrabbit-filevault-package-maven-plugin', [ hasSeparateItExecution: true ]) 
+  vaultStageIT(['Windows'], [8, 17], ['3.3.9', '3.5.4', '3.6.3'])
+  vaultStageDeploy()
+ }
 )
