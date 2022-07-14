@@ -126,6 +126,25 @@
                     </execution>
                 </executions>
             </plugin>
+            <!-- ====================================================================== -->
+            <!-- S I S U  P L U G I N                                                   -->
+            <!-- ====================================================================== -->
+            <plugin>
+                <groupId>org.eclipse.sisu</groupId>
+                <artifactId>sisu-maven-plugin</artifactId>
+                <version>0.3.5</version>
+                <executions>
+                    <execution>
+                        <id>index-project</id>
+                        <goals>
+                            <goal>main-index</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- ====================================================================== -->
+            <!-- E N F O R C E R  P L U G I N                                           -->
+            <!-- ====================================================================== -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
@@ -173,7 +192,7 @@
                         </configuration>
                     </execution>
                 </executions>
-              </plugin>
+            </plugin>
             <!-- ====================================================================== -->
             <!-- I N S T A L L   P L U G I N                                            -->
             <!-- ====================================================================== -->
