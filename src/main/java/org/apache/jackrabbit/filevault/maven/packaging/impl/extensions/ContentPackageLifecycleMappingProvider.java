@@ -37,17 +37,17 @@ public class ContentPackageLifecycleMappingProvider implements Provider<Lifecycl
     private static final Map<String, LifecyclePhase> BINDINGS;
     static {
         BINDINGS = new HashMap<>();
-        BINDINGS.put("process-resources", new LifecyclePhase("org.apache.maven.plugins:maven-resources-plugin:resources"));
-        BINDINGS.put("compile", new LifecyclePhase("org.apache.maven.plugins:maven-compiler-plugin:compile"));
+        BINDINGS.put("process-resources", new LifecyclePhase("org.apache.maven.plugins:maven-resources-plugin:3.2.0:resources"));
+        BINDINGS.put("compile", new LifecyclePhase("org.apache.maven.plugins:maven-compiler-plugin:3.10.1:compile"));
         BINDINGS.put("generate-test-sources", new LifecyclePhase("org.apache.jackrabbit:filevault-package-maven-plugin:generate-metadata"));
         BINDINGS.put("process-test-sources", new LifecyclePhase("org.apache.jackrabbit:filevault-package-maven-plugin:validate-files"));
-        BINDINGS.put("process-test-resources", new LifecyclePhase("org.apache.maven.plugins:maven-resources-plugin:testResources"));
-        BINDINGS.put("test-compile", new LifecyclePhase("org.apache.maven.plugins:maven-compiler-plugin:testCompile"));
-        BINDINGS.put("test", new LifecyclePhase("org.apache.maven.plugins:maven-surefire-plugin:test"));
+        BINDINGS.put("process-test-resources", new LifecyclePhase("org.apache.maven.plugins:maven-resources-plugin:3.2.0:testResources"));
+        BINDINGS.put("test-compile", new LifecyclePhase("org.apache.maven.plugins:maven-compiler-plugin:3.10.1:testCompile"));
+        BINDINGS.put("test", new LifecyclePhase("org.apache.maven.plugins:maven-surefire-plugin:2.22.2:test"));
         BINDINGS.put("package", new LifecyclePhase("org.apache.jackrabbit:filevault-package-maven-plugin:package"));
         BINDINGS.put("verify", new LifecyclePhase("org.apache.jackrabbit:filevault-package-maven-plugin:validate-package"));
-        BINDINGS.put("install", new LifecyclePhase("org.apache.maven.plugins:maven-install-plugin:install"));
-        BINDINGS.put("deploy", new LifecyclePhase("org.apache.maven.plugins:maven-deploy-plugin:deploy"));
+        BINDINGS.put("install", new LifecyclePhase("org.apache.maven.plugins:maven-install-plugin:2.5.2:install"));
+        BINDINGS.put("deploy", new LifecyclePhase("org.apache.maven.plugins:maven-deploy-plugin:2.8.2:deploy"));
     }
 
     private final Lifecycle defaultLifecycle;
