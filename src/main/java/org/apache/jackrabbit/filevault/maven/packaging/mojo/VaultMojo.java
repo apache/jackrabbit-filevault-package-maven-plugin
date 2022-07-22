@@ -95,7 +95,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
 
     /** Set to {@code true} to fail the build in case of files are being contained in the {@code jcrRootSourceDirectory} which are not
      * covered by the filter rules and therefore would not end up in the package. */
-    @Parameter(property = "vault.failOnUncoveredSourceFiles", required = true, defaultValue = "false")
+    @Parameter(property = "vault.failOnUncoveredSourceFiles", required = true, defaultValue = "true")
     private boolean failOnUncoveredSourceFiles;
 
     /** Set to {@code false} to not fail the build in case of files/folders being added to the resulting package more than once. Usually
