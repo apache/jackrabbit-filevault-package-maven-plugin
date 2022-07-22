@@ -1,1 +1,1 @@
-[ERROR] ValidationViolation: "jackrabbit-filter: Invalid pattern given ('invalidpattern') which will never match for any descendants of the root path '/apps/wcm/core/content'.", filePath=%0%
+[ERROR] ValidationViolation: Invalid pattern given ('invalidpattern') which will never match for any descendants of the root path '/apps/wcm/core/content'. @ %0%, validator: jackrabbit-filter

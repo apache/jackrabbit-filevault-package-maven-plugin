@@ -36,6 +36,8 @@ import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
 import org.apache.jackrabbit.vault.validation.spi.Validator;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
+import org.apache.maven.shared.utils.logging.MessageBuilder;
+import org.apache.maven.shared.utils.logging.MessageUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.sonatype.plexus.build.incremental.BuildContext;
@@ -146,21 +148,25 @@ public class ValidationMessagePrinter implements Closeable {
     }
 
     private static String getDetailMessage(ValidationViolation violation, Path baseDirectory) {
-        StringBuilder message = new StringBuilder("ValidationViolation: ");
-        message.append("\"").append(getMessage(violation)).append("\"");
+        MessageBuilder builder = MessageUtils.buffer();
+        builder.strong("ValidationViolation: ");
+        builder.a(violation.getMessage());
         if (violation.getFilePath() != null) {
-            message.append(", filePath=").append(baseDirectory.relativize(violation.getAbsoluteFilePath()));
-        }
-        if (violation.getNodePath() != null) {
-            message.append(", nodePath=").append(violation.getNodePath());
+            builder.a(" @ ").strong(baseDirectory.relativize(violation.getAbsoluteFilePath()));
         }
         if (violation.getLine() > 0) {
-            message.append(", line=").append(violation.getLine());
+            builder.strong(", line ").strong(violation.getLine());
         }
         if (violation.getColumn() > 0) {
-            message.append(", column=").append(violation.getColumn());
+            builder.strong(", column ").strong(violation.getColumn());
         }
-        return message.toString();
+        if (violation.getValidatorId() != null) {
+            builder.a(", validator: ").strong(violation.getValidatorId());
+        }
+        if (violation.getNodePath() != null) {
+            builder.a(", JCR node path: ").strong(violation.getNodePath());
+        }
+        return builder.toString();
     }
 
     private static String getValidatorNames(ValidationExecutor executor, String separator) {
