@@ -1,6 +1,7 @@
 .ratignore
 **/.gitattributes
 **/.gitignore
+**/pom.properties
 src/test/resources/test-projects/**/*.txt
 src/test/resources/test-projects/**/*.xml
 src/test/resources/test-projects/**/.vlt
