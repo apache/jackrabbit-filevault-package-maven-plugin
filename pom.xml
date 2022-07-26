@@ -554,6 +554,15 @@
             <version>1.9.0</version>
             <scope>compile</scope>
         </dependency>
+
+        <!-- only use for package o.a.maven.shared.utils.logging, for other packages use plexus-utils -->
+        <dependency>
+            <groupId>org.apache.maven.shared</groupId>
+            <artifactId>maven-shared-utils</artifactId>
+            <version>3.3.4</version>
+            <scope>compile</scope>
+        </dependency>
+
         <!-- testing -->
         <dependency>
             <groupId>org.hamcrest</groupId>
