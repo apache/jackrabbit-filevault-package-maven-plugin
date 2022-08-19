@@ -49,7 +49,7 @@ public abstract class AbstractSourceAndMetadataPackageMojo extends AbstractMetad
 
     
     /**
-     * The file name patterns to exclude (in addition to the default ones mentioned at {@link AbstractSourceAndMetadataPackageMojo#addDefaultExcludes}. The format of each pattern is described in {@link DirectoryScanner}.
+     * The file name patterns to exclude (in addition to the default ones mentioned at {@link AbstractSourceAndMetadataPackageMojo#addDefaultExcludes}. The format of each pattern is described in {@link org.codehaus.plexus.util.DirectoryScanner}.
      * The comparison is against the path relative to the according filter root.
      * Since this is hardly predictable it is recommended to use only filename/directory name patterns here 
      * but not take into account file system hierarchies!
@@ -81,7 +81,7 @@ public abstract class AbstractSourceAndMetadataPackageMojo extends AbstractMetad
      * &#42;&#42;/.darcsrepo/&#42;&#42;&#42;&#42;/-darcs-backup&#42;, &#42;&#42;/.darcs-temp-mail
      * </ul>
      *
-     * @see DirectoryScanner#DEFAULTEXCLUDES
+     * @see org.codehaus.plexus.util.DirectoryScanner#DEFAULTEXCLUDES
      * @since 1.1.0
      */
     @Parameter(defaultValue = "true")

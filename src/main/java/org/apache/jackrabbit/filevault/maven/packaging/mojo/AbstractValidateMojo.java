@@ -116,7 +116,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
 
     /** Controls if errors during dependency validation should fail the build. 
      *  
-     * @deprecated Use {@link validatorsSettings} with the following values
+     * @deprecated Use {@link #validatorsSettings} with the following values
      * instead
      * <pre>
      *   &lt;jackrabbit-dependencies&gt;

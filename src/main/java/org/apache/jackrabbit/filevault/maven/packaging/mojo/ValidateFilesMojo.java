@@ -141,7 +141,7 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
 
     /**
      * The file name patterns to exclude in addition to the ones listed in
-     * {@link AbstractScanner#DEFAULTEXCLUDES}. The format of each pattern is described in {@link DirectoryScanner}.
+     * {@link AbstractScanner#DEFAULTEXCLUDES}. The format of each pattern is described in {@link org.codehaus.plexus.util.DirectoryScanner}.
      * The comparison is against the path relative to the according filter root.
      * Since this is hardly predictable it is recommended to use only filename/directory name patterns here 
      * but not take into account file system hierarchies!
