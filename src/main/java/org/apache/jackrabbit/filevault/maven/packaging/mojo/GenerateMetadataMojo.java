@@ -278,7 +278,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * Defines a list of sub package handling entries, which affect how sub packages are installed.
      * Each entry has the following elements:
      * <ul>
-     *  <li>option, mandatory, one of the values from {@link SubPackageHandlingEntry.Option}</li>
+     *  <li>option, mandatory, one of the values from {@link SubPackageHandling.Option}</li>
      *  <li>groupName, optional, restricts the option to the given group name, if not set affects there is no package group restriction</li>
      *  <li>packageName, optional, restricts the option to the given package name, if not set affects all package names</li></li>
      * </ul>
