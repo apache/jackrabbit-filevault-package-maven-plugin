@@ -60,7 +60,7 @@ Further details on the individual goals are available at [Goals](plugin-info.htm
 </phases>
 ```
 
-Those bindings are defined in [`META-INF/plexus/components.xml`](https://github.com/apache/jackrabbit-filevault-package-maven-plugin/blob/master/src/main/resources/META-INF/plexus/components.xml).
+Those bindings are defined in [`ContentPackageLifecycleMappingProvider`](https://github.com/apache/jackrabbit-filevault-package-maven-plugin/blob/master/src/main/java/org/apache/jackrabbit/filevault/maven/packaging/impl/extensions/ContentPackageLifecycleMappingProvider.java).
 The default bindings for other packagings are documented at [Plugin Bindings for Default Lifecycle Reference](https://maven.apache.org/ref/3.8.6/maven-core/default-bindings.html).
 
 Downloads
