@@ -356,7 +356,6 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * <tr><td>{@code excludeTransitive}</td><td>{@link Boolean}</td><td>If {@code true} only filters on direct dependencies (not on transitive ones). Default = {@code false}.</td></tr>
      * <tr><td>{@code target}</td><td>{@link String}</td><td>The parent folder location in the package where to place the embedded artifact. Falls back to {@link #embeddedTarget} if not set.</td></tr>
      * </table>
-     * </pre>
      * All fields are optional. All filter criteria is concatenated with AND logic (i.e. every criterion must match for a specific dependency to be embedded).
      * <br>
      * All filter patterns follow the format <code>&lt;filter&gt;{,&lt;filter&gt;}</code>.
@@ -390,7 +389,6 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * <tr><td>{@code isAllVersionsFilter}</td><td>{@link Boolean}</td><td>If {@code filter} is {@code true} and this is {@code true} as well, the filter entry will contain all versions of the same artifact (by creating an according filter pattern). Default = {@code false}.</td></tr>
      * <tr><td>{@code excludeTransitive}</td><td>{@link Boolean}</td><td>If {@code true} only filters on direct dependencies (not on transitive ones). Default = {@code false}.</td></tr>
      * </table>
-     * </pre>
      * All fields are optional. All filter criteria is concatenated with AND logic (i.e. every criterion must match for a specific dependency to be embedded as a sub package).
      * <br>
      * All filter patterns follow the format <code>&lt;filter&gt;{,&lt;filter&gt;}</code>.
