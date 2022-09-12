@@ -60,16 +60,24 @@ import org.xml.sax.SAXException;
         name = "validate-package", defaultPhase = LifecyclePhase.VERIFY, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = false, threadSafe = true)
 public class ValidatePackageMojo extends AbstractValidateMojo {
 
-    /** The main package file to validate. By default will be the project's main artifact (in case a project is given). If empty the main artifact will not be validated
-     * but only the attached artifacts with the given {@link #classifiers}. */
-    @Parameter(property = "vault.packageToValidate", defaultValue = "${project.artifact.file}")
-    private File packageFile;
+    /** The main package file to validate. */
+    @Parameter(readonly = true, defaultValue = "${project.artifact.file}")
+    private File primaryArtifact;
+
+    /**
+     * If set to {@code true} skips validating the project's primary artifact but only the ones being attached and having a classifier
+     * equal to the one(s) in either {@link #classifiers} and/or {@link #classifier}.
+     * @since 1.3.2
+     */
+    @Parameter()
+    private boolean skipPrimaryArtifact;
 
     /** If set to {@code true} always executes all validators also for all sub packages (recursively). */
     @Parameter(required = true, defaultValue = "false")
     private boolean enforceRecursiveSubpackageValidation;
 
-    /** If set to {@code true} will not validate any sub packages. This settings overwrites the parameter {@code enforceRecursiveSubpackageValidation}. 
+    /**
+     * If set to {@code true} will not validate any sub packages. This settings overwrites the parameter {@code enforceRecursiveSubpackageValidation}. 
      * @since 1.1.2
      */
     @Parameter(required = true, defaultValue = "false")
@@ -79,15 +87,16 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     private List<Artifact> attachedArtifacts;
 
     /**
-     * If given validates all attached artifacts with one of the given classifiers (potentially in addition to the one given in {@link #packageFile}).
-     * This list is merged with the classifier given in parameter {@link #classifier}.
+     * The given classifiers are merged with the one from parameter {@link #classifier}.
+     * All matching attached artifacts are validated (potentially in addition to the primary artifact depending on parameter {@link #skipPrimaryArtifact}).
      * @since 1.1.4
      */
-    @Parameter()
+    @Parameter(property = "vault.classifiers")
     private List<String> classifiers;
 
     /**
-     * The given classifier is merged with the ones given in parameter {@link #classifiers} and all matching attached artifacts are validated (potentially in addition to the one given in {@link #packageFile})
+     * The given classifier is merged with the ones from parameter {@link #classifiers}.
+     * All matching attached artifacts are validated (potentially in addition to the primary artifact depending on parameter {@link #skipPrimaryArtifact}).
      * @since 1.2.2
      */
     @Parameter(property = "vault.classifier")
@@ -99,10 +108,10 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     @Override
     public void doExecute(ValidationMessagePrinter validationHelper) throws MojoExecutionException, MojoFailureException {
         boolean foundPackage = false;
-        if (packageFile != null && !packageFile.toString().isEmpty() && !packageFile.isDirectory()) {
-            validatePackage(validationHelper, packageFile.toPath());
+        if (!skipPrimaryArtifact && primaryArtifact != null && primaryArtifact.isFile()) {
+            validatePackage(validationHelper, primaryArtifact.toPath());
             foundPackage = true;
-        } 
+        }
         if (!attachedArtifacts.isEmpty()) {
             List<String> classifiersToCompare = new ArrayList<>();
             if (classifiers != null) {
@@ -118,7 +127,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
                     foundPackage = true;
                 }
             }
-        } 
+        }
         if (!foundPackage) {
             getLog().warn("No packages found to validate.");
         }
