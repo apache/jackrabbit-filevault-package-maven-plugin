@@ -32,23 +32,23 @@ import java.util.TimeZone;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
-import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
 import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
 import org.apache.jackrabbit.util.ISO8601;
 import org.apache.jackrabbit.vault.packaging.PackageProperties;
-import org.apache.maven.it.VerificationException;
+import org.apache.maven.shared.verifier.VerificationException;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.number.OrderingComparison;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @ExtendWith(ProjectBuilderExtension.class)
-public class DefaultProjectIT {
+class DefaultProjectIT {
 
     private static final String TEST_PROJECT_NAME = "/default-test-projects/";
 
     @Test
-    public void generic_project_package_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
+    void generic_project_package_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
         // the created date is fixed in the pom, as this is a reproducible build
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "generic")
@@ -68,7 +68,7 @@ public class DefaultProjectIT {
     }
 
     @Test
-    public void generic_project_is_reproducible(ProjectBuilder projectBuilder) throws Exception {
+    void generic_project_is_reproducible(ProjectBuilder projectBuilder) throws Exception {
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "generic")
             .build();
@@ -93,7 +93,7 @@ public class DefaultProjectIT {
     }
  
     @Test
-    public void generic_project_package_with_metainf_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
+    void generic_project_package_with_metainf_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "generic-with-metainf")
             .build()
@@ -103,7 +103,7 @@ public class DefaultProjectIT {
     }
 
     @Test
-    public void generic_with_builtcd_project_package_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
+    void generic_with_builtcd_project_package_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "generic-with-builtcd")
             .build()
@@ -113,7 +113,7 @@ public class DefaultProjectIT {
     }
 
     @Test
-    public void resource_project_package_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
+    void resource_project_package_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "resource")
             .build()
@@ -123,7 +123,7 @@ public class DefaultProjectIT {
     }
 
     @Test
-    public void unusual_jcr_root_package_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
+    void unusual_jcr_root_package_contains_correct_files(ProjectBuilder projectBuilder) throws Exception {
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "generic-unusal-jcrroot")
             .build()
@@ -133,7 +133,7 @@ public class DefaultProjectIT {
     }
 
     @Test
-    public void generic_empty_directories(ProjectBuilder projectBuilder) throws Exception {
+    void generic_empty_directories(ProjectBuilder projectBuilder) throws Exception {
         Calendar dateBeforeRun = Calendar.getInstance();
         String createdDate = projectBuilder
                 .setTestProjectDir(TEST_PROJECT_NAME + "generic-empty-directories")
@@ -149,7 +149,7 @@ public class DefaultProjectIT {
     }
 
     @Test
-    public void resource_empty_directories(ProjectBuilder projectBuilder) throws Exception {
+    void resource_empty_directories(ProjectBuilder projectBuilder) throws Exception {
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "resource-empty-directories")
             .build()
@@ -157,7 +157,7 @@ public class DefaultProjectIT {
     }
 
     @Test
-    public void htl_validation(ProjectBuilder projectBuilder) throws Exception {
+    void htl_validation(ProjectBuilder projectBuilder) throws Exception {
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "htl-validation")
             .build()
@@ -166,7 +166,7 @@ public class DefaultProjectIT {
     }
 
     @Test
-    public void overwritten_embed(ProjectBuilder projectBuilder) throws Exception {
+    void overwritten_embed(ProjectBuilder projectBuilder) throws Exception {
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "overwritten-embed")
             .setBuildExpectedToFail(true)
@@ -174,7 +174,7 @@ public class DefaultProjectIT {
     }
 
     @Test
-    public void overwritten_embed_not_failing(ProjectBuilder projectBuilder) throws Exception {
+    void overwritten_embed_not_failing(ProjectBuilder projectBuilder) throws Exception {
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "overwritten-embed-not-failing")
             .build()
@@ -182,14 +182,14 @@ public class DefaultProjectIT {
     }
 
     @Test
-    public void empty_package(ProjectBuilder projectBuilder) throws VerificationException, IOException {
+    void empty_package(ProjectBuilder projectBuilder) throws VerificationException, IOException {
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "empty")
             .build();
     }
 
     @Test
-    public void additional_metainf_files(ProjectBuilder projectBuilder) throws Exception {
+    void additional_metainf_files(ProjectBuilder projectBuilder) throws Exception {
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "additional-metainf-files")
             .build()
@@ -198,7 +198,7 @@ public class DefaultProjectIT {
     }
 
     @Test
-    public void complex_package_properties(ProjectBuilder projectBuilder) throws Exception {
+    void complex_package_properties(ProjectBuilder projectBuilder) throws Exception {
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "complex-properties")
             .build()
