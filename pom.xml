@@ -618,7 +618,7 @@
         </dependency>
         <dependency>
             <groupId>org.eclipse.aether</groupId>
-            <artifactId>aether-transport-wagon</artifactId>
+            <artifactId>aether-transport-http</artifactId>
             <version>${aether.version}</version>
             <scope>test</scope>
         </dependency>
