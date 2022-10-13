@@ -32,7 +32,7 @@ public abstract class AbstractSourceAndMetadataPackageMojo extends AbstractMetad
      * The directory containing the content to be packaged up into the content
      * package.
      *
-     * This property is deprecated; use {@link #jcrRootSourceDirectory} instead.
+     * @deprecated Use {@link #jcrRootSourceDirectory} instead.
      */
     @Deprecated
     @Parameter
