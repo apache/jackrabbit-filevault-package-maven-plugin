@@ -341,9 +341,9 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
 
     /**
      * List of filters for artifacts to embed in the package.
-     * The {@code Embedded} class represents one or multiple embedded artifact dependencies
+     * The {@link Embedded} class represents one or multiple embedded artifact dependencies
      * from the project descriptor.
-     * Each {@code <embedded>} element may configure any of the following fields
+     * Each item may configure any of the following fields
      * <p>
      * <table>
      * <tr><td>{@code groupId}</td><td>{@link String}</td><td>Filter criterion against the group id of a project dependency. A pattern as described below.</td></tr>

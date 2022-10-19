@@ -77,7 +77,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     private boolean enforceRecursiveSubpackageValidation;
 
     /**
-     * If set to {@code true} will not validate any sub packages. This settings overwrites the parameter {@code enforceRecursiveSubpackageValidation}. 
+     * If set to {@code true} will not validate any sub packages. This settings overwrites the parameter {@link #enforceRecursiveSubpackageValidation}. 
      * @since 1.1.2
      */
     @Parameter(required = true, defaultValue = "false")
