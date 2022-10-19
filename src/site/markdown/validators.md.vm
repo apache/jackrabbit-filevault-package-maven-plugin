@@ -91,8 +91,9 @@ To reference an external validator it just needs to be given as [plugin dependen
 
 ```
 <plugin>
-  <groupId>org.apache.jackrabbit</groupId>
-  <artifactId>filevault-package-maven-plugin</artifactId>
+  <groupId>${project.groupId}</groupId>
+  <artifactId>${project.artifactId}</artifactId>
+  <version>${project.version}</version>
   <dependencies>
     <!-- some validator extension -->
     <dependency>

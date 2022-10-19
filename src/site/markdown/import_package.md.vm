@@ -77,9 +77,9 @@ _Note: The excludes are present in the default value of the `<importPackage>` pr
     <sourceDirectory>src/content/jcr_root</sourceDirectory>
     <plugins>
         <plugin>
-            <groupId>org.apache.jackrabbit</groupId>
-            <artifactId>filevault-package-maven-plugin</artifactId>
-            <version>1.0.0</version>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>${project.artifactId}</artifactId>
+            <version>${project.version}</version>
             <extensions>true</extensions>
             <configuration>
                 <filterSource>${basedir}/src/content/META-INF/vault/filter.xml</filterSource>

@@ -39,9 +39,9 @@ An example plugin section could look like this:
 ```
     <!-- this plugin creates the content package artifact --> 
     <plugin>
-        <groupId>org.apache.jackrabbit</groupId>
-        <artifactId>filevault-package-maven-plugin</artifactId>
-        <version>1.0.0</version>
+        <groupId>${project.groupId}</groupId>
+        <artifactId>${project.artifactId}</artifactId>
+        <version>${project.version}</version>
         <extensions>true</extensions>
         <configuration>
             <filterSource>${basedir}/META-INF/vault/filter.xml</filterSource>
@@ -52,7 +52,7 @@ An example plugin section could look like this:
     <plugin>
         <groupId>com.day.jcr.vault</groupId>
         <artifactId>content-package-maven-plugin</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.4</version>
     </plugin>
 ```
 

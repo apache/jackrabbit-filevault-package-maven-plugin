@@ -36,8 +36,9 @@ An example configuration which enables filtering on all `.content.xml` files in 
 
 ```
 <plugin>
-  <groupId>org.apache.jackrabbit</groupId>
-  <artifactId>filevault-package-maven-plugin</artifactId>
+  <groupId>${project.groupId}</groupId>
+  <artifactId>${project.artifactId}</artifactId>
+  <version>${project.version}</version>
   <executions>
     <execution>
       <!-- default execution id for primary artifact: https://maven.apache.org/guides/mini/guide-default-execution-ids.html#default-executionids-for-implied-executions -->
