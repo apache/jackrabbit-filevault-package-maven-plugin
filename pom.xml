@@ -102,7 +102,11 @@
                 <!-- update from 3.6.1 in ASF parent -->
                 <plugin>
                     <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.6.4</version>
+                    <version>3.7.0</version>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-plugin-report-plugin</artifactId>
+                    <version>3.7.0</version>
                 </plugin>
                 <!-- downgrade due to https://issues.apache.org/jira/browse/MRESOURCES-289 -->
                 <plugin>
@@ -121,6 +125,14 @@
                     <execution>
                         <id>default-descriptor</id>
                         <phase>process-classes</phase>
+                        <configuration>
+                            <internalJavadocBaseUrl>./apidocs/</internalJavadocBaseUrl>
+                            <externalJavadocBaseUrls>
+                                <externalJavadocBaseUrl>https://jackrabbit.apache.org/filevault/apidocs/</externalJavadocBaseUrl>
+                                <externalJavadocBaseUrl>https://maven.apache.org/shared/maven-archiver/apidocs/</externalJavadocBaseUrl>
+                                <externalJavadocBaseUrl>https://docs.oracle.com/javase/8/docs/api/</externalJavadocBaseUrl>
+                            </externalJavadocBaseUrls>
+                        </configuration>
                     </execution>
                     <!-- if you want to generate help goal -->
                     <execution>
@@ -129,6 +141,7 @@
                             <goal>helpmojo</goal>
                         </goals>
                     </execution>
+                    
                 </executions>
             </plugin>
             <!-- ====================================================================== -->
@@ -318,7 +331,21 @@
     <reporting>
         <plugins>
             <plugin>
-                <artifactId>maven-plugin-plugin</artifactId>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>javadoc</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <artifactId>maven-plugin-report-plugin</artifactId>
+                <configuration>
+                    <hasExtensionsToLoad>true</hasExtensionsToLoad>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-project-info-reports-plugin</artifactId>
