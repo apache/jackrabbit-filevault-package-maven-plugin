@@ -22,8 +22,8 @@
 
 vaultPipeline('ubuntu', 11, '3', {
   vaultStageSanityCheck()
-  vaultStageBuild(['jenkins-win-azr-6'], [17], ['3.6.3'], 'apache_jackrabbit-filevault-package-maven-plugin', [ hasSeparateItExecution: true ]) 
-  vaultStageIT(['jenkins-win-azr-6'], [8, 17], ['3.3.9', '3.5.4', '3.6.3'])
+  vaultStageBuild(['Windows'], [17], ['3.6.3'], 'apache_jackrabbit-filevault-package-maven-plugin', [ hasSeparateItExecution: true ]) 
+  vaultStageIT(['Windows'], [8, 17], ['3.3.9', '3.5.4', '3.6.3'])
   vaultStageDeploy()
  }
 )
