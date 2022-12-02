@@ -10,3 +10,9 @@ github:
     - repository
     - content-package
     - maven-plugin
+  autolink_jira:
+    - JCRVLT
+    - OAK
+    - JCR
+    - SLING
+    - FELIX
