@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 import org.codehaus.plexus.components.io.resources.AbstractPlexusIoResource;
+import org.jetbrains.annotations.NotNull;
 
 public class PlexusIoNonExistingDirectoryResource extends AbstractPlexusIoResource {
 
@@ -30,7 +31,7 @@ public class PlexusIoNonExistingDirectoryResource extends AbstractPlexusIoResour
     }
 
     @Override
-    public InputStream getContents() throws IOException {
+    public @NotNull InputStream getContents() throws IOException {
         throw new UnsupportedOperationException("The underlying folder does not exist!");
     }
 

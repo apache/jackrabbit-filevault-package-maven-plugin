@@ -197,7 +197,15 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
             }
             File generatedMetaInfRootDirectory = new File(AbstractMetadataPackageMojo.getWorkDirectory(getLog(), false, workDirectory, classifier), Constants.META_INF);
             getLog().info("Validate files in generatedMetaInfRootDirectory " + getProjectRelativeFilePath(generatedMetaInfRootDirectory.toPath()) + " and metaInfRootDir " + getProjectRelativeFilePath(generatedMetaInfRootDirectory.toPath()));
-            ValidationContext context = new DirectoryValidationContext(buildContext.isIncremental(), generatedMetaInfRootDirectory, metaInfRootDirectory, resolver, getLog());
+            File jcrSourceDirectory = AbstractSourceAndMetadataPackageMojo.getJcrSourceDirectory(jcrRootSourceDirectory, builtContentDirectory, getLog());
+            final Path packageRootDirectory;
+            if (jcrSourceDirectory != null) {
+                // just return path of non-existing directory
+                packageRootDirectory = jcrRootSourceDirectory[0].toPath().getParent();
+            } else {
+                packageRootDirectory = jcrSourceDirectory.getParentFile().toPath();
+            }
+            ValidationContext context = new DirectoryValidationContext(buildContext.isIncremental(), generatedMetaInfRootDirectory.toPath(), metaInfRootDirectory.toPath(), packageRootDirectory, resolver, getLog());
             ValidationExecutor executor = validationExecutorFactory.createValidationExecutor(context, false, false, getEffectiveValidatorSettingsForPackage(context.getProperties().getId(), false));
             if (executor == null) {
                 throw new MojoExecutionException("No registered validators found!");
@@ -207,7 +215,6 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
                 validateDirectoryRecursively(validationHelper, executor, metaInfRootDirectory.toPath(), true);
             }
             validateDirectoryRecursively(validationHelper, executor, generatedMetaInfRootDirectory.toPath(), true);
-            File jcrSourceDirectory = AbstractSourceAndMetadataPackageMojo.getJcrSourceDirectory(jcrRootSourceDirectory, builtContentDirectory, getLog());
             if (jcrSourceDirectory != null) {
                 validateDirectoryRecursively(validationHelper, executor, jcrSourceDirectory.toPath(), false);
             }

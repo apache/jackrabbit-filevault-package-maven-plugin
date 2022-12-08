@@ -22,6 +22,7 @@ import java.util.Objects;
 
 import org.apache.jackrabbit.vault.packaging.PackageId;
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Mutable implementation of org.apache.jackrabbit.vault.validation.spi.ValidatorSettings. Used as Mojo parameter type.
@@ -72,12 +73,12 @@ public class ValidatorSettings implements org.apache.jackrabbit.vault.validation
     }
 
     @Override
-    public ValidationMessageSeverity getDefaultSeverity() {
+    public @NotNull ValidationMessageSeverity getDefaultSeverity() {
         return defaultSeverity != null ? defaultSeverity : ValidationMessageSeverity.ERROR;
     }
 
     @Override
-    public Map<String, String> getOptions() {
+    public @NotNull Map<String, String> getOptions() {
         return options;
     }
 

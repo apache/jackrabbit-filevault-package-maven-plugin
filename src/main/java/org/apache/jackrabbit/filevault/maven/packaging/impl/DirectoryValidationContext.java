@@ -16,7 +16,6 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -48,22 +47,24 @@ public class DirectoryValidationContext implements ValidationContext {
     private final DefaultWorkspaceFilter filter;
     private Collection<PackageInfo> resolvedDependencies;
     private final boolean isIncremental;
+    private final @NotNull Path packageRootDirectory;
     
     private static final Path RELATIVE_PROPERTIES_XML_PATH = Paths.get(Constants.VAULT_DIR, Constants.PROPERTIES_XML);
 
-    public DirectoryValidationContext(boolean isIncremental, @NotNull final File generatedMetaInfRootDirectory, final File metaInfRootDirectory, DependencyResolver resolver, @NotNull final Log log) throws IOException, ConfigurationException {
+    public DirectoryValidationContext(boolean isIncremental, @NotNull final Path generatedMetaInfRootDirectory, final Path metaInfRootDirectory, 
+            @NotNull final Path packageRootDirectory, DependencyResolver resolver, @NotNull final Log log) throws IOException, ConfigurationException {
         Path propertiesPath = null;
-        if (!Constants.META_INF.equals(generatedMetaInfRootDirectory.getName())) {
+        if (!Constants.META_INF.equals(generatedMetaInfRootDirectory.getFileName().toString())) {
             throw new IllegalArgumentException("The workDir must end with 'META-INF' but is '" + generatedMetaInfRootDirectory+"'");
         }
         if (metaInfRootDirectory != null) {
-            if (!Constants.META_INF.equals(metaInfRootDirectory.getName())) {
+            if (!Constants.META_INF.equals(metaInfRootDirectory.getFileName().toString())) {
                 throw new IllegalArgumentException("The metaInfRootDirectory must end with 'META-INF' but is '" + metaInfRootDirectory+"'");
             }
-            propertiesPath = metaInfRootDirectory.toPath().resolve(Constants.VAULT_DIR).resolve(Constants.PROPERTIES_XML);
+            propertiesPath = metaInfRootDirectory.resolve(Constants.VAULT_DIR).resolve(Constants.PROPERTIES_XML);
         }
         if (propertiesPath == null || !Files.exists(propertiesPath)) {
-            propertiesPath = generatedMetaInfRootDirectory.toPath().resolve(RELATIVE_PROPERTIES_XML_PATH);
+            propertiesPath = generatedMetaInfRootDirectory.resolve(RELATIVE_PROPERTIES_XML_PATH);
             if (!Files.exists(propertiesPath)) {
                 throw new IllegalStateException("No '" + RELATIVE_PROPERTIES_XML_PATH + "' found in either '" +metaInfRootDirectory + "' or '" + generatedMetaInfRootDirectory + "'");
             }
@@ -75,23 +76,24 @@ public class DirectoryValidationContext implements ValidationContext {
         
         // filter always comes from the workDir
         filter = new DefaultWorkspaceFilter();
-        File filterFile = new File(generatedMetaInfRootDirectory, Constants.VAULT_DIR +"/"+Constants.FILTER_XML);
-        if (!filterFile.exists()) {
+        Path filterFile = generatedMetaInfRootDirectory.resolve(Paths.get(Constants.VAULT_DIR, Constants.FILTER_XML));
+        if (!Files.isRegularFile(filterFile)) {
             throw new IllegalStateException("No mandatory '" + Constants.VAULT_DIR +"/"+Constants.FILTER_XML + "' found in " + generatedMetaInfRootDirectory + "'");
         }
-        filter.load(filterFile);
+        filter.load(filterFile.toFile());
         
         this.resolvedDependencies = resolver.resolvePackageInfo(getProperties().getDependencies(), getProperties().getDependenciesLocations());
         this.isIncremental = isIncremental;
+        this.packageRootDirectory = packageRootDirectory;
     }
 
     @Override
-    public PackageProperties getProperties() {
+    public @NotNull PackageProperties getProperties() {
         return properties;
     }
 
     @Override
-    public WorkspaceFilter getFilter() {
+    public @NotNull WorkspaceFilter getFilter() {
         return filter;
     }
 
@@ -101,12 +103,12 @@ public class DirectoryValidationContext implements ValidationContext {
     }
 
     @Override
-    public Path getPackageRootPath() {
-        return null;
+    public @NotNull Path getPackageRootPath() {
+        return packageRootDirectory;
     }
 
     @Override
-    public Collection<PackageInfo> getDependenciesPackageInfo() {
+    public @NotNull Collection<PackageInfo> getDependenciesPackageInfo() {
         return resolvedDependencies;
     }
 
