@@ -199,13 +199,13 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
             getLog().info("Validate files in generatedMetaInfRootDirectory " + getProjectRelativeFilePath(generatedMetaInfRootDirectory.toPath()) + " and metaInfRootDir " + getProjectRelativeFilePath(generatedMetaInfRootDirectory.toPath()));
             File jcrSourceDirectory = AbstractSourceAndMetadataPackageMojo.getJcrSourceDirectory(jcrRootSourceDirectory, builtContentDirectory, getLog());
             final Path packageRootDirectory;
-            if (jcrSourceDirectory != null) {
+            if (jcrSourceDirectory == null) {
                 // just return path of non-existing directory
                 packageRootDirectory = jcrRootSourceDirectory[0].toPath().getParent();
             } else {
                 packageRootDirectory = jcrSourceDirectory.getParentFile().toPath();
             }
-            ValidationContext context = new DirectoryValidationContext(buildContext.isIncremental(), generatedMetaInfRootDirectory.toPath(), metaInfRootDirectory.toPath(), packageRootDirectory, resolver, getLog());
+            ValidationContext context = new DirectoryValidationContext(buildContext.isIncremental(), generatedMetaInfRootDirectory.toPath(), metaInfRootDirectory != null ? metaInfRootDirectory.toPath() : null, packageRootDirectory, resolver, getLog());
             ValidationExecutor executor = validationExecutorFactory.createValidationExecutor(context, false, false, getEffectiveValidatorSettingsForPackage(context.getProperties().getId(), false));
             if (executor == null) {
                 throw new MojoExecutionException("No registered validators found!");
