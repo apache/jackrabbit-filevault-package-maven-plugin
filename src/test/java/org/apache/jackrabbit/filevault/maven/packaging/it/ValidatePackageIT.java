@@ -84,6 +84,7 @@ class ValidatePackageIT {
         .setProperty("vault.packageToValidate", "test-package.zip")
         .setVerifyPackageContents(false)
         .build();
+        projectBuilder.verifyExpectedLogLines(Paths.get("META-INF", "vault", "properties.xml").toString());
     }
 
     @Test
