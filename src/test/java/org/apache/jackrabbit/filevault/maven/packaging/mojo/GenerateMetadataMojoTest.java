@@ -34,7 +34,10 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
 
+import org.apache.jackrabbit.filevault.maven.packaging.Embedded;
+import org.apache.jackrabbit.filevault.maven.packaging.Filters;
 import org.apache.jackrabbit.filevault.maven.packaging.MavenBasedPackageDependency;
+import org.apache.jackrabbit.filevault.maven.packaging.SubPackage;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.filter.DefaultPathFilter;
@@ -104,8 +107,8 @@ class GenerateMetadataMojoTest {
         expectedAttributes.put("Content-Package-Dependencies", Pattern.compile("somegroup:dependency:1.0"));
         expectedAttributes.put("Build-Jdk-Spec", Pattern.compile(".*"));
         expectedAttributes.put("Content-Package-Type", Pattern.compile("application"));
-        // this includes the version in case the pom.properties is already created which shouldn't be the case here
-        expectedAttributes.put("Created-By", Pattern.compile("Apache Jackrabbit FileVault - Package Maven Plugin"));
+        // this includes potentially the version in case the pom.properties is already created (automatically done through Eclipse Incremental Build with m2e)
+        expectedAttributes.put("Created-By", Pattern.compile("Apache Jackrabbit FileVault - Package Maven Plugin(.*)?"));
         expectedAttributes.put("Content-Package-Id", Pattern.compile("mygroup:mypackage:1\\.4"));
         expectedAttributes.put("Content-Package-Description", Pattern.compile("")); 
         try {
@@ -138,6 +141,57 @@ class GenerateMetadataMojoTest {
         mojo.dependencies.add(dependency);
         // upper bound of the first dependency is left out in case it is unlimited
         assertEquals("day/cq60/product:cq-content:6.3.64,mygroup:mypackage:[1,2)", mojo.computeDependencies());
+    }
+
+    @Test
+    void testComputePackageType() {
+        GenerateMetadataMojo mojo = new GenerateMetadataMojo();
+        // no filter, embeds (should not happen in reality)
+        assertEquals(PackageType.MIXED, mojo.computePackageType());
+        mojo.embeddeds = new Embedded[]{ new Embedded() };
+        assertEquals(PackageType.CONTAINER, mojo.computePackageType());
+        Filters filters = new Filters();
+        filters.add(new PathFilterSet("/apps/mycontext"));
+        mojo.filters = filters;
+        // embedded + /apps content
+        assertEquals(PackageType.MIXED, mojo.computePackageType());
+        // just "/apps" content
+        mojo.embeddeds = new Embedded[]{ };
+        assertEquals(PackageType.APPLICATION, mojo.computePackageType());
+        // mixed /apps and non-apps content
+        filters.add(new PathFilterSet("/content/mycontext"));
+        assertEquals(PackageType.MIXED, mojo.computePackageType());
+        // non-apps content
+        filters = new Filters();
+        mojo.filters = filters;
+        filters.add(new PathFilterSet("/content/mycontext"));
+        assertEquals(PackageType.CONTENT, mojo.computePackageType());
+        // subpackage + OSGi config/bundle file
+        mojo.subPackages = new SubPackage[] { new SubPackage() };
+        assertEquals(PackageType.MIXED, mojo.computePackageType());
+        filters = new Filters();
+        mojo.filters = filters;
+        filters.add(new PathFilterSet("/apps/mycontext/config"));
+        assertEquals(PackageType.CONTAINER, mojo.computePackageType());
+        filters.add(new PathFilterSet("/apps/mycontext/config.somerunmode.author"));
+        assertEquals(PackageType.CONTAINER, mojo.computePackageType());
+        filters.add(new PathFilterSet("/apps/mycontext/configsuffix"));
+        assertEquals(PackageType.MIXED, mojo.computePackageType());
+        // just OSGi config/bundle file
+        mojo.subPackages = new SubPackage[] {};
+        filters = new Filters();
+        mojo.filters = filters;
+        filters.add(new PathFilterSet("/apps/mycontext/config"));
+        assertEquals(PackageType.CONTAINER, mojo.computePackageType());
+        filters.add(new PathFilterSet("/apps/mycontext/config.somerunmode.author"));
+        assertEquals(PackageType.CONTAINER, mojo.computePackageType());
+        filters.add(new PathFilterSet("/apps/mycontext/configsuffix"));
+        assertEquals(PackageType.MIXED, mojo.computePackageType());
+        // some content with config filter
+        filters = new Filters();
+        mojo.filters = filters;
+        filters.add(new PathFilterSet("/content/mycontext/config"));
+        assertEquals(PackageType.CONTENT, mojo.computePackageType());
     }
 
     private void assertEscapedValueWorksInManifest(String value) throws IOException {
