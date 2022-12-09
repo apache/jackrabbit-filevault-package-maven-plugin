@@ -1,0 +1,1 @@
+[WARNING] ValidationViolation: No package type set, make sure that property 'packageType' is set in the properties.xml! @ %0%, validator: jackrabbit-packagetype

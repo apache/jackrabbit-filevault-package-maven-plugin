@@ -60,17 +60,17 @@ import org.xml.sax.SAXException;
         name = "validate-package", defaultPhase = LifecyclePhase.VERIFY, requiresDependencyResolution = ResolutionScope.COMPILE, requiresProject = false, threadSafe = true)
 public class ValidatePackageMojo extends AbstractValidateMojo {
 
-    /** The main package file to validate. */
-    @Parameter(readonly = true, defaultValue = "${project.artifact.file}")
-    private File primaryArtifact;
+    /** The path to the main package file to validate. */
+    @Parameter(property = "vault.packageToValidate", defaultValue = "${project.artifact.file}")
+    private File packageFile;
 
     /**
-     * If set to {@code true} skips validating the project's primary artifact but only the ones being attached and having a classifier
-     * equal to the one(s) in either {@link #classifiers} and/or {@link #classifier}.
+     * If set to {@code true} skips validating the package given via {@link #packageFile} but only validates the ones being attached to the current project
+     * and having a classifier equal to the one(s) in either {@link #classifiers} and/or {@link #classifier}.
      * @since 1.3.2
      */
-    @Parameter()
-    private boolean skipPrimaryArtifact;
+    @Parameter(property = "vault.skipPackageFile")
+    private boolean skipPackageFile;
 
     /** If set to {@code true} always executes all validators also for all sub packages (recursively). */
     @Parameter(required = true, defaultValue = "false")
@@ -88,7 +88,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
 
     /**
      * The given classifiers are merged with the one from parameter {@link #classifier}.
-     * All matching attached artifacts are validated (potentially in addition to the primary artifact depending on parameter {@link #skipPrimaryArtifact}).
+     * All matching attached artifacts are validated (potentially in addition to the main package depending on parameter {@link #skipPackageFile}).
      * @since 1.1.4
      */
     @Parameter(property = "vault.classifiers")
@@ -96,7 +96,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
 
     /**
      * The given classifier is merged with the ones from parameter {@link #classifiers}.
-     * All matching attached artifacts are validated (potentially in addition to the primary artifact depending on parameter {@link #skipPrimaryArtifact}).
+     * All matching attached artifacts are validated (potentially in addition to the main package depending on parameter {@link #skipPackageFile}).
      * @since 1.2.2
      */
     @Parameter(property = "vault.classifier")
@@ -108,8 +108,8 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     @Override
     public void doExecute(ValidationMessagePrinter validationHelper) throws MojoExecutionException, MojoFailureException {
         boolean foundPackage = false;
-        if (!skipPrimaryArtifact && primaryArtifact != null && primaryArtifact.isFile()) {
-            validatePackage(validationHelper, primaryArtifact.toPath());
+        if (!skipPackageFile && packageFile != null && packageFile.isFile()) {
+            validatePackage(validationHelper, packageFile.toPath());
             foundPackage = true;
         }
         if (!attachedArtifacts.isEmpty()) {
@@ -129,7 +129,7 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
             }
         }
         if (!foundPackage) {
-            getLog().warn("No packages found to validate.");
+            throw new MojoFailureException("No packages found to validate.");
         }
         validationHelper.failBuildInCaseOfViolations(failOnValidationWarnings);
     }
