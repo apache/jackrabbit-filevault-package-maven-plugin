@@ -269,6 +269,28 @@
             <!-- ====================================================================== -->
             <!-- S I T E   P L U G I N                                                  -->
             <!-- ====================================================================== -->
+            <plugin><!-- prepare site content by filtering ${project.*} values -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>filter-site</id>
+                        <phase>pre-site</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/site-src</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/site</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
@@ -276,6 +298,7 @@
                     <generateReports>true</generateReports>
                     <relativizeDecorationLinks>false</relativizeDecorationLinks>
                     <skip>false</skip>
+                    <siteDirectory>${project.build.directory}/site-src</siteDirectory>
                 </configuration>
             </plugin>
             <!-- ====================================================================== -->

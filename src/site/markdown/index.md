@@ -15,8 +15,7 @@
    limitations under the License.
 -->
 
-Introduction
-============
+# Introduction
 
 Welcome to Apache Jackrabbit FileVault Package Maven Plugin.
 
@@ -26,8 +25,7 @@ using the Apache Jackrabbit FileVault packaging runtime.
 
 Apache Jackrabbit FileVault is a project of the Apache Software Foundation.
 
-Usage
-------
+## Usage
 
 As this Maven plugin comes with [Maven extensions](https://maven.apache.org/guides/mini/guide-using-extensions.html) (for defining custom bindings for `default` lifecycle and a custom artifact handler for type/packaging `content-package`) it needs to be loaded accordingly
 
@@ -42,7 +40,7 @@ As this Maven plugin comes with [Maven extensions](https://maven.apache.org/guid
 
 Further details on the individual goals are available at [Goals](plugin-info.html).
 
-### Plugin bindings for `content-package` packaging
+## Plugin bindings for `content-package` packaging
 
 ```
 <phases>
@@ -63,29 +61,25 @@ Further details on the individual goals are available at [Goals](plugin-info.htm
 Those bindings are defined in [`ContentPackageLifecycleMappingProvider`](https://github.com/apache/jackrabbit-filevault-package-maven-plugin/blob/master/src/main/java/org/apache/jackrabbit/filevault/maven/packaging/impl/extensions/ContentPackageLifecycleMappingProvider.java).
 The default bindings for other packagings are documented at [Plugin Bindings for Default Lifecycle Reference](https://maven.apache.org/ref/3.8.6/maven-core/default-bindings.html).
 
-Downloads
----------
+## Downloads
 
 The latest FileVault Package Maven Plugin sources are available at <https://github.com/apache/jackrabbit-filevault-package-maven-plugin>.
 
 See also our [releases](https://jackrabbit.apache.org/downloads.html) on the Jackrabbit
 download page for slightly more stable versions of the codebase.
 
-Mailing Lists
--------------
+## Mailing Lists
 
 To get involved with the Apache Jackrabbit project, start by having a
 look at our website and joining our mailing lists. For more details about
 Jackrabbit mailing lists as well as links to list archives, please see the [Mailing List](mail-lists.html) section.
 
 
-Latest development
-------------------
+## Latest development
 
 See the [development overview](dev.html) page for more information.
 
-Credits
--------
+## Credits
 
 See <https://jackrabbit.apache.org/jackrabbit-team.html> for the list of
 Jackrabbit committers and main contributors.
