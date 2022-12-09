@@ -61,7 +61,7 @@ import org.xml.sax.SAXException;
 public class ValidatePackageMojo extends AbstractValidateMojo {
 
     /** The path to the main package file to validate. */
-    @Parameter(property = "vault.packageToValidate", defaultValue = "${project.artifact.file}")
+    @Parameter(property = "vault.packageToValidate", defaultValue = "${project.artifact.file}", required = true)
     private File packageFile;
 
     /**

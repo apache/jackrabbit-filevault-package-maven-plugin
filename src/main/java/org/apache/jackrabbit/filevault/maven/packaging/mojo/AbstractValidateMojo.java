@@ -125,7 +125,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
      * </pre>
      * 
      */
-    @Parameter(property = "vault.failOnDependencyErrors", defaultValue = "true", required = true)
+    @Parameter(property = "vault.failOnDependencyErrors", defaultValue = "true")
     @Deprecated
     private boolean failOnDependencyErrors;
 
