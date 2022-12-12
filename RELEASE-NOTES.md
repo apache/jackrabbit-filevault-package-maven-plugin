@@ -15,7 +15,7 @@
    limitations under the License.
   -->
 
-Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.3.0
+Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.3.2
 ==================================================================================
 
 Introduction
@@ -23,6 +23,25 @@ Introduction
 The Apache Jackrabbit FileVault Package Maven Plugin is an Apache Maven plugin that simplifies the creation of
 content package Maven artifacts. The content packages can later be used to install content into a JCR repository
 using the Apache Jackrabbit FileVault packaging runtime.
+
+Changes in Jackrabbit FileVault Package Maven Plugin 1.3.2
+---------------------------------------------------
+
+#### Bug Fixes
+* [JCRVLT-431] - GenerateMetadataMojo.computePackageType does not work correctly for OSGi configurations/bundles
+* [JCRVLT-651] - validate-package: Allow to exclude main artifact
+* [JCRVLT-665] - Allow standalone usage of filevault-package:validate-package
+
+#### Improvements
+* [JCRVLT-618] - Clarify repositoryStructurePackages parameter
+* [JCRVLT-621] - Set "builtWith" property
+* [JCRVLT-625] - Ignore goal "generate-cnd" in Eclipse m2e
+* [JCRVLT-626] - Update to maven-verifier 1.8.0
+* [JCRVLT-629] - Change default value for failOnUncoveredSourceFiles to true
+* [JCRVLT-635] - Write validation messages with styles
+* [JCRVLT-641] - Use plexus-utils instead of Maven Shared Utils
+* [JCRVLT-642] - Drop Plexus components and only rely on JSR 330
+
 
 Changes in Jackrabbit FileVault Package Maven Plugin 1.3.0
 ---------------------------------------------------
