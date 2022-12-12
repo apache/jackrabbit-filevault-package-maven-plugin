@@ -43,6 +43,7 @@ Changes in Jackrabbit FileVault Package Maven Plugin 1.3.2
 * [JCRVLT-642] - Drop Plexus components and only rely on JSR 330
 * [JCRVLT-668] - Use FileVault 3.6.6
 
+
 Changes in Jackrabbit FileVault Package Maven Plugin 1.3.0
 ---------------------------------------------------
 
