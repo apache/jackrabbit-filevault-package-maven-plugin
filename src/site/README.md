@@ -27,7 +27,7 @@ can be used to build and deploy a web site as follows:
    $ mvn site
    ````
 
-2. Review the site at `site/target/site`
+2. Review the site at `target/site`
 
 3. Deploy the site to `http://jackrabbit.apache.org/filevault-package-maven-plugin` using:
 
