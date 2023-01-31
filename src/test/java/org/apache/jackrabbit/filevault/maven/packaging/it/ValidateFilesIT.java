@@ -35,4 +35,12 @@ class ValidateFilesIT {
             .build()
             .verifyExpectedLogLines(Paths.get("META-INF","vault","filter.xml").toString());
     }
+
+    @Test
+    void testValidProjectWithZip(ProjectBuilder projectBuilder) throws Exception {
+        projectBuilder
+            .setTestProjectDir("/validator-projects/valid-project-with-zip")
+            .setTestGoals("clean", "package") // make sure the validate-files mojo is not skipped
+            .build();
+    }
 }
