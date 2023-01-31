@@ -47,7 +47,6 @@ public abstract class AbstractSourceAndMetadataPackageMojo extends AbstractMetad
             + "${project.basedir}/src/content/jcr_root," + "${project.build.outputDirectory}")
     private File[] jcrRootSourceDirectory;
 
-    
     /**
      * The file name patterns to exclude (in addition to the default ones mentioned at {@link AbstractSourceAndMetadataPackageMojo#addDefaultExcludes}. The format of each pattern is described in {@link org.codehaus.plexus.util.DirectoryScanner}.
      * The comparison is against the path relative to the according filter root.
@@ -57,7 +56,7 @@ public abstract class AbstractSourceAndMetadataPackageMojo extends AbstractMetad
      * Each value is either a regex pattern if enclosed within {@code %regex[} and {@code ]}, otherwise an 
      * <a href="https://ant.apache.org/manual/dirtasks.html#patterns">Ant pattern</a>.
      */
-    @Parameter(property = "vault.excludes", defaultValue = "**/.vlt,**/.vltignore,**/.gitignore", required = true)
+    @Parameter(property = "vault.excludes", defaultValue = "**/.vlt,**/.vltignore,**/.gitignore,**/.gitattributes", required = true)
     protected Set<String> excludes;
 
     /**

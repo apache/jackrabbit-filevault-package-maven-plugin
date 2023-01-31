@@ -149,8 +149,35 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
      * Each value is either a regex pattern if enclosed within {@code %regex[} and {@code ]}, otherwise an 
      * <a href="https://ant.apache.org/manual/dirtasks.html#patterns">Ant pattern</a>.
      */
-    @Parameter(property = "vault.excludes", defaultValue = "**/.vlt,**/.vltignore", required = true)
+    @Parameter(property = "vault.excludes", defaultValue = "**/.vlt,**/.vltignore,**/.gitignore,**/.gitattributes", required = true)
     protected String[] excludes;
+
+    /**
+     * By default certain metadata files are excluded which means they will not be copied into the package. 
+     * If you need them for a particular reason you can do that by setting this parameter to {@code false}. This means
+     * all files matching the following <a href="https://ant.apache.org/manual/dirtasks.html#patterns">Ant patterns</a> won't be copied by default.
+     * <ul>
+     * <li>Misc: &#42;&#42;/&#42;~, &#42;&#42;/#&#42;#, &#42;&#42;/.#&#42;, &#42;&#42;/%&#42;%, &#42;&#42;/._&#42;</li>
+     * <li>CVS: &#42;&#42;/CVS, &#42;&#42;/CVS/&#42;&#42;, &#42;&#42;/.cvsignore</li>
+     * <li>SVN: &#42;&#42;/.svn, &#42;&#42;/.svn/&#42;&#42;</li>
+     * <li>GNU: &#42;&#42;/.arch-ids, &#42;&#42;/.arch-ids/&#42;&#42;</li>
+     * <li>Bazaar: &#42;&#42;/.bzr, &#42;&#42;/.bzr/&#42;&#42;</li>
+     * <li>SurroundSCM: &#42;&#42;/.MySCMServerInfo</li>
+     * <li>Mac: &#42;&#42;/.DS_Store</li>
+     * <li>Serena Dimension: &#42;&#42;/.metadata, &#42;&#42;/.metadata/&#42;&#42;</li>
+     * <li>Mercurial: &#42;&#42;/.hg, &#42;&#42;/.hg/&#42;&#42;</li>
+     * <li>GIT: &#42;&#42;/.git, &#42;&#42;/.git/&#42;&#42;</li>
+     * <li>Bitkeeper: &#42;&#42;/BitKeeper, &#42;&#42;/BitKeeper/&#42;&#42;, &#42;&#42;/ChangeSet,
+     * &#42;&#42;/ChangeSet/&#42;&#42;</li>
+     * <li>Darcs: &#42;&#42;/_darcs, &#42;&#42;/_darcs/&#42;&#42;, &#42;&#42;/.darcsrepo,
+     * &#42;&#42;/.darcsrepo/&#42;&#42;&#42;&#42;/-darcs-backup&#42;, &#42;&#42;/.darcs-temp-mail
+     * </ul>
+     *
+     * @see org.codehaus.plexus.util.AbstractScanner#DEFAULTEXCLUDES
+     * @since 1.3.4
+     */
+    @Parameter(defaultValue = "true")
+    protected boolean addDefaultExcludes;
     //-----
     // End: Copied from AbstractSourceAndMetadataPackageMojo
     // -----
@@ -229,7 +256,9 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
         Scanner scanner = buildContext.newScanner(baseDir.toFile());
         // make sure filtering does work equally as within the package goal
         scanner.setExcludes(excludes);
-        scanner.addDefaultExcludes();
+        if (addDefaultExcludes) {
+            scanner.addDefaultExcludes();
+        }
         scanner.scan();
         getLog().info("Scanning baseDir " + getProjectRelativeFilePath(baseDir) + "...");
         SortedSet<Path> sortedFileAndFolderNames = sortAndEnrichFilesAndDirectories(baseDir, scanner.getIncludedFiles(), scanner.getIncludedDirectories());
