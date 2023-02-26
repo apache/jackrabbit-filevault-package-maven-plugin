@@ -84,13 +84,13 @@ public class FormatDocviewXmlMojo extends AbstractMojo {
      */
     @Parameter
     protected Set<String> excludes = new HashSet<>();
-    
+
     /**
      * If set to {@code true} then fails the build if it encounters XML files which don't follow the
      * formatting rules for XML Docview files.
      * If set to {@code false} will reformat all XML Docview files.
      */
-    @Parameter(defaultValue = "false")
+    @Parameter(defaultValue = "false", property = "vault.validateOnly")
     private boolean validateOnly;
 
     /**
@@ -104,8 +104,7 @@ public class FormatDocviewXmlMojo extends AbstractMojo {
     protected BuildContext buildContext;
 
     private static final String MSG_MALFORMED_FILE = "Malformed according to DocView format";
-    private static final String MSG_COUNTERMEASURE = "Use either your IDE with JCR-VLT integration to sync files with the repository or use vlt-cli to apply the docview format " + 
-           "(http://jackrabbit.apache.org/filevault/usage.html).";
+    private static final String MSG_COUNTERMEASURE = "Use \"mvn filevault-package:format-xml\" to reformat the malformed files.";
  
     public void execute() throws MojoExecutionException, MojoFailureException {
         if (buildContext.isIncremental() && !enableForIncrementalBuild) {
@@ -122,7 +121,7 @@ public class FormatDocviewXmlMojo extends AbstractMojo {
             }
         }
     }
-    
+
     protected void executeInternal(@NotNull File sourceDirectory)
             throws MojoExecutionException, MojoFailureException {
 
