@@ -36,6 +36,7 @@
             <item name="Validators" href="validators.html"/>
             <item name="Classifier Support" href="classifiers.html"/>
             <item name="Filtering" href="filtering.html"/>
+            <item name="OSGi" href="osgi.html"/>
         </menu>
         <menu ref="modules"/>
         <menu ref="reports" inherit="bottom"/>

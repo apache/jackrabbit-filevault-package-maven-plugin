@@ -334,7 +334,8 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
     private String importPackage;
 
     /**
-     * Defines the path under which the embedded bundles are placed. defaults to '/apps/bundles/install'
+     * Defines the default parent directory path in the package ZIP archive which contains the embedded bundles ({@code /} needs to be used as file separator). 
+     * Must be relative to root entry {@code jcr_root}. Defaults to {@code apps/bundles/install}.
      */
     @Parameter(property = "vault.embeddedTarget")
     private String embeddedTarget;
@@ -354,7 +355,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      * <tr><td>{@code filter}</td><td>{@link Boolean}</td><td>If set to {@code true} adds the embedded artifact location to the package's filter. Default = {@code false}.</td></tr>
      * <tr><td>{@code isAllVersionsFilter}</td><td>{@link Boolean}</td><td>If {@code filter} is {@code true} and this is {@code true} as well, the filter entry will contain all versions of the same artifact (by creating an according filter pattern). Default = {@code false}.</td></tr>
      * <tr><td>{@code excludeTransitive}</td><td>{@link Boolean}</td><td>If {@code true} only filters on direct dependencies (not on transitive ones). Default = {@code false}.</td></tr>
-     * <tr><td>{@code target}</td><td>{@link String}</td><td>The parent folder location in the package where to place the embedded artifact. Falls back to {@link #embeddedTarget} if not set.</td></tr>
+     * <tr><td>{@code target}</td><td>{@link String}</td><td>The parent directory path in the package ZIP archive where to place the embedded artifact ({@code /} needs to be used as file separator). Must be relative to root entry {@code jcr_root}. Falls back to {@link #embeddedTarget} if not set.</td></tr>
      * </table>
      * All fields are optional. All filter criteria is concatenated with AND logic (i.e. every criterion must match for a specific dependency to be embedded).
      * <br>
@@ -1022,7 +1023,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
                 targetPath = embeddedTarget;
                 if (targetPath == null) {
                     final String loc = (prefix.length() == 0)
-                            ? "/apps/"
+                            ? "apps/"
                             : prefix;
                     targetPath = loc + "bundles/install/";
                     getLog().info("No target path set on " + emb + "; assuming default " + targetPath);
@@ -1030,7 +1031,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             }
             targetPath = makeAbsolutePath(targetPath);
 
-            targetPath = Constants.ROOT_DIR + "/" + targetPath;
+            targetPath = Constants.ROOT_DIR + targetPath;
             targetPath = FileUtils.normalize(targetPath);
             if (!targetPath.endsWith("/")) {
                 targetPath += "/";
