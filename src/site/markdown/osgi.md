@@ -27,11 +27,15 @@ Embedding OSGi bundles and configurations is possible in the JCR (and therefore 
 
 For details on the OSGi configuration format refer to [Configuration Serialization Formats](https://sling.apache.org/documentation/bundles/configuration-installer-factory.html#configuration-serialization-formats). Bundles are embedded as simple files (i.e. `nt:file` nodes).
 
+## Packages
+
+Although only useful for edge cases (e.g. to install a package only on Sling distributions with a certain [run mode](https://sling.apache.org/documentation/bundles/sling-settings-org-apache-sling-settings.html)) also content packages can be embedded in container packages. The difference to regular sub packages is that those are not installed synchronously along with the container package, but are being picked up asynchronously through the JCR Installer Provider and then being queued for installation through the OSGi installer via its [Content Package Installer Factory](https://sling.apache.org/documentation/bundles/content-package-installer-factory.html).
+
 ## Repository Location
 
-By default the Sling JCR Installer Provider and Sling Content-Package to Feature Model Converter only consider bundles and configurations inside the nodes `/libs/../install`/`/apps/../install` or `/libs/../install`/`/apps/../config` optionally suffixed by `.` followed by one or multiple run modes.
+By default the Sling JCR Installer Provider and Sling Content-Package to Feature Model Converter only consider embedded bundles, configurations and packages inside the nodes `/libs/../install`/`/apps/../install` or `/libs/../install`/`/apps/../config` optionally suffixed by `.` followed by one or multiple run modes.
 
 ## Maven Dependencies
 
-The FileVault Package Maven plugin supports automatically placing OSGi bundles in the right location in the generated package which are filtered from the project's Maven dependencies through its [`embeddeds` parameter](generate-metadata-mojo.html#embeddeds).
+The FileVault Package Maven plugin supports automatically embedding OSGi bundles or packages in the right location in the generated package which are filtered from the project's Maven dependencies through its [`embeddeds` parameter](generate-metadata-mojo.html#embeddeds).
 It needs to be ensured that the embedded target path is set accordingly for the Sling JCR Installer Provider to pick it up.
