@@ -17,7 +17,7 @@
 
 # OSGi Support
 
-Although the JCR spec and also the FileVault serialization format don't natively support OSGi bundles and configurations, they are still supported through 3rd party modules.
+Although neither the [JCR specification](https://s.apache.org/jcr-2.0-spec) and nor the FileVault serialization format natively support OSGi bundles and configurations those are still supported to be automatically deployed from a certain repository location through 3rd party modules. This allows to embed them also in content packages so that the full code and content belonging to an OSGi application based on Apache Sling can be wrapped in a single content package.
 
 ## Bundles and Configurations
 
