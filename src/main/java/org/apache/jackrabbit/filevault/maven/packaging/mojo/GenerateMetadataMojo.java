@@ -88,6 +88,7 @@ import org.apache.maven.archiver.ManifestConfiguration;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
 import org.apache.maven.archiver.MavenArchiver;
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.artifact.ArtifactUtils;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.artifact.repository.layout.ArtifactRepositoryLayout;
 import org.apache.maven.artifact.resolver.filter.ScopeArtifactFilter;
@@ -933,7 +934,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
         return archive;
     }
 
-    private Properties computeProperties(String dependenciesString, String dependenciesLocations) {
+    Properties computeProperties(String dependenciesString, String dependenciesLocations) {
         final Properties props = new Properties();
 
         // find the description of the content package (bug #30546)
@@ -979,7 +980,12 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
         }
 
         MavenArchiver archiver = new MavenArchiver();
-        Date createdDate = archiver.parseOutputTimestamp(outputTimestamp);
+        Date createdDate = null;
+        if (!ArtifactUtils.isSnapshot(version)) {
+            createdDate = archiver.parseOutputTimestamp(outputTimestamp);
+        } else {
+            getLog().debug("Disabling reproducible builds as the version is a SNAPSHOT, therefore a dynamic created date is used");
+        }
         if (createdDate == null) {
             createdDate = new Date();
         }
