@@ -17,6 +17,7 @@
 package org.apache.jackrabbit.filevault.maven.packaging.mojo;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
@@ -27,6 +28,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -38,6 +40,7 @@ import org.apache.jackrabbit.filevault.maven.packaging.Embedded;
 import org.apache.jackrabbit.filevault.maven.packaging.Filters;
 import org.apache.jackrabbit.filevault.maven.packaging.MavenBasedPackageDependency;
 import org.apache.jackrabbit.filevault.maven.packaging.SubPackage;
+import org.apache.jackrabbit.util.ISO8601;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
 import org.apache.jackrabbit.vault.fs.filter.DefaultPathFilter;
@@ -48,6 +51,7 @@ import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 class GenerateMetadataMojoTest {
 
@@ -225,5 +229,56 @@ class GenerateMetadataMojoTest {
      */
     private static String unescapeContinuations(String value) {
         return value.replaceAll("\r ", "");
+    }
+
+    @Test
+    void testComputeProperties() {
+        // first test with SNAPSHOT version
+        MavenProject project = Mockito.mock(MavenProject.class);
+        Mockito.when(project.getArtifactId()).thenReturn("myartifactid");
+        Mockito.when(project.getGroupId()).thenReturn("mygroupid");
+        Mockito.when(project.getVersion()).thenReturn("1.0.0-SNAPSHOT");
+        Mockito.when(project.getDescription()).thenReturn("my description");
+        GenerateMetadataMojo mojo = new GenerateMetadataMojo();
+        mojo.project = project;
+        mojo.group = "mygroup";
+        mojo.name = "myname";
+        mojo.version = "1.0.0-SNAPSHOT";
+        mojo.allowIndexDefinitions = true;
+        mojo.packageType = PackageType.MIXED;
+        mojo.outputTimestamp = "1";
+        Properties properties = mojo.computeProperties(null, null);
+        Properties expectedProperties = new Properties();
+        expectedProperties.put("allowIndexDefinitions", "true");
+        expectedProperties.put("name", "myname");
+        expectedProperties.put("group", "mygroup");
+        expectedProperties.put("description", "my description");
+        expectedProperties.put("groupId", "mygroupid");
+        expectedProperties.put("artifactId", "myartifactid");
+        expectedProperties.put("version", "1.0.0-SNAPSHOT");
+        expectedProperties.put("packageType", "mixed");
+        expectedProperties.put("requiresRoot", "false");
+        String expectedDate = ISO8601.format(new Date());
+        expectedDate = expectedDate.substring(0, expectedDate.lastIndexOf("."));
+        expectedProperties.put("created", expectedDate);
+        for (Object key : properties.keySet()) {
+            if (key.equals("created")) {
+                // only compare on seconds level
+                assertTrue(properties.get(key).toString().startsWith(expectedProperties.get(key).toString()), "Key " + key + "=" +  properties.get(key) + " does not start with " +  expectedProperties.get(key));
+            } else {
+                assertEquals(expectedProperties.get(key), properties.get(key), "Key " + key + " is not as expected");
+            }
+        }
+        // test with release version
+        mojo.version = "1.0.0";
+        expectedDate = ISO8601.format(new Date(1l));
+        for (Object key : properties.keySet()) {
+            if (key.equals("created")) {
+                // only compare on seconds level
+                assertTrue(properties.get(key).toString().startsWith(expectedProperties.get(key).toString()), "Key " + key + "=" +  properties.get(key) + " does not start with " +  expectedProperties.get(key));
+            } else {
+                assertEquals(expectedProperties.get(key), properties.get(key), "Key " + key + " is not as expected");
+            }
+        }
     }
 }

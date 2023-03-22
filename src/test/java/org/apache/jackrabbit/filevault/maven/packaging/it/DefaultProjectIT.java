@@ -52,6 +52,7 @@ public class DefaultProjectIT {
         // the created date is fixed in the pom, as this is a reproducible build
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "generic")
+            .setTestPackageFile("target/package-plugin-test-pkg-1.0.0.zip")
             .build()
             .verifyExpectedFiles()
             .verifyExpectedFilesOrder()
@@ -71,6 +72,7 @@ public class DefaultProjectIT {
     public void generic_project_is_reproducible(ProjectBuilder projectBuilder) throws Exception {
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "generic")
+            .setTestPackageFile("target/package-plugin-test-pkg-1.0.0.zip")
             .build();
         // MD5
         MessageDigest md = MessageDigest.getInstance("MD5");
@@ -81,6 +83,7 @@ public class DefaultProjectIT {
         byte[] digest1 = md.digest();
         projectBuilder
             .setTestProjectDir(TEST_PROJECT_NAME + "generic")
+            .setTestPackageFile("target/package-plugin-test-pkg-1.0.0.zip")
             .build();
         // MD5
         md = MessageDigest.getInstance("MD5");

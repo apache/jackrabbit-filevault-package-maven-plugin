@@ -22,7 +22,7 @@
     <!-- ====================================================================== -->
     <groupId>org.apache.jackrabbit.filevault</groupId>
     <artifactId>package-plugin-test-pkg</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version><!-- no SNAPSHOT to enable reproducible builds -->
     <packaging>content-package</packaging>
     <name>Packaging test</name>
 
