@@ -24,7 +24,7 @@
         <groupId>org.apache.jackrabbit.vault</groupId>
         <artifactId>parent</artifactId>
         <relativePath />
-        <version>3.6.6</version>
+        <version>3.6.9-SNAPSHOT</version>
     </parent>
 
     <!-- ====================================================================== -->
@@ -185,6 +185,9 @@
                                         <exclude>*:h2</exclude><!-- embedded in vault-core -->
                                         <exclude>org.apache.jackrabbit:jackrabbit-jcr2spi</exclude><!-- embedded in vault-core -->
                                         <exclude>org.apache.jackrabbit:jackrabbit-spi2dav</exclude><!-- not used in this context -->
+                                        <exclude>org.apache.felix:org.apache.felix.configadmin</exclude><!-- all transitive ones (with provided scope) are not relevant here) -->
+                                        <exclude>org.apache.felix:org.apache.felix.cm.json</exclude>
+                                        <exclude>org.apache.felix:org.apache.felix.converter</exclude>
                                         <!-- the following artifacts are not supposed to be used in OSGi/container context -->
                                         <exclude>org.apache.maven:maven-archiver</exclude>
                                         <exclude>org.codehaus.plexus:plexus-archiver</exclude>
@@ -445,7 +448,7 @@
             <artifactId>jackrabbit-jcr-commons</artifactId>
             <scope>compile</scope>
         </dependency>
-        <!-- only a transitive dependency but must be declared due to https://issues.apache.org/jira/browse/JCRVLT-394 -->
+        <!-- transitive dependencies of org.apache.jackrabbit.vault but must be declared due to https://issues.apache.org/jira/browse/JCRVLT-394 -->
         <dependency>
             <groupId>org.apache.jackrabbit</groupId>
             <artifactId>oak-jackrabbit-api</artifactId>
