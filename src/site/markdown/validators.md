@@ -42,10 +42,6 @@ Here is an example configuration
         <severityForUncoveredAncestorNodes>error</severityForUncoveredAncestorNodes>
       </options>
     </jackrabbit-filter>
-    <!-- more specific items  potentially overwrite more generic items -->
-    <jackrabbit-filter:mygroup:mypackage>
-      <isDisabled>true</isDisabled><!-- disable the validator for a specific package -->
-    </jackrabbit-filter>
   </validatorsSettings>
 </configuration>
 ```
