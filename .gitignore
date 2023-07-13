@@ -5,3 +5,4 @@ target
 .settings
 *.iml
 .DS_Store
+.flattened-pom.xml

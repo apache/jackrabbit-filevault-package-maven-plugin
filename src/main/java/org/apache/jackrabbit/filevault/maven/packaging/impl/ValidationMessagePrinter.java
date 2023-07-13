@@ -81,33 +81,29 @@ public class ValidationMessagePrinter implements Closeable {
     public void printMessages(Collection<ValidationViolation> violations, BuildContext buildContext, Path baseDirectory)  throws IOException {
         for (ValidationViolation violation : violations) {
             final int buildContextSeverity;
-                switch (violation.getSeverity()) {
-                    case ERROR:
-                        log.error(getDetailMessage(violation, baseDirectory));
-                        if (violation.getThrowable() != null) {
-                            log.debug(violation.getThrowable());
-                        }
-                        buildContextSeverity = BuildContext.SEVERITY_ERROR;
-                        noOfEmittedValidationMessagesWithLevelError++;
-                        break;
-                    case WARN:
-                        log.warn(getDetailMessage(violation, baseDirectory));
-                        if (violation.getThrowable() != null) {
-                            log.debug(violation.getThrowable());
-                        }
-                        noOfEmittedValidationMessagesWithLevelWarn++;
-                        buildContextSeverity = BuildContext.SEVERITY_WARNING;
-                        break;
-                    case INFO:
-                        log.info(getDetailMessage(violation, baseDirectory));
-                        buildContextSeverity = -1;
-                        break;
-                    default:
-                        log.debug(getDetailMessage(violation, baseDirectory));
-                        buildContextSeverity = -1;
-                        break;
+            switch (violation.getSeverity()) {
+                case ERROR:
+                    log.error(getDetailMessage(violation, baseDirectory));
+                    buildContextSeverity = BuildContext.SEVERITY_ERROR;
+                    noOfEmittedValidationMessagesWithLevelError++;
+                    break;
+                case WARN:
+                    log.warn(getDetailMessage(violation, baseDirectory));
+                    noOfEmittedValidationMessagesWithLevelWarn++;
+                    buildContextSeverity = BuildContext.SEVERITY_WARNING;
+                    break;
+                case INFO:
+                    log.info(getDetailMessage(violation, baseDirectory));
+                    buildContextSeverity = -1;
+                    break;
+                default:
+                    log.debug(getDetailMessage(violation, baseDirectory));
+                    buildContextSeverity = -1;
+                    break;
             }
-               
+            if (violation.getThrowable() != null) {
+                log.debug(violation.getThrowable());
+            }
             if (buildContextSeverity > 0) {
                 // only emit via build context inside eclipse, otherwise log from above is better!
                 if (!(buildContext instanceof DefaultBuildContext)) {
@@ -165,6 +161,9 @@ public class ValidationMessagePrinter implements Closeable {
         }
         if (violation.getNodePath() != null) {
             builder.a(", JCR node path: ").strong(violation.getNodePath());
+        }
+        if (violation.getThrowable() != null) {
+            builder.a(", Throwable: ").strong(violation.getThrowable().getMessage());
         }
         return builder.toString();
     }
