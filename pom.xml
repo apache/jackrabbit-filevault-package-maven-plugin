@@ -44,7 +44,6 @@
         <slf4j.version>1.7.5</slf4j.version> <!-- should be the version exported by the maven.version, https://github.com/apache/maven/blob/bb52d8502b132ec0a5a3f4c09453c07478323dc5/pom.xml#L65 -->
         <filevault.version>${project.parent.version}</filevault.version> <!-- must be equal to parent version -->
         <maven.compiler.release>8</maven.compiler.release>
-        <maven.compiler.target>8</maven.compiler.target><!-- also set target next to release due to https://issues.apache.org/jira/browse/MPLUGIN-404 -->
         <project.build.outputTimestamp>2022-12-12T17:50:56Z</project.build.outputTimestamp>
     </properties>
 
