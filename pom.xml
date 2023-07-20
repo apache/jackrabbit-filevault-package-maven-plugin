@@ -24,7 +24,7 @@
         <groupId>org.apache.jackrabbit.vault</groupId>
         <artifactId>parent</artifactId>
         <relativePath />
-        <version>3.7.0-SNAPSHOT</version>
+        <version>3.7.0</version>
     </parent>
 
     <!-- ====================================================================== -->
@@ -97,24 +97,6 @@
                 <filtering>true</filtering>
             </resource>
         </resources>
-        <pluginManagement>
-            <plugins>
-                <!-- update from 3.6.1 in ASF parent -->
-                <plugin>
-                    <artifactId>maven-plugin-plugin</artifactId>
-                    <version>3.7.0</version>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-plugin-report-plugin</artifactId>
-                    <version>3.7.0</version>
-                </plugin>
-                <!-- downgrade due to https://issues.apache.org/jira/browse/MRESOURCES-289 -->
-                <plugin>
-                    <artifactId>maven-resources-plugin</artifactId>
-                    <version>3.1.0</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
         <plugins>
             <!-- ====================================================================== -->
             <!-- M A V E N   P L U G I N                                                -->
@@ -141,7 +123,6 @@
                             <goal>helpmojo</goal>
                         </goals>
                     </execution>
-                    
                 </executions>
             </plugin>
             <!-- ====================================================================== -->
@@ -390,7 +371,6 @@
                 <artifactId>maven-project-info-reports-plugin</artifactId>
                 <configuration>
                     <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
-                    <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
                 </configuration>
             </plugin>
         </plugins>
