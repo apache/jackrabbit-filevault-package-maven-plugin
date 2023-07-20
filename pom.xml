@@ -32,7 +32,7 @@
     <!-- ====================================================================== -->
     <groupId>org.apache.jackrabbit</groupId>
     <artifactId>filevault-package-maven-plugin</artifactId>
-    <version>1.3.3-SNAPSHOT</version>
+    <version>1.3.4</version>
     <packaging>maven-plugin</packaging>
 
     <name>Apache Jackrabbit FileVault - Package Maven Plugin</name>
@@ -44,7 +44,7 @@
         <slf4j.version>1.7.5</slf4j.version> <!-- should be the version exported by the maven.version, https://github.com/apache/maven/blob/bb52d8502b132ec0a5a3f4c09453c07478323dc5/pom.xml#L65 -->
         <filevault.version>${project.parent.version}</filevault.version> <!-- must be equal to parent version -->
         <maven.compiler.release>8</maven.compiler.release>
-        <project.build.outputTimestamp>2022-12-12T17:50:56Z</project.build.outputTimestamp>
+        <project.build.outputTimestamp>2023-07-20T09:50:33Z</project.build.outputTimestamp>
     </properties>
 
     <prerequisites>
@@ -60,7 +60,7 @@
         <connection>scm:git:https://gitbox.apache.org/repos/asf/jackrabbit-filevault-package-maven-plugin.git</connection>
         <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/jackrabbit-filevault-package-maven-plugin.git</developerConnection>
         <url>https://github.com/apache/jackrabbit-filevault-package-maven-plugin/tree/${project.scm.tag}</url>
-      <tag>HEAD</tag>
+      <tag>filevault-package-maven-plugin-1.3.4</tag>
   </scm>
 
     <ciManagement>
