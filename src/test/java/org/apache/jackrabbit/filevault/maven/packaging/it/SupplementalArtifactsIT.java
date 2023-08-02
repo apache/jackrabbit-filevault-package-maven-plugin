@@ -38,4 +38,14 @@ class SupplementalArtifactsIT {
         projectBuilder.verifyExpectedFiles(new File(projectBuilder.getTestProjectDir(), "expected-files-libs.txt"), 
                 ProjectBuilder.verifyPackageZipEntries(new File(projectBuilder.getTestProjectDir(), "target/package-plugin-test-pkg-1.0.0-SNAPSHOT-libs.zip")));
     }
+
+    @Test
+    void testTarPrimaryTypeAndContentPackage(ProjectBuilder projectBuilder) throws VerificationException, IOException {
+        projectBuilder.setTestProjectDir("/supplemental-artifacts/archive-and-content-package-in-one-module");
+        projectBuilder.setVerifyPackageContents(false); // main artifact is no content package
+        projectBuilder.build();
+        // verify contents of supplemental artifact (with classifier "additional-cp")
+        projectBuilder.verifyExpectedFiles(new File(projectBuilder.getTestProjectDir(), "expected-files-additional-cp.txt"), 
+                ProjectBuilder.verifyPackageZipEntries(new File(projectBuilder.getTestProjectDir(), "target/package-plugin-test-pkg-1.0.0-SNAPSHOT-additional-cp.zip")));
+    }
 }
