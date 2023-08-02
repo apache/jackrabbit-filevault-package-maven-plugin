@@ -565,7 +565,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             mavenArchiver.createArchive(null, project, getMavenArchiveConfiguration(getGeneratedManifestFile(false)));
 
             if (StringUtils.isNotEmpty(classifier)) {
-                projectHelper.attachArtifact(project, finalFile, classifier);
+                projectHelper.attachArtifact(project, PACKAGE_TYPE, classifier, finalFile);
             } else {
                 // set the file for the project's artifact and ensure the
                 // artifact is correctly handled with the "zip" handler
