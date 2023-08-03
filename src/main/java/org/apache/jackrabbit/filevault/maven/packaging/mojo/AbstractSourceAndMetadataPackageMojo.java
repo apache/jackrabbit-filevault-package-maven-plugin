@@ -41,6 +41,8 @@ public abstract class AbstractSourceAndMetadataPackageMojo extends AbstractMetad
     /**
      * The directory that contains the jcr_root of the content. Multiple directories can be specified as a comma separated list,
      * which will act as a search path and cause the plugin to look for the first existing directory.
+     * <p>
+     * This directory must be outside the {@link AbstractMetadataPackageMojo#workDirectory}.
      */
     @Parameter(property = "vault.jcrRootSourceDirectory", required = true, defaultValue = "${project.basedir}/jcr_root,"
             + "${project.basedir}/src/main/jcr_root," + "${project.basedir}/src/main/content/jcr_root,"

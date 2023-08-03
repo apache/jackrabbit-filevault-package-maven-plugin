@@ -476,10 +476,14 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             Filters filters = loadGeneratedFilterFile();
             Map<String, File> embeddedFiles = getEmbeddedFilesMap();
 
+            File workDirectory = getWorkDirectory(false);
             // A map with key = relative file in zip and value = absolute source file name)
             Map<File, File> duplicateFiles = new HashMap<>();
             contentPackageArchiver.setIncludeEmptyDirs(true);
             if (metaInfVaultDirectory != null) {
+                if (metaInfVaultDirectory.getAbsoluteFile().toPath().normalize().startsWith(workDirectory.getAbsoluteFile().toPath().normalize())) {
+                    throw new MojoFailureException("metaInfVaultDirectory ("+metaInfVaultDirectory+") must be outside of workDirectory ("+ workDirectory + ")!");
+                }
                 // first add the metadata from the metaInfDirectory (they should take precedence over the generated ones from workDirectory,
                 // except for the filter.xml, which should always come from the work directory)
                 DefaultFileSet fileSet = createFileSet(metaInfVaultDirectory, Constants.META_DIR + "/",
@@ -489,7 +493,7 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             }
             // then add all files from the workDirectory (they might overlap with the ones from metaInfDirectory, but the duplicates are
             // just ignored in the package)
-            DefaultFileSet fileSet = createFileSet(getWorkDirectory(false), "");
+            DefaultFileSet fileSet = createFileSet(workDirectory, "");
             // issue warning in case of overlaps
             Map<File, File> overwrittenWorkFiles = getOverwrittenProtectedFiles(fileSet, true);
             for (Entry<File, File> entry : overwrittenWorkFiles.entrySet()) {
@@ -514,6 +518,9 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             final File jcrSourceDirectory = getJcrSourceDirectory();
             // include content from build only if it exists
             if (jcrSourceDirectory != null && jcrSourceDirectory.exists()) {
+                if (jcrSourceDirectory.getAbsoluteFile().toPath().normalize().startsWith(workDirectory.getAbsoluteFile().toPath().normalize())) {
+                    throw new MojoFailureException("jcrSourceDirectory ("+jcrSourceDirectory+") must be outside of workDirectory ("+ workDirectory + ")!");
+                }
                 getLog().info("Packaging content from " + getProjectRelativeFilePath(jcrSourceDirectory));
                 Map<File, File> overwrittenFiles = addSourceDirectory(mavenResourcesExecution, contentPackageArchiver, jcrSourceDirectory, filters, embeddedFiles);
                 duplicateFiles.putAll(overwrittenFiles);
