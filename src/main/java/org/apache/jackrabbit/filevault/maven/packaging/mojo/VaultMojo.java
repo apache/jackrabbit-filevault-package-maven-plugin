@@ -516,48 +516,22 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             }
             // find the source directory
             final File jcrSourceDirectory = getJcrSourceDirectory();
-            // include content from build only if it exists
-            if (jcrSourceDirectory != null && jcrSourceDirectory.exists()) {
-                if (jcrSourceDirectory.getAbsoluteFile().toPath().normalize().startsWith(workDirectory.getAbsoluteFile().toPath().normalize())) {
-                    throw new MojoFailureException("jcrSourceDirectory ("+jcrSourceDirectory+") must be outside of workDirectory ("+ workDirectory + ")!");
-                }
-                getLog().info("Packaging content from " + getProjectRelativeFilePath(jcrSourceDirectory));
-                Map<File, File> overwrittenFiles = addSourceDirectory(mavenResourcesExecution, contentPackageArchiver, jcrSourceDirectory, filters, embeddedFiles);
-                duplicateFiles.putAll(overwrittenFiles);
+            addSourceDirectory(mavenResourcesExecution, contentPackageArchiver, jcrSourceDirectory, filters, embeddedFiles);
 
-                if (!duplicateFiles.isEmpty()) {
-                    for (Entry<File, File> entry : duplicateFiles.entrySet()) {
-                        String message = "Found duplicate file '" + entry.getKey() + "' from sources " + getProjectRelativeFilePath(protectedFiles.get(entry.getKey()))
-                                + " and " + getProjectRelativeFilePath(entry.getValue()) + ".";
-                        if (failOnDuplicateEntries) {
-                            getLog().error(message);
-                        } else {
-                            getLog().warn(message);
-                        }
-                    }
+
+            if (!duplicateFiles.isEmpty()) {
+                for (Entry<File, File> entry : duplicateFiles.entrySet()) {
+                    String message = "Found duplicate file '" + entry.getKey() + "' from sources " + getProjectRelativeFilePath(protectedFiles.get(entry.getKey()))
+                            + " and " + getProjectRelativeFilePath(entry.getValue()) + ".";
                     if (failOnDuplicateEntries) {
-                        throw new MojoFailureException(
-                                "Found " + duplicateFiles.size() + " duplicate file(s) in content package, see above errors for details.");
+                        getLog().error(message);
+                    } else {
+                        getLog().warn(message);
                     }
                 }
-
-                // check for uncovered files (i.e. files from the source which are not even added to the content package)
-                Collection<File> uncoveredFiles = getUncoveredFiles(jcrSourceDirectory, excludes, prefix,
-                        contentPackageArchiver.getFiles().keySet());
-                if (!uncoveredFiles.isEmpty()) {
-                    for (File uncoveredFile : uncoveredFiles) {
-                        String message = "File " + getProjectRelativeFilePath(uncoveredFile)
-                                + " not covered by a filter rule and therefore not contained in the resulting package";
-                        if (failOnUncoveredSourceFiles) {
-                            getLog().error(message);
-                        } else {
-                            getLog().warn(message);
-                        }
-                    }
-                    if (failOnUncoveredSourceFiles) {
-                        throw new MojoFailureException("The following files are not covered by a filter rule: \n"
-                                + StringUtils.join(uncoveredFiles.iterator(), ",\n"));
-                    }
+                if (failOnDuplicateEntries) {
+                    throw new MojoFailureException(
+                            "Found " + duplicateFiles.size() + " duplicate file(s) in content package, see above errors for details.");
                 }
             }
 
@@ -602,8 +576,17 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     }
 
     private Map<File, File> addSourceDirectory(MavenResourcesExecution mavenResourcesExecution, ContentPackageArchiver contentPackageArchiver, File jcrSourceDirectory, Filters filters,
-            Map<String, File> embeddedFiles) throws MavenFilteringException {
+            Map<String, File> embeddedFiles) throws MavenFilteringException, MojoFailureException {
         Map<File, File> duplicateFiles = new HashMap<>();
+        
+        if (jcrSourceDirectory == null || !jcrSourceDirectory.exists()) {
+            return Collections.emptyMap();
+            
+        }
+        if (jcrSourceDirectory.getAbsoluteFile().toPath().normalize().startsWith(getWorkDirectory(false).getAbsoluteFile().toPath().normalize())) {
+            throw new MojoFailureException("jcrSourceDirectory ("+jcrSourceDirectory+") must be outside of workDirectory ("+ workDirectory + ")!");
+        }
+        getLog().info("Packaging content from " + getProjectRelativeFilePath(jcrSourceDirectory));
         // See GRANITE-16348
         // we want to build a list of all the root directories in the order they were specified in the filter
         // but ignore the roots that don't point to a directory
@@ -652,6 +635,24 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
                     }
                 }
                 
+            }
+        }
+        // check for uncovered files (i.e. files from the source which are not even added to the content package)
+        Collection<File> uncoveredFiles = getUncoveredFiles(jcrSourceDirectory, excludes, prefix,
+                contentPackageArchiver.getFiles().keySet());
+        if (!uncoveredFiles.isEmpty()) {
+            for (File uncoveredFile : uncoveredFiles) {
+                String message = "File " + getProjectRelativeFilePath(uncoveredFile)
+                        + " not covered by a filter rule and therefore not contained in the resulting package";
+                if (failOnUncoveredSourceFiles) {
+                    getLog().error(message);
+                } else {
+                    getLog().warn(message);
+                }
+            }
+            if (failOnUncoveredSourceFiles) {
+                throw new MojoFailureException("The following files are not covered by a filter rule: \n"
+                        + StringUtils.join(uncoveredFiles.iterator(), ",\n"));
             }
         }
         return duplicateFiles;
