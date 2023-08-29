@@ -30,6 +30,7 @@ import org.apache.jackrabbit.vault.packaging.PackageInfo;
 import org.apache.jackrabbit.vault.packaging.PackageProperties;
 import org.apache.jackrabbit.vault.packaging.impl.DefaultPackageProperties;
 import org.apache.jackrabbit.vault.util.Constants;
+import org.apache.jackrabbit.vault.validation.context.AbstractValidationContext;
 import org.apache.jackrabbit.vault.validation.spi.ValidationContext;
 import org.apache.maven.plugin.logging.Log;
 import org.jetbrains.annotations.NotNull;
@@ -41,7 +42,7 @@ import org.jetbrains.annotations.NotNull;
  *  <li>metaInfDir, the directory in which meta inf files have been manually written (must have name META-INF)
  * </ul>
  */
-public class DirectoryValidationContext implements ValidationContext {
+public class DirectoryValidationContext extends AbstractValidationContext {
 
     private final PackageProperties properties;
     private final DefaultWorkspaceFilter filter;
