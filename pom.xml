@@ -496,20 +496,20 @@
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-utils</artifactId>
-            <version>3.4.2</version>
+            <version>4.0.0</version>
             <scope>compile</scope>
         </dependency>
         <!-- This is not a core artifact, i.e. must not be used with scope "provided" despite having group id "org.apache.maven", https://issues.apache.org/jira/browse/MPLUGIN-385 -->
         <dependency>
             <groupId>org.apache.maven</groupId>
             <artifactId>maven-archiver</artifactId>
-            <version>3.6.0</version>
+            <version>3.6.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-archiver</artifactId>
-            <version>4.4.0</version>
+            <version>4.8.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -528,7 +528,7 @@
         <dependency>
             <groupId>biz.aQute.bnd</groupId>
             <artifactId>biz.aQute.bndlib</artifactId>
-            <version>6.2.0</version>
+            <version>6.4.0</version>
             <scope>compile</scope>
         </dependency>
 
@@ -536,7 +536,7 @@
         <dependency>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>animal-sniffer-maven-plugin</artifactId>
-            <version>1.21</version>
+            <version>1.23</version>
             <scope>compile</scope>
             <exclusions>
               <exclusion>
@@ -548,7 +548,7 @@
         <dependency>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>animal-sniffer</artifactId>
-            <version>1.21</version>
+            <version>1.23</version>
             <scope>compile</scope>
         </dependency>
 
@@ -562,7 +562,7 @@
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-common-artifact-filters</artifactId>
-            <version>3.3.0</version>
+            <version>3.3.2</version>
             <scope>compile</scope>
             <exclusions>
               <exclusion>
@@ -584,7 +584,7 @@
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-filtering</artifactId>
-            <version>3.3.0</version>
+            <version>3.3.1</version>
             <scope>compile</scope>
             <exclusions>
               <exclusion>
@@ -604,7 +604,7 @@
         <dependency>
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-shared-utils</artifactId>
-            <version>3.3.4</version>
+            <version>3.4.2</version>
             <scope>compile</scope>
         </dependency>
 
@@ -679,6 +679,12 @@
             <groupId>org.apache.maven.shared</groupId>
             <artifactId>maven-shared-io</artifactId>
             <version>3.0.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.codehaus.plexus</groupId>
+            <artifactId>plexus-xml</artifactId>
+            <version>4.0.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
