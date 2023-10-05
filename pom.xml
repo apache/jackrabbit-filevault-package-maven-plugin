@@ -681,10 +681,11 @@
             <version>3.0.0</version>
             <scope>test</scope>
         </dependency>
+        
         <dependency>
             <groupId>org.codehaus.plexus</groupId>
             <artifactId>plexus-xml</artifactId>
-            <version>4.0.2</version>
+            <version>3.0.0</version><!-- use 3.0.0 to not depend on any Maven 4 impls yet, https://github.com/codehaus-plexus/plexus-utils/commit/e0106e4bff35cf92b3429871cf69e725a7d71755 --> 
             <scope>test</scope>
         </dependency>
     </dependencies>
