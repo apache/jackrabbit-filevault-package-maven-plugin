@@ -121,8 +121,9 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
                 classifiersToCompare.add(classifier);
             }
             for (Artifact attached : attachedArtifacts) {
-                // validate attached artifacts with given classifiers
-                if (classifiersToCompare.contains(attached.getClassifier())) {
+                // validate attached artifacts with given classifiers (in case it is a content package)
+                if (classifiersToCompare.contains(attached.getClassifier())
+                    && VaultMojo.PACKAGE_TYPE.equals(attached.getType())) {
                     validatePackage(validationHelper, attached.getFile().toPath());
                     foundPackage = true;
                 }

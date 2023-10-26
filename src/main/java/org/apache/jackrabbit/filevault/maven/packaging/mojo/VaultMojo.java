@@ -76,9 +76,9 @@ import org.jetbrains.annotations.NotNull;
 @Mojo(name = "package", defaultPhase = LifecyclePhase.PACKAGE, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
 
-    private static final String PACKAGE_TYPE = "zip";
+    public static final String PACKAGE_TYPE = "content-package";
 
-    public static final String PACKAGE_EXT = "." + PACKAGE_TYPE;
+    public static final String PACKAGE_EXT = ".zip";
 
     private static final Collection<File> STATIC_META_INF_FILES = Arrays.asList(new File(Constants.META_DIR, Constants.CONFIG_XML),
             new File(Constants.META_DIR, Constants.SETTINGS_XML));
