@@ -25,12 +25,13 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import org.apache.jackrabbit.filevault.maven.packaging.mojo.VaultMojo;
 import org.apache.maven.lifecycle.mapping.Lifecycle;
 import org.apache.maven.lifecycle.mapping.LifecycleMapping;
 import org.apache.maven.lifecycle.mapping.LifecyclePhase;
 
 @Singleton
-@Named("content-package")
+@Named(VaultMojo.PACKAGE_TYPE)
 public class ContentPackageLifecycleMappingProvider implements Provider<LifecycleMapping> {
 
     private static final String DEFAULT_LIFECYCLE_KEY = "default";

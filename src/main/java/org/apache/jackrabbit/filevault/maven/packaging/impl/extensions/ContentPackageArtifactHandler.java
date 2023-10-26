@@ -19,14 +19,15 @@ package org.apache.jackrabbit.filevault.maven.packaging.impl.extensions;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import org.apache.jackrabbit.filevault.maven.packaging.mojo.VaultMojo;
 import org.apache.maven.artifact.handler.DefaultArtifactHandler;
 
 @Singleton
-@Named("content-package")
+@Named(VaultMojo.PACKAGE_TYPE)
 public class ContentPackageArtifactHandler extends DefaultArtifactHandler {
 
     public ContentPackageArtifactHandler() {
-        super("content-package");
+        super(VaultMojo.PACKAGE_TYPE);
         setIncludesDependencies(true);
         setExtension("zip");
         setLanguage("java");
