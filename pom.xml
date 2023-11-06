@@ -112,6 +112,9 @@
                                 <externalJavadocBaseUrl>https://jackrabbit.apache.org/filevault/apidocs/</externalJavadocBaseUrl>
                                 <externalJavadocBaseUrl>https://maven.apache.org/shared/maven-archiver/apidocs/</externalJavadocBaseUrl>
                                 <externalJavadocBaseUrl>https://docs.oracle.com/javase/8/docs/api/</externalJavadocBaseUrl>
+                                <externalJavadocBaseUrl>https://codehaus-plexus.github.io/plexus-utils/apidocs/</externalJavadocBaseUrl>
+                                <externalJavadocBaseUrl>https://maven.apache.org/ref/${maven.version}/maven-artifact/apidocs/</externalJavadocBaseUrl>
+                                <externalJavadocBaseUrl>https://www.mojohaus.org/animal-sniffer/animal-sniffer/apidocs/</externalJavadocBaseUrl>
                             </externalJavadocBaseUrls>
                         </configuration>
                     </execution>
