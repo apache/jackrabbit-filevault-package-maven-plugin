@@ -21,7 +21,7 @@ import java.nio.charset.StandardCharsets;
 
 import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
 import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
-import org.apache.maven.it.VerificationException;
+import org.apache.maven.shared.verifier.VerificationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 

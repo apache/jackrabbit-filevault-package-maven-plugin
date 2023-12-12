@@ -25,9 +25,9 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
 import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
-import org.apache.maven.it.VerificationException;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.maven.shared.verifier.VerificationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 

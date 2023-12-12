@@ -24,22 +24,22 @@ import java.net.URISyntaxException;
 import org.apache.jackrabbit.vault.validation.context.AbstractDependencyResolver.MavenCoordinates;
 import org.junit.jupiter.api.Test;
 
-public class MavenBasedPackageDependencyTest {
+class MavenBasedPackageDependencyTest {
 
     @Test
-    public void testMavenCoordinatesToUri() throws URISyntaxException {
+    void testMavenCoordinatesToUri() throws URISyntaxException {
         assertEquals(new URI("maven", "group1:name1:1.0:zip:classifier1", null), MavenBasedPackageDependency.mavenCoordinatesToUri("group1", "name1", "1.0", "classifier1"));
         assertEquals(new URI("maven", "group1:name1:1.0:zip", null), MavenBasedPackageDependency.mavenCoordinatesToUri("group1", "name1", "1.0", null));
     }
 
     @Test 
-    public void testMavenCoordinatesToUriRoundtrip() throws URISyntaxException {
+    void testMavenCoordinatesToUriRoundtrip() throws URISyntaxException {
         MavenCoordinates coordinates = new MavenCoordinates("groupname", "artifactName", "1.0");
         assertEquals(coordinates, MavenCoordinates.parse(MavenBasedPackageDependency.mavenCoordinatesToUri(coordinates.getGroupId(), coordinates.getArtifactId(), coordinates.getVersion(), coordinates.getClassifier())));
     }
     
     @Test 
-    public void testUriToMavenCoordinatesRoundtrip() throws URISyntaxException {
+    void testUriToMavenCoordinatesRoundtrip() throws URISyntaxException {
         URI uri = new URI("maven", "test-group:some name:1.0:zip", null);
         MavenCoordinates coordinates = MavenCoordinates.parse(uri);
         assertEquals(uri, MavenBasedPackageDependency.mavenCoordinatesToUri(coordinates.getGroupId(), coordinates.getArtifactId(), coordinates.getVersion(), coordinates.getClassifier()));
