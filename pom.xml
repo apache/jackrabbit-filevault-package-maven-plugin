@@ -45,6 +45,8 @@
         <filevault.version>${project.parent.version}</filevault.version> <!-- must be equal to parent version -->
         <maven.compiler.release>8</maven.compiler.release>
         <project.build.outputTimestamp>2023-11-13T16:28:26Z</project.build.outputTimestamp>
+        <doxiaVersion>2.0.0-M10-SNAPSHOT</doxiaVersion>
+        <doxiaSitetoolsVersion>2.0.0-M17</doxiaSitetoolsVersion>
     </properties>
 
     <prerequisites>
@@ -71,6 +73,17 @@
     <!-- parent is available in SNAPSHOT repo of Apache -->
     <repositories>
         <repository>
+            <id>apache.staging.repo</id>
+            <name>Apache Development Snapshot Repository</name>
+            <url>https://repository.apache.org/content/repositories/maven-2071/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
             <id>apache.snapshots</id>
             <name>Apache Development Snapshot Repository</name>
             <url>https://repository.apache.org/content/repositories/snapshots/</url>
@@ -82,6 +95,19 @@
             </snapshots>
         </repository>
     </repositories>
+    <pluginRepositories>
+        <pluginRepository>
+            <id>apache.staging.repo</id>
+            <name>Apache Development Snapshot Repository</name>
+            <url>https://repository.apache.org/content/repositories/maven-2071/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 
     <!-- ====================================================================== -->
     <!-- B U I L D   D E F I N I T I O N                                        -->
@@ -293,12 +319,72 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-site-plugin</artifactId>
+                <version>4.0.0-M13</version>
                 <configuration>
                     <generateReports>true</generateReports>
                     <relativizeDecorationLinks>false</relativizeDecorationLinks>
                     <skip>false</skip>
                     <siteDirectory>${project.build.directory}/site-src</siteDirectory>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                      <groupId>org.apache.maven.doxia</groupId>
+                      <artifactId>doxia-sink-api</artifactId>
+                      <version>${doxiaVersion}</version>
+                    </dependency>
+                    <dependency>
+                      <groupId>org.apache.maven.doxia</groupId>
+                      <artifactId>doxia-core</artifactId>
+                      <version>${doxiaVersion}</version>
+                    </dependency>
+                    <dependency>
+                      <groupId>org.apache.maven.doxia</groupId>
+                      <artifactId>doxia-module-xhtml5</artifactId>
+                      <version>${doxiaVersion}</version>
+                    </dependency>
+                    <dependency>
+                      <groupId>org.apache.maven.doxia</groupId>
+                      <artifactId>doxia-module-apt</artifactId>
+                      <version>${doxiaVersion}</version>
+                      <scope>runtime</scope>
+                    </dependency>
+                    <dependency>
+                      <groupId>org.apache.maven.doxia</groupId>
+                      <artifactId>doxia-module-xdoc</artifactId>
+                      <version>${doxiaVersion}</version>
+                    </dependency>
+                    <dependency>
+                      <groupId>org.apache.maven.doxia</groupId>
+                      <artifactId>doxia-module-fml</artifactId>
+                      <version>${doxiaVersion}</version>
+                      <scope>runtime</scope>
+                    </dependency>
+                    <dependency>
+                      <groupId>org.apache.maven.doxia</groupId>
+                      <artifactId>doxia-module-markdown</artifactId>
+                      <version>${doxiaVersion}</version>
+                      <scope>runtime</scope>
+                    </dependency>
+                
+                    <!-- Doxia Sitetools -->
+                    <dependency>
+                      <groupId>org.apache.maven.doxia</groupId>
+                      <artifactId>doxia-site-model</artifactId>
+                      <version>${doxiaSitetoolsVersion}</version>
+                    </dependency>
+                
+                    <dependency>
+                      <groupId>org.apache.maven.doxia</groupId>
+                      <artifactId>doxia-site-renderer</artifactId>
+                      <version>${doxiaSitetoolsVersion}</version>
+                    </dependency>
+                
+                    <dependency>
+                      <groupId>org.apache.maven.doxia</groupId>
+                      <artifactId>doxia-integration-tools</artifactId>
+                      <version>${doxiaSitetoolsVersion}</version>
+                    </dependency>
+            </dependencies>
             </plugin>
             <!-- ====================================================================== -->
             <!-- S C M   P U B L I S H   P L U G I N                                    -->

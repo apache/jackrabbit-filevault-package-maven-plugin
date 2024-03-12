@@ -64,6 +64,11 @@
             <item href="https://jackrabbit.apache.org/filevault-package-maven-plugin-archives/1.0.0" name="1.0.0"/>
         </menu>
     </body>
+    <skin>
+        <groupId>org.apache.maven.skins</groupId>
+        <artifactId>maven-fluido-skin</artifactId>
+        <version>2.0.0-M8</version>
+    </skin>
     <custom>
         <fluidoSkin>
             <gitHub>
