@@ -19,9 +19,9 @@ package org.apache.jackrabbit.filevault.maven.packaging.it;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
 import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
-import org.apache.maven.it.VerificationException;
+import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilderExtension;
+import org.apache.maven.shared.verifier.VerificationException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
