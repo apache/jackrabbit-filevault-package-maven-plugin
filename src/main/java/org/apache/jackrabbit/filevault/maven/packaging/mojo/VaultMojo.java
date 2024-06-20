@@ -32,11 +32,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.inject.Inject;
+
 import org.apache.jackrabbit.filevault.maven.packaging.Filters;
+import org.apache.jackrabbit.filevault.maven.packaging.InterpolatorCustomizerFactory;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.ContentPackageArchiver;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.DefaultFilterWrapper;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.PlexusIoNonExistingDirectoryResource;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
@@ -219,6 +224,15 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
      */
     @Component(role = MavenResourcesFiltering.class, hint = "default") 
     MavenResourcesFiltering mavenResourcesFiltering;
+
+    /**
+     * {@link Component} annotation does not support <a href="https://github.com/google/guice/wiki/Multibindings#multibinding">multi-binding</a>
+     * therefore using standard JSR330 injection pattern.
+     * 
+     * @see <a href="https://lists.apache.org/thread/xfy3wlfxskqw3kmmyj9zxpcj548ft7k8">Mailing List Issue</a>
+     */
+    @Inject
+    Set<InterpolatorCustomizerFactory> interpolationCustomizerFactory;
 
     @Component
     private MavenProjectHelper projectHelper;
@@ -420,11 +434,9 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         return overwrittenFiles;
     }
 
-    protected MavenResourcesExecution setupMavenResourcesExecution() {
+    protected MavenResourcesExecution setupMavenResourcesExecution() throws MavenFilteringException {
         MavenResourcesExecution mavenResourcesExecution = new MavenResourcesExecution();
         mavenResourcesExecution.setEncoding(resourceEncoding);
-        mavenResourcesExecution.setEscapeString(escapeString);
-        mavenResourcesExecution.setSupportMultiLineFiltering(supportMultiLineFiltering);
         mavenResourcesExecution.setMavenProject(project);
 
         // if these are NOT set, just use the defaults, which are '${*}' and '@'.
@@ -444,7 +456,10 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         mavenResourcesExecution.setSupportMultiLineFiltering(supportMultiLineFiltering);
         mavenResourcesExecution.setAddDefaultExcludes(addDefaultExcludes);
         mavenResourcesExecution.setOverwrite(true);
-        mavenResourcesExecution.setUseDefaultFilterWrappers(true);
+        // cannot use default filter wrappers due to https://issues.apache.org/jira/browse/MSHARED-1412
+        mavenResourcesExecution.setUseDefaultFilterWrappers(false);
+        // rather use a custom wrapper which allows to customize the interpolator
+        mavenResourcesExecution.addFilterWrapper(DefaultFilterWrapper.createDefaultFilterWrapperWithInterpolationProcessors(mavenResourcesExecution, interpolationCustomizerFactory));
         return mavenResourcesExecution;
     }
 
@@ -453,8 +468,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     public void execute() throws MojoExecutionException, MojoFailureException {
         final File finalFile = getZipFile(outputDirectory, finalName, classifier);
 
-        MavenResourcesExecution mavenResourcesExecution = setupMavenResourcesExecution();
         try {
+            MavenResourcesExecution mavenResourcesExecution = setupMavenResourcesExecution();
             ContentPackageArchiver contentPackageArchiver = new ContentPackageArchiver();
             contentPackageArchiver.setEncoding(resourceEncoding);
 
