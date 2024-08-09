@@ -22,8 +22,11 @@
 
 vaultPipeline('ubuntu', 11, '3', {
   vaultStageSanityCheck()
-  vaultStageBuild(['Windows'], [17], ['3.6.3'], 'apache_jackrabbit-filevault-package-maven-plugin', [ hasSeparateItExecution: true ]) 
-  vaultStageIT(['Windows', 'ubuntu'], [8, 17, 21], ['3.3.9', '3.5.4', '3'])
+  vaultStageBuild(['Windows'], [17], ['3.6.3'], 'apache_jackrabbit-filevault-package-maven-plugin', [ 
+        simpleCredentialsMap: ['NIST_NVD_API_KEY': 'NIST_NVD_API_KEY'], 
+        hasSeparateItExecution: true
+     ]) 
+  vaultStageIT(['Windows', 'ubuntu'], [8, 17, 21], ['3'])
   vaultStageDeploy()
  }
 )
