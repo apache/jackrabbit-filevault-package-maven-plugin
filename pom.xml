@@ -39,7 +39,7 @@
     <description>Maven Plugin supporting creation of content packages.</description>
 
     <properties>
-        <maven.version>3.3.9</maven.version> <!-- required for https://issues.apache.org/jira/browse/MNG-5440 -->
+        <maven.version>3.6.3</maven.version> <!-- required for executing ITs with maven-failsafe-p 3.3.0 -->
         <aether.version>1.0.2.v20150114</aether.version> <!-- should be the version exported by the maven.version, https://github.com/apache/maven/blob/bb52d8502b132ec0a5a3f4c09453c07478323dc5/pom.xml#L64 -->
         <slf4j.version>1.7.5</slf4j.version> <!-- should be the version exported by the maven.version, https://github.com/apache/maven/blob/bb52d8502b132ec0a5a3f4c09453c07478323dc5/pom.xml#L65 -->
         <filevault.version>${project.parent.version}</filevault.version> <!-- must be equal to parent version -->
