@@ -24,12 +24,15 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
+
+import javax.enterprise.inject.spi.Bean;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.MavenBasedPackageDependency;
@@ -45,10 +48,6 @@ import org.apache.jackrabbit.vault.validation.ValidationExecutorFactory;
 import org.apache.jackrabbit.vault.validation.spi.ValidationMessageSeverity;
 import org.apache.jackrabbit.vault.validation.spi.impl.AdvancedFilterValidatorFactory;
 import org.apache.jackrabbit.vault.validation.spi.impl.DependencyValidatorFactory;
-import org.apache.maven.artifact.Artifact;
-import org.apache.maven.artifact.DefaultArtifact;
-import org.apache.maven.artifact.repository.DefaultRepositoryRequest;
-import org.apache.maven.artifact.resolver.ResolutionErrorHandler;
 import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecution;
@@ -57,7 +56,11 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
-import org.apache.maven.repository.RepositorySystem;
+import org.eclipse.aether.RepositorySystem;
+import org.eclipse.aether.RepositorySystemSession;
+import org.eclipse.aether.artifact.Artifact;
+import org.eclipse.aether.artifact.DefaultArtifact;
+import org.eclipse.aether.repository.RemoteRepository;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.sonatype.plexus.build.incremental.BuildContext;
@@ -185,8 +188,9 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     protected Collection<MavenBasedPackageDependency> repositoryStructurePackages = new LinkedList<>();
 
     /**
-     * Mapping of package dependencies given via group and name to Maven identifiers for enhanced validation.
-     * Each entry must have the format {@code <group>:<name>=<groupId>:<artifactId>}.
+     * Mapping of package dependencies given via group and name to Maven coordinates for enhanced validation.
+     * Each entry must have the format {@code <group>:<name>=<groupId>:<artifactId>[:<extension>[:<classifier>]]}.
+     * The extension is always implicitly assumed to be {@code zip} (no matter what is given). The version always determined from the package dependency and must not be given.
      * To disable lookup (e.g. because referenced artifact is not available in a Maven repository) use {@code <group>:<name>=ignore}.
      * This will also prevent the WARNING which would be otherwise be emitted.
      */
@@ -204,8 +208,17 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     @Component
     protected RepositorySystem repositorySystem;
 
-    @Component
-    protected ResolutionErrorHandler resolutionErrorHandler;
+    /**
+     * The current repository/network configuration of Maven.
+     */
+    @Parameter(defaultValue="${repositorySystemSession}", readonly = true)
+    private RepositorySystemSession repoSession;
+
+    /**
+     * The project's remote repositories to use for the resolution of project dependencies.
+     */
+    @Parameter(defaultValue = "${project.remoteProjectRepositories}", readonly = true)
+    private List<RemoteRepository> projectRepos;
 
     @Component
     protected BuildContext buildContext;
@@ -217,7 +230,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     /**
      * Artificial Maven artifact which indicates that it should not be considered for further lookup!
      */
-    public static final Artifact IGNORE_ARTIFACT = new DefaultArtifact("ignore", "ignore", "1.0", "", "", "", null);
+    public static final Artifact IGNORE_ARTIFACT = new DefaultArtifact("ignore", "ignore", null, null);
 
     public AbstractValidateMojo() {
         super();
@@ -250,10 +263,21 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
         return mapPackageDependencyToMavenGa.stream()
                 .map(s -> s.split("=", 2))
                 .peek((p) -> { if(p.length != 2) { throw new IllegalArgumentException("Could not parse value"); } })
-                // cannot use null values due to https://bugs.openjdk.java.net/browse/JDK-8148463 therefore rely on artificial IGNORE_ARTIFACT
-                .collect(Collectors.toMap(a -> Dependency.fromString(a[0]), a -> { if (a[1].equalsIgnoreCase(IGNORE_GAV)) { return IGNORE_ARTIFACT; } String[] mavenGA = a[1].split(":", 2); if(mavenGA.length != 2) { throw new IllegalArgumentException("Could not parse Maven group Id and artifact Id (must be separated by ':')"); } return new DefaultArtifact(mavenGA[0], mavenGA[1], "", "", "", "", null);} ));
+                // cannot use null values in a map due to https://bugs.openjdk.java.net/browse/JDK-8148463 therefore rely on artificial IGNORE_ARTIFACT
+                .collect(Collectors.toMap(
+                        a -> Dependency.fromString(a[0]), 
+                        a -> { 
+                            if (a[1].equalsIgnoreCase(IGNORE_GAV)) { 
+                                return IGNORE_ARTIFACT; 
+                            }
+                            return artifactWithZipExtensionAndNoVersion(new DefaultArtifact(a[1]+":artificialVersion"));
+                       }));
     }
-    
+
+    private static Artifact artifactWithZipExtensionAndNoVersion(Artifact artifact) {
+        return new DefaultArtifact(artifact.getGroupId(), artifact.getArtifactId(), artifact.getClassifier(), "zip", null);
+    }
+
     /**
      * 
      * @return {@code true} to skip execution of the mojo. Default is {@code false}.
@@ -316,8 +340,7 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
                         e);
             }
             // resolve mapping map
-            resolver = new DependencyResolver(DefaultRepositoryRequest.getRepositoryRequest(session, project), repositorySystem,
-                    resolutionErrorHandler, resolveMap(mapPackageDependencyToMavenGa), resolvedDependencies, getLog());
+            resolver = new DependencyResolver(repoSession, repositorySystem, projectRepos, resolveMap(mapPackageDependencyToMavenGa), resolvedDependencies, getLog());
             doExecute(validationHelper);
         } catch (IOException e) {
             throw new MojoExecutionException("Could not create/write to CSV File", e);

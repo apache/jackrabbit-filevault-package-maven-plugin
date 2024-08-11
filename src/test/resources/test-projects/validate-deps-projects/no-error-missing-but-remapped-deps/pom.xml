@@ -33,15 +33,17 @@
                     <failOnDependencyErrors>true</failOnDependencyErrors>
                     <filters>
                         <filter>
-                            <root>/libs/foo/test</root>
+                            <!-- below https://github.com/adobe/aem-guides-wknd/blob/387eea37ae0e2d5762528d5882be967cd9a9f8ea/ui.config/src/main/content/META-INF/vault/filter.xml#L3-->
+                            <root>/apps/wknd/osgiconfig/test</root>
                         </filter>
                     </filters>
                     <dependencies>
                         <dependency>
-                            <group>org/apache</group>
-                            <name>jackrabbit.content</name>
+                            <group>mygroup</group>
+                            <name>dep-package</name>
                         </dependency>
                     </dependencies>
+                    <mapPackageDependencyToMavenGa>mygroup:dep-package=com.adobe.aem.guides:aem-guides-wknd.ui.config</mapPackageDependencyToMavenGa>
                 </configuration>
             </plugin>
         </plugins>

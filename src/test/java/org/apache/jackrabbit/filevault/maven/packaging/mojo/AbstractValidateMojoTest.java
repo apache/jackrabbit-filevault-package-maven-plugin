@@ -31,11 +31,11 @@ import org.apache.jackrabbit.filevault.maven.packaging.ValidatorSettings;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.ValidationMessagePrinter;
 import org.apache.jackrabbit.vault.packaging.Dependency;
 import org.apache.jackrabbit.vault.packaging.PackageId;
-import org.apache.maven.artifact.DefaultArtifact;
 import org.apache.maven.artifact.InvalidArtifactRTException;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.project.MavenProject;
+import org.eclipse.aether.artifact.DefaultArtifact;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ class AbstractValidateMojoTest {
         MatcherAssert.assertThat(AbstractValidateMojo.resolveMap(Arrays.asList("group1:name1=ignore", "group2:name2=groupId2:artifactId2")), 
                 Matchers.allOf(
                     Matchers.hasEntry(Dependency.fromString("group1:name1"), AbstractValidateMojo.IGNORE_ARTIFACT),
-                    Matchers.hasEntry(Dependency.fromString("group2:name2"), new DefaultArtifact("groupId2", "artifactId2", "", "", "", "", null)),
+                    Matchers.hasEntry(Dependency.fromString("group2:name2"), new DefaultArtifact("groupId2", "artifactId2", "zip", null)),
                     Matchers.aMapWithSize(2)));
     }
 
@@ -55,8 +55,8 @@ class AbstractValidateMojoTest {
     void testValidMap() {
         MatcherAssert.assertThat(AbstractValidateMojo.resolveMap(Arrays.asList("group1:name1=groupId1:artifactId1", "group2:name2=groupId2:artifactId2")), 
                 Matchers.allOf(
-                    Matchers.hasEntry(Dependency.fromString("group1:name1"), new DefaultArtifact("groupId1", "artifactId1", "", "", "", "", null)),
-                    Matchers.hasEntry(Dependency.fromString("group2:name2"), new DefaultArtifact("groupId2", "artifactId2", "", "", "", "", null)),
+                    Matchers.hasEntry(Dependency.fromString("group1:name1"), new DefaultArtifact("groupId1", "artifactId1", "zip", null)),
+                    Matchers.hasEntry(Dependency.fromString("group2:name2"), new DefaultArtifact("groupId2", "artifactId2", "zip", null)),
                     Matchers.aMapWithSize(2)));
     }
 
@@ -67,7 +67,7 @@ class AbstractValidateMojoTest {
 
     @Test
     void testInvalidMap2() {
-        assertThrows(InvalidArtifactRTException.class, () -> AbstractValidateMojo.resolveMap(Arrays.asList("group1:=:groupId"))); 
+        assertThrows(IllegalArgumentException.class, () -> AbstractValidateMojo.resolveMap(Arrays.asList("group1:=:groupId"))); 
     }
 
     @Test
