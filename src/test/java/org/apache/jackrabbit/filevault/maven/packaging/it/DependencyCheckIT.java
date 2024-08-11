@@ -42,7 +42,8 @@ public class DependencyCheckIT {
             Arguments.of("repo-structure-pkg", false),
             Arguments.of("no-error-cleanup", false),
             Arguments.of("no-error-cleanup-filter", false),
-            Arguments.of("no-error-unknown-dependency", false)
+            Arguments.of("no-error-unknown-dependency", false),
+            Arguments.of("no-error-missing-but-remapped-deps", false)
         );
     }
 
