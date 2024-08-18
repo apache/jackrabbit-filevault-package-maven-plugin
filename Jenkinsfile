@@ -25,7 +25,7 @@ vaultPipeline('ubuntu', 11, '3', {
   vaultStageBuild(['Windows'], [17], ['3.6.3'], 'apache_jackrabbit-filevault-package-maven-plugin', [ 
         hasSeparateItExecution: true
      ]) 
-  vaultStageIT(['Windows', 'ubuntu'], [8, 17, 21], ['3'])
+  vaultStageIT(['Windows', 'ubuntu'], [8, 17, 21], ['3', '4'])
   vaultStageDeploy()
  }
 )
