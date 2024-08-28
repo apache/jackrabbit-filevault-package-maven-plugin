@@ -33,15 +33,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
 
+import org.apache.jackrabbit.filevault.maven.packaging.CompositeInterpolatorCustomizer;
 import org.apache.jackrabbit.filevault.maven.packaging.Filters;
 import org.apache.jackrabbit.filevault.maven.packaging.InterpolatorCustomizerFactory;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.ContentPackageArchiver;
-import org.apache.jackrabbit.filevault.maven.packaging.impl.DefaultFilterWrapper;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.PlexusIoNonExistingDirectoryResource;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
@@ -68,6 +69,7 @@ import org.apache.maven.shared.filtering.MavenResourcesFiltering;
 import org.codehaus.plexus.archiver.FileSet;
 import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
+import org.codehaus.plexus.interpolation.Interpolator;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.MatchPatterns;
@@ -457,9 +459,10 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         mavenResourcesExecution.setAddDefaultExcludes(addDefaultExcludes);
         mavenResourcesExecution.setOverwrite(true);
         // cannot use default filter wrappers due to https://issues.apache.org/jira/browse/MSHARED-1412
-        mavenResourcesExecution.setUseDefaultFilterWrappers(false);
+        mavenResourcesExecution.setUseDefaultFilterWrappers(true);
         // rather use a custom wrapper which allows to customize the interpolator
-        mavenResourcesExecution.addFilterWrapper(DefaultFilterWrapper.createDefaultFilterWrapperWithInterpolationProcessors(mavenResourcesExecution, interpolationCustomizerFactory));
+        Collection<Consumer<Interpolator>> interpolatorCustomizers = interpolationCustomizerFactory.stream().map( f -> f.create(session, project)).collect(Collectors.toList());
+        mavenResourcesExecution.setInterpolatorCustomizer(new CompositeInterpolatorCustomizer(interpolatorCustomizers));
         return mavenResourcesExecution;
     }
 
