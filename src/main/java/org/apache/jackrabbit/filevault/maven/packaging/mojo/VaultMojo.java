@@ -310,9 +310,9 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
      */
     protected void addFileSetToArchive(MavenResourcesExecution mavenResourcesExecution, ContentPackageArchiver archiver, DefaultFileSet fileSet) throws MavenFilteringException {
         // ignore directories added with no prefix (workDirectory)
-        if ((fileSet.getPrefix().startsWith(Constants.ROOT_DIR) && enableJcrRootFiltering) ||
-            (fileSet.getPrefix().startsWith(Constants.META_INF) && enableMetaInfFiltering)) {
-            
+        String prefix = fileSet.getPrefix();
+        if (prefix != null && ((prefix.startsWith(Constants.ROOT_DIR) && enableJcrRootFiltering) ||
+            (prefix.startsWith(Constants.META_INF) && enableMetaInfFiltering))) {
             getLog().info("Apply filtering to FileSet below " + getProjectRelativeFilePath(fileSet.getDirectory()));
             Resource filteringSourceResource = new Resource();
             filteringSourceResource.setDirectory(fileSet.getDirectory().getPath());
