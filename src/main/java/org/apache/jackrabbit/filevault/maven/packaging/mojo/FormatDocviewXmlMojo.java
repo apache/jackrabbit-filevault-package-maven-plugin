@@ -25,12 +25,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.inject.Inject;
+
 import org.apache.jackrabbit.vault.fs.io.DocViewFormat;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -100,8 +101,12 @@ public class FormatDocviewXmlMojo extends AbstractMojo {
     @Parameter(defaultValue = "false")
     private boolean enableForIncrementalBuild;
 
-    @Component
-    protected BuildContext buildContext;
+    private final BuildContext buildContext;
+
+    @Inject
+    public FormatDocviewXmlMojo(BuildContext buildContext) {
+        this.buildContext = buildContext;
+    }
 
     private static final String MSG_MALFORMED_FILE = "Malformed according to DocView format";
     private static final String MSG_COUNTERMEASURE = "Use \"mvn filevault-package:format-xml\" to reformat the malformed files.";

@@ -94,7 +94,7 @@ class GenerateMetadataMojoTest {
 
     @Test
     void testWriteManifest() throws FileNotFoundException, ManifestException, DependencyResolutionRequiredException, IOException {
-        GenerateMetadataMojo mojo = new GenerateMetadataMojo();
+        GenerateMetadataMojo mojo = new GenerateMetadataMojo(null, null, null);
         mojo.name = "mypackage";
         mojo.group = "mygroup";
         mojo.version = "1.4";
@@ -137,7 +137,7 @@ class GenerateMetadataMojoTest {
 
     @Test
     void testComputeDependencies() throws IOException {
-        GenerateMetadataMojo mojo = new GenerateMetadataMojo();
+        GenerateMetadataMojo mojo = new GenerateMetadataMojo(null, null, null);
         mojo.dependencies = new ArrayList<>();
         MavenBasedPackageDependency dependency = MavenBasedPackageDependency.fromGroupNameAndVersion("day/cq60/product", "cq-content", "[6.3.64,)");
         mojo.dependencies.add(dependency);
@@ -149,7 +149,7 @@ class GenerateMetadataMojoTest {
 
     @Test
     void testComputePackageType() {
-        GenerateMetadataMojo mojo = new GenerateMetadataMojo();
+        GenerateMetadataMojo mojo = new GenerateMetadataMojo(null, null, null);
         // no filter, embeds (should not happen in reality)
         assertEquals(PackageType.MIXED, mojo.computePackageType());
         mojo.embeddeds = new Embedded[]{ new Embedded() };
@@ -239,7 +239,7 @@ class GenerateMetadataMojoTest {
         Mockito.when(project.getGroupId()).thenReturn("mygroupid");
         Mockito.when(project.getVersion()).thenReturn("1.0.0-SNAPSHOT");
         Mockito.when(project.getDescription()).thenReturn("my description");
-        GenerateMetadataMojo mojo = new GenerateMetadataMojo();
+        GenerateMetadataMojo mojo = new GenerateMetadataMojo(null, null, null);
         mojo.project = project;
         mojo.group = "mygroup";
         mojo.name = "myname";

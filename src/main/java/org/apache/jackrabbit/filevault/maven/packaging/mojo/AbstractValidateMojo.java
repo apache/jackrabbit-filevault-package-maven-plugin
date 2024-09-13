@@ -32,7 +32,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import javax.enterprise.inject.spi.Bean;
+import javax.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.MavenBasedPackageDependency;
@@ -53,7 +53,6 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.eclipse.aether.RepositorySystem;
@@ -205,9 +204,6 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     @Parameter(property = "vault.validation.csvReportFile")
     protected File csvReportFile;
 
-    @Component
-    protected RepositorySystem repositorySystem;
-
     /**
      * The current repository/network configuration of Maven.
      */
@@ -220,21 +216,24 @@ public abstract class AbstractValidateMojo extends AbstractMojo {
     @Parameter(defaultValue = "${project.remoteProjectRepositories}", readonly = true)
     private List<RemoteRepository> projectRepos;
 
-    @Component
-    protected BuildContext buildContext;
-
     protected final ValidationExecutorFactory validationExecutorFactory;
 
     protected DependencyResolver resolver;
 
+    protected final RepositorySystem repositorySystem;
+    protected final BuildContext buildContext;
+    
     /**
      * Artificial Maven artifact which indicates that it should not be considered for further lookup!
      */
     public static final Artifact IGNORE_ARTIFACT = new DefaultArtifact("ignore", "ignore", null, null);
 
-    public AbstractValidateMojo() {
+    @Inject
+    protected AbstractValidateMojo(RepositorySystem repositorySystem, BuildContext buildContext) {
         super();
         this.validationExecutorFactory = new ValidationExecutorFactory(this.getClass().getClassLoader());
+        this.repositorySystem = repositorySystem;
+        this.buildContext = buildContext;
     }
 
     protected String getProjectRelativeFilePath(Path path) {

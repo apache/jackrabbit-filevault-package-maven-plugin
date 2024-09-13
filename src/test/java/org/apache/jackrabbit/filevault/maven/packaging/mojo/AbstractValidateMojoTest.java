@@ -105,7 +105,7 @@ class AbstractValidateMojoTest {
 
     @Test
     void testGetProjectRelativeFilePathWithoutRealProject() {
-        AbstractValidateMojo mojo = new AbstractValidateMojo() {
+        AbstractValidateMojo mojo = new AbstractValidateMojo(null, null) {
             @Override
             public void doExecute(ValidationMessagePrinter validationHelper) throws MojoExecutionException, MojoFailureException {
                 throw new UnsupportedOperationException();

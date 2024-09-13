@@ -50,6 +50,8 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javax.inject.Inject;
+import javax.inject.Named;
 import javax.jcr.NamespaceException;
 import javax.jcr.PropertyType;
 import javax.xml.stream.FactoryConfigurationError;
@@ -96,7 +98,6 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.descriptor.PluginDescriptor;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -140,18 +141,6 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
      *  @see <a href="https://issues.apache.org/jira/browse/JCR-4267">JCR-4267</a>
      */
     private final DateFormat iso8601DateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
-
-    /**
-     * For m2e incremental build support
-     */
-    @Component
-    private BuildContext buildContext;
-
-    /**
-     * For correct source of standard embedded path base name.
-     */
-    @Component(hint = "default")
-    private ArtifactRepositoryLayout embedArtifactLayout;
 
     /**
      * The Maven session.
@@ -458,9 +447,6 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
             required = true)
     boolean allowIndexDefinitions;
 
-    @Component
-    private RepositorySystem repoSystem;
-
     @Parameter( defaultValue = "${repositorySystemSession}", readonly = true, required = true )
     private RepositorySystemSession repoSession;
 
@@ -475,14 +461,31 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
     @Parameter(defaultValue="")
     List<ArtifactCoordinates> installHooks;
 
+
+    /**
+     * For m2e incremental build support
+     */
+    private final BuildContext buildContext;
+
+    /**
+     * For correct source of standard embedded path base name.
+     */
+    private final ArtifactRepositoryLayout embedArtifactLayout;
+
+    private final RepositorySystem repoSystem;
+
     // take the first "-" followed by a digit as separator between version suffix and rest
     private static final Pattern FILENAME_PATTERN_WITHOUT_VERSION_IN_GROUP1 = Pattern.compile("((?!-\\d).*-)\\d.*");
 
 
-    public GenerateMetadataMojo() {
+    @Inject
+    public GenerateMetadataMojo(BuildContext buildContext, @Named("default")ArtifactRepositoryLayout embedArtifactLayout, RepositorySystem repoSystem) {
         super();
         // always emit dates in UTC timezone
         iso8601DateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+        this.buildContext = buildContext;
+        this.embedArtifactLayout = embedArtifactLayout;
+        this.repoSystem = repoSystem;
     }
 
     /**
