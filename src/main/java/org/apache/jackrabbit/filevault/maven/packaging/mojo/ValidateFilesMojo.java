@@ -34,6 +34,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.inject.Inject;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.DirectoryValidationContext;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.ValidationMessagePrinter;
@@ -57,13 +59,14 @@ import org.apache.maven.plugin.PluginNotFoundException;
 import org.apache.maven.plugin.PluginResolutionException;
 import org.apache.maven.plugin.prefix.NoPluginFoundForPrefixException;
 import org.apache.maven.plugin.version.PluginVersionResolutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.util.AbstractScanner;
 import org.codehaus.plexus.util.Scanner;
+import org.eclipse.aether.RepositorySystem;
+import org.sonatype.plexus.build.incremental.BuildContext;
 
 /** 
  * Validates individual files with all registered validators. This is only active for incremental builds (i.e. inside m2e)
@@ -182,12 +185,14 @@ public class ValidateFilesMojo extends AbstractValidateMojo {
     // End: Copied from AbstractSourceAndMetadataPackageMojo
     // -----
 
-    @Component
-    protected LifecycleExecutor lifecycleExecutor;
+    protected final LifecycleExecutor lifecycleExecutor;
 
     private static final String PLUGIN_KEY = "org.apache.jackrabbit:filevault-package-maven-plugin";
 
-    public ValidateFilesMojo() {
+    @Inject
+    public ValidateFilesMojo(RepositorySystem repositorySystem, BuildContext buildContext, LifecycleExecutor lifecycleExecutor) {
+        super(repositorySystem, buildContext);
+        this.lifecycleExecutor = lifecycleExecutor;
     }
 
     @Override

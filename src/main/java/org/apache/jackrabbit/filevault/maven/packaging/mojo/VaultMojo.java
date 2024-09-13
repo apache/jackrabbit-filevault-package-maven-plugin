@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.apache.jackrabbit.filevault.maven.packaging.CompositeInterpolatorCustomizer;
 import org.apache.jackrabbit.filevault.maven.packaging.Filters;
@@ -57,7 +58,6 @@ import org.apache.maven.execution.MavenSession;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -90,9 +90,6 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     private static final Collection<File> STATIC_META_INF_FILES = Arrays.asList(new File(Constants.META_DIR, Constants.CONFIG_XML),
             new File(Constants.META_DIR, Constants.SETTINGS_XML));
 
-    @Component
-    private ArtifactHandlerManager artifactHandlerManager;
-    
     /**
      * The directory that contains additional files and folders to end up in the package's META-INF folder.
      * Every file and subfolder is considered except for the subfolder named {@code vault} and a file named {@code MANIFEST.MF}.
@@ -222,23 +219,20 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
     @Parameter
     private MavenArchiveConfiguration archive;
 
-    /**
-     */
-    @Component(role = MavenResourcesFiltering.class, hint = "default") 
-    MavenResourcesFiltering mavenResourcesFiltering;
+    private final MavenProjectHelper projectHelper;
+    private final ArtifactHandlerManager artifactHandlerManager;
+    final MavenResourcesFiltering mavenResourcesFiltering;
+    final Set<InterpolatorCustomizerFactory> interpolationCustomizerFactory;
 
-    /**
-     * {@link Component} annotation does not support <a href="https://github.com/google/guice/wiki/Multibindings#multibinding">multi-binding</a>
-     * therefore using standard JSR330 injection pattern.
-     * 
-     * @see <a href="https://lists.apache.org/thread/xfy3wlfxskqw3kmmyj9zxpcj548ft7k8">Mailing List Issue</a>
-     */
     @Inject
-    Set<InterpolatorCustomizerFactory> interpolationCustomizerFactory;
-
-    @Component
-    private MavenProjectHelper projectHelper;
-
+    VaultMojo(MavenProjectHelper projectHelper, ArtifactHandlerManager artifactHandlerManager, 
+            @Named("default")MavenResourcesFiltering mavenResourcesFiltering, Set<InterpolatorCustomizerFactory> interpolationCustomizerFactory) {
+         this.projectHelper = projectHelper;
+         this.artifactHandlerManager = artifactHandlerManager;
+         this.mavenResourcesFiltering = mavenResourcesFiltering;
+         this.interpolationCustomizerFactory = interpolationCustomizerFactory;
+    }
+    
     /** All file names (relative to the zip root) which are supposed to not get overwritten in the package. The value is the source file. */
     private Map<File, File> protectedFiles = new HashMap<>();
 
@@ -298,7 +292,6 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         }
         getLog().debug("Adding file " + getProjectRelativeFilePath(sourceFile) + " to package at " + destFileName + "'");
         archiver.addFile(sourceFile, destFileName);
-
     }
 
     /**

@@ -26,6 +26,8 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+
+import javax.inject.Inject;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.jackrabbit.filevault.maven.packaging.impl.ValidationMessagePrinter;
@@ -46,7 +48,9 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.util.StringUtils;
+import org.eclipse.aether.RepositorySystem;
 import org.jetbrains.annotations.Nullable;
+import org.sonatype.plexus.build.incremental.BuildContext;
 import org.xml.sax.SAXException;
 
 /**
@@ -102,7 +106,9 @@ public class ValidatePackageMojo extends AbstractValidateMojo {
     @Parameter(property = "vault.classifier")
     protected String classifier = "";
 
-    public ValidatePackageMojo() {
+    @Inject
+    public ValidatePackageMojo(RepositorySystem repositorySystem, BuildContext buildContext) {
+        super(repositorySystem, buildContext);
     }
 
     @Override
