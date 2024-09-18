@@ -34,7 +34,7 @@ You can build FileVault Package Maven Plugin using Maven:
     cd jackrabbit-filevault-package-maven-plugin
     mvn clean install
 
-You need Maven 3.3.9 (or higher) with Java 11 (or higher) for the build.
+You need Maven 3.6.3 (or higher) with Java 11 (or higher) for the build.
 For more instructions, please see the documentation at <https://jackrabbit.apache.org/building-jackrabbit.html>
 
 Issue Tracker
@@ -44,7 +44,7 @@ and other changes.
 
 The issue tracker is available at <https://issues.apache.org/jira/browse/JCRVLT> and is readable by everyone. 
 A Jira account is needed to create new issues and to comment on existing issues. Use the
-[registration form](https://issues.apache.org/jira/secure/Signup!default.jspa) to request an account if you 
+[registration form](https://selfserve.apache.org/jira-account.html) to request an account if you 
 do not already have one.
 
 See the [Jackrabbit Issue Tracker Page](https://jackrabbit.apache.org/issue-tracker.html) for more information.

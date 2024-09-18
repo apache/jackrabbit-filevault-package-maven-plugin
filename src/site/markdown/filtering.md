@@ -70,13 +70,15 @@ The following extensions ship with the ${project.artifactId}
 
 Extension | Description | Expression | Usage Example
 --- | --- | --- | ---
-FileVault DocView XML Attribute Escaping | Escape the interpolated value of the suffix according to [FileVault DocView Escaping Rules](https://jackrabbit.apache.org/filevault/docview.html#Escaping) for using it inside XML attribute values. | `vltdocviewattributeescape.` | `<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0" myProperty="${vltdocviewattributeescape.customMavenProperty1}"` />
+FileVault DocView XML Attribute Escaping | Escapes the interpolated value of the suffix according to [FileVault DocView Escaping Rules](https://jackrabbit.apache.org/filevault/docview.html#Escaping) for using it inside XML attribute values. | `vltdocviewattributeescape.<suffix>` | `<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0" myProperty="${vltdocviewattributeescape.customMavenProperty1}"` />
 
 ### Custom Extensions
 
-The filtering may be extended through JSR330 components implementing the interface `org.apache.jackrabbit.filevault.maven.packaging.InterpolationCustomizerFactorty` which creates a `Consumer<Interpolator>` for every Maven project. That callback is called whenever the interpolator has been created for filtering but before it is being applied.
+The filtering may be extended through JSR-330 annotated [Sisu][sisu] components implementing the interface [`org.apache.jackrabbit.filevault.maven.packaging.InterpolatorCustomizerFactory`](apidocs/org/apache/jackrabbit/filevault/maven/packaging/InterpolatorCustomizerFactory.html) which creates a `Consumer<Interpolator>` for every Maven project. That callback is called whenever the interpolator has been created for filtering but before it is being applied. A `InterpolatorCustomizerFactory` usually registers additional [`InterpolationPostProcessor`s][codehaus-interpolationpostprocessor] or [`ValueSource`s][codehaus-valuesource] on the given [`Interpolator`][codehaus-interpolator].
 
 They need to be loaded as [plugin dependencies](https://maven.apache.org/guides/mini/guide-configuring-plugins.html#Using_the_.3Cdependencies.3E_Tag).
 
+[codehaus-interpolator]: https://codehaus-plexus.github.io/plexus-interpolation/apidocs/org/codehaus/plexus/interpolation/Interpolator.html
 [codehaus-valuesource]: https://codehaus-plexus.github.io/plexus-interpolation/apidocs/org/codehaus/plexus/interpolation/ValueSource.html
 [codehaus-interpolationpostprocessor]: https://codehaus-plexus.github.io/plexus-interpolation/apidocs/org/codehaus/plexus/interpolation/InterpolationPostProcessor.html
+[sisu]: https://eclipse.dev/sisu/org.eclipse.sisu.inject/index.html

@@ -24,17 +24,17 @@ Overview
 --------
 All goals of this plugin have support for [Maven classifiers](https://maven.apache.org/pom.html#dependencies). Classifiers are used in Maven if there are multiple target artifacts built from the same `pom.xml`. Examples are content packages for slightly different distributions (e.g. supporting different API versions or Java versions).
 
-As the goals are by default only bound at most once for certain lifecycle phase of the `content-package` packaging but different classifiers require different configuration, you would need to configure explicit additional [plugin executions](https://maven.apache.org/guides/mini/guide-configuring-plugins.html#Using_the_executions_Tag) for the secondary artifacts with classifiers.
+As the goals are by default only bound at most once for a lifecycle phase of the `content-package` packaging but different classifiers require different configuration, you would need to configure explicit additional [plugin executions](https://maven.apache.org/guides/mini/guide-configuring-plugins.html#Using_the_executions_Tag) for the secondary artifacts with classifiers.
 
 Package Build
 --------
-You should only use classifiers if more than package is generated out of the same `pom.xml`.
+You should only use classifiers if more than one package is generated out of the same `pom.xml`.
 
 *If you just want to deploy the only final artifact with a classifier rather use [maven-deploy-plugin:deploy-file with parameter `classifier`](https://maven.apache.org/plugins/maven-deploy-plugin/deploy-file-mojo.html#classifier).*
 
-Each execution of goals `generate-metadata` and `package` generate only (metadata for) one package, therefore you need to to configure explicit additional [plugin executions](https://maven.apache.org/guides/mini/guide-configuring-plugins.html#Using_the_executions_Tag) for the secondary artifacts with classifiers. The different executions don't conflict with each other as each classifier configuration uses a dedicated workDirectory.
+Each execution of goals `generate-metadata` and `package` generate only (metadata for) one package, therefore you need to configure explicit additional [plugin executions](https://maven.apache.org/guides/mini/guide-configuring-plugins.html#Using_the_executions_Tag) for the secondary artifacts with classifiers. The different executions don't conflict with each other as each classifier configuration uses a dedicated `workDirectory`.
 
-An example configuration for generating two packages out of the same pom.xml might look like this
+An example configuration for generating two packages out of the same `pom.xml` might look like this
 
 ```
 <plugin>
@@ -92,5 +92,5 @@ The explicit configuration of the default executions (for the primary artifact) 
 Validation
 ------
 
-In contrast to metadata and package generation, the validation-package goal supports multiple classifiers (and by that multiple packages) in one execution.
+In contrast to metadata and package generation the `validation-package` goal supports multiple classifiers (and by that multiple packages) in one execution.
 You can either use configuration parameter `classifier` (for validating the attached artifact with the given classifier) or `classifiers` (for validating all attached artifacts matching one of the given classifiers).
