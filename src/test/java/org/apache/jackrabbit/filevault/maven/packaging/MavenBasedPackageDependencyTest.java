@@ -34,13 +34,13 @@ public class MavenBasedPackageDependencyTest {
 
     @Test 
     public void testMavenCoordinatesToUriRoundtrip() throws URISyntaxException {
-        MavenCoordinates coordinates = new MavenCoordinates("groupname", "artifactName", "1.0");
+        MavenCoordinates coordinates = new MavenCoordinates("groupname", "artifactName", "1.0", "zip", "classifier");
         assertEquals(coordinates, MavenCoordinates.parse(MavenBasedPackageDependency.mavenCoordinatesToUri(coordinates.getGroupId(), coordinates.getArtifactId(), coordinates.getVersion(), coordinates.getClassifier())));
     }
-    
+
     @Test 
     public void testUriToMavenCoordinatesRoundtrip() throws URISyntaxException {
-        URI uri = new URI("maven", "test-group:some name:1.0:zip", null);
+        URI uri = new URI("maven", "test-group:some name:1.0:zip:classifier", null);
         MavenCoordinates coordinates = MavenCoordinates.parse(uri);
         assertEquals(uri, MavenBasedPackageDependency.mavenCoordinatesToUri(coordinates.getGroupId(), coordinates.getArtifactId(), coordinates.getVersion(), coordinates.getClassifier()));
     }
