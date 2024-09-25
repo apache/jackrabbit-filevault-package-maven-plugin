@@ -15,7 +15,7 @@
    limitations under the License.
   -->
 
-Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.3.6
+Release Notes -- Apache Jackrabbit FileVault Package Maven Plugin -- Version 1.4.0
 ==================================================================================
 
 Introduction
@@ -23,6 +23,22 @@ Introduction
 The Apache Jackrabbit FileVault Package Maven Plugin is an Apache Maven plugin that simplifies the creation of
 content package Maven artifacts. The content packages can later be used to install content into a JCR repository
 using the Apache Jackrabbit FileVault packaging runtime.
+
+Changes in Jackrabbit FileVault Package Maven Plugin 1.4.0
+---------------------------------------------------
+
+#### Bug
+* [JCRVLT-769] - mapPackageDependencyToMavenGa does no longer work
+
+#### Improvement
+* [JCRVLT-742] - Stop generating MD5, SHA1 and SHA512 with Ant
+* [JCRVLT-757] - Optionally apply Enhanced DocView XML escaping to filtered values
+* [JCRVLT-765] - Update to FileVault 3.8.2
+* [JCRVLT-780] - Remove @Component annotations
+
+#### Task
+* [JCRVLT-754] - check-release does not work for filevault anymore
+
 
 Changes in Jackrabbit FileVault Package Maven Plugin 1.3.6
 ---------------------------------------------------
