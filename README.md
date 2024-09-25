@@ -30,7 +30,7 @@ You can build the plugin like this:
 
     mvn clean install
 
-You need Maven 3.3.9 (or higher) with Java 11 (or higher) for the build.
+You need Maven 3.6.3 (or higher) with Java 11 (or higher) for the build.
 For more instructions, please see the documentation at:
 
    <https://jackrabbit.apache.org/building-jackrabbit.html>
