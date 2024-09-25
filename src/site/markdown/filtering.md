@@ -68,9 +68,9 @@ Extensions allow to improve the simple placeholder replacement offered by Maven 
 
 The following extensions ship with the ${project.artifactId}
 
-Extension | Description | Expression | Usage Example
---- | --- | --- | ---
-FileVault DocView XML Attribute Escaping | Escapes the interpolated value of the suffix according to [FileVault DocView Escaping Rules](https://jackrabbit.apache.org/filevault/docview.html#Escaping) for using it inside XML attribute values. | `vltdocviewattributeescape.<suffix>` | `<jcr:root xmlns:jcr="http://www.jcp.org/jcr/1.0" myProperty="${vltdocviewattributeescape.customMavenProperty1}"` />
+Extension | Description | Expression | Usage Example | Since
+--- | --- | --- | --- | ---
+FileVault DocView XML Attribute Escaping | Escapes the interpolated value of the suffix according to [FileVault DocView Escaping Rules](https://jackrabbit.apache.org/filevault/docview.html#Escaping) for using it inside XML attribute values. | `vltattributeescape.<suffix>` | `<myNode myProperty="${vltattributeescape.customMavenProperty1}" />` | 1.4.0
 
 ### Custom Extensions
 

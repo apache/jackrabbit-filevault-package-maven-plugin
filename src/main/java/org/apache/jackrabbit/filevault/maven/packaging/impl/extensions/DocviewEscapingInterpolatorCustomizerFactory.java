@@ -42,7 +42,7 @@ public class DocviewEscapingInterpolatorCustomizerFactory extends AbstractValueS
         super(false);
     }
 
-    public static final String EXPRESSION_PREFIX = "vltdocviewattributeescape.";
+    public static final String EXPRESSION_PREFIX = "vltattributeescape.";
 
     private static final Name DEFAULT_NAME = NameConstants.JCR_TITLE;
 

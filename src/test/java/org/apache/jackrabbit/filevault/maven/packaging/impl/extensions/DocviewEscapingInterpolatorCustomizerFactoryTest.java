@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 class DocviewEscapingInterpolatorCustomizerFactoryTest {
 
     private static final String NO_ESCAPE_EXPRESSION = "some.expression";
-    private static final String ESCAPE_EXPRESSION = "vltdocviewattributeescape.some.expression";
+    private static final String ESCAPE_EXPRESSION = "vltattributeescape.some.expression";
 
     @Test
     void testEscaping() {
