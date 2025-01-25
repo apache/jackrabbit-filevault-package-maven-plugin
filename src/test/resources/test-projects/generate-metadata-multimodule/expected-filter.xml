@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workspaceFilter version="1.0">
-    <filter root="/apps/bundles/install/bundle1.jar"/>
+    <filter root="/apps/bundles/install/package-plugin-test-pkg-bundle1-1.0.0-SNAPSHOT.jar"/>
     <filter root="/apps/bundles/install/package-plugin-test-pkg-bundle2-1.0.0-SNAPSHOT.jar"/>
     <filter root="/apps/bundles/install/bundle3-core.jar"/>
     <filter root="/etc/packages/test/package-plugin-test-pkg-sub1-1.0.0-SNAPSHOT.zip"/>
