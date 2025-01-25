@@ -1024,7 +1024,7 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
                 }
             }
             if (emb.getDestFileName() != null && artifacts.size() > 1) {
-                getLog().warn("destFileName defined but several artifacts match for " + emb);
+                throw new MojoFailureException("destFileName defined but several artifacts match for " + emb);
             }
 
             String targetPath = emb.getTarget();
@@ -1051,40 +1051,18 @@ public class GenerateMetadataMojo extends AbstractMetadataPackageMojo {
                 final File source = artifact.getFile();
                 String destFileName = emb.getDestFileName();
 
-                // todo: add support for patterns
                 if (destFileName == null) {
-                    // If the <destFileName> param is not specified...
-                    if (!source.isDirectory()) {
-                        // If the artifact file is not a directory, defer to File.getName().
-                        destFileName = source.getName();
-                    } else {
-                        // If the dependency file is a directory, the final artifact file has not yet been packaged.
-                        // Construct a fallback file name from the artifact coordinates.
-                        final String layoutBaseName = Text.getName(embedArtifactLayout.pathOf(artifact));
-                        // Look for a peer module in the session that the artifact is attached to.
-                        final MavenProject peerModule = findModuleForArtifact(artifact);
-                        if (peerModule != null) {
-                            // determine the finalName of the artifact, which is ${artifactId}-${version} by default.
-                            final Artifact attached = peerModule.getArtifact();
-                            final String defaultFinalName = attached.getArtifactId() + "-" + attached.getVersion();
-                            final String peerFinalName = peerModule.getBuild().getFinalName();
-                            if (peerFinalName != null) {
-                                // remove the default finalName from the beginning of the layout basename, and
-                                // prepend the specified finalName to create the destFileName.
-                                destFileName = peerFinalName + layoutBaseName.substring(defaultFinalName.length());
-                            }
-                        }
-                        // If destFileName is still null, fallback to layoutBaseName.
-                        if (destFileName == null) {
-                            destFileName = layoutBaseName;
-                        }
-                    }
+                    // construct final name from artifact coordinates
+                    destFileName = Text.getName(embedArtifactLayout.pathOf(artifact));
                 }
                 final String targetPathName = targetPath + destFileName;
                 final String targetNodePathName = targetPathName.substring(Constants.ROOT_DIR.length());
 
+                File oldSource = fileMap.put(targetPathName, source);
+                if (oldSource != null) {
+                    throw new MojoFailureException(String.format("Duplicate target path %s for %s and %s", targetPathName, source, oldSource));
+                }
                 getLog().info(String.format("Embedding %s (from %s) -> %s", artifact.getId(), source.getAbsolutePath(), targetPathName));
-                fileMap.put(targetPathName, source);
 
                 if (emb.isFilter()) {
                     addEmbeddedFileToFilter(targetNodePathName, emb.isAllVersionsFilter());
