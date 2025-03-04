@@ -29,11 +29,11 @@ For details on the OSGi configuration format refer to [Configuration Serializati
 
 ## Packages
 
-Although only useful for edge cases (e.g. to install a package only on Sling distributions with a certain [run mode](https://sling.apache.org/documentation/bundles/sling-settings-org-apache-sling-settings.html)) also content packages can be embedded in container packages. The difference to regular sub packages is that those are not installed synchronously along with the container package, but are being picked up asynchronously through the JCR Installer Provider and then being queued for installation through the OSGi installer via its [Content Package Installer Factory](https://sling.apache.org/documentation/bundles/content-package-installer-factory.html).
+Although only useful for edge cases (e.g. to install a package only on Sling distributions with a certain [run mode](https://sling.apache.org/documentation/bundles/sling-settings-org-apache-sling-settings.html)) also content packages can be embedded in other container packages. The difference to regular sub packages is that those are not installed synchronously along with the container package, but are being picked up asynchronously through the JCR Installer Provider and then being queued for installation through the OSGi installer via its [Content Package Installer Factory](https://sling.apache.org/documentation/bundles/content-package-installer-factory.html).
 
 ## Repository Location
 
-By default the Sling JCR Installer Provider and Sling Content-Package to Feature Model Converter only consider embedded bundles, configurations and packages inside the nodes `/libs/../install`/`/apps/../install` or `/libs/../install`/`/apps/../config` optionally suffixed by `.` followed by one or multiple run modes.
+By default the Sling JCR Installer Provider and Sling Content-Package to Feature Model Converter only consider embedded bundles, configurations and packages inside the nodes `/libs/../install`/`/apps/../install` or `/libs/../config`/`/apps/../config` optionally suffixed by `.` followed by one or multiple run modes.
 
 ## Maven Dependencies
 
