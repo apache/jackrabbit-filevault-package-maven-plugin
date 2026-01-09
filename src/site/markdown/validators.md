@@ -69,7 +69,7 @@ It is possible to restrict a setting for a particular validator id to certain pa
 
 ```
 
-** It is necessary that each element below `validatorsSettings` has a unique name (as otherwise it will overwrite previous elements with the same name **
+**It is necessary that each element below `validatorsSettings` has a unique name (as otherwise it will overwrite previous elements with the same name**
 
 In order to achieve that the validator id can be suffixed with `__` and an arbitrary string in the configuration element name.
 
