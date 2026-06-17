@@ -18,7 +18,7 @@
 Developing
 ==========
 
-<!-- MACRO{toc} -->
+<!-- MACRO{toc|fromDepth=2} -->
 
 Latest development
 ------------------
