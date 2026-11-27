@@ -40,6 +40,22 @@ class OsgiConfigurationFilesTest {
     }
 
     @Test
+    void testGetConfigurationPath() {
+        assertEquals("jcr_root/apps/example/config/my.Service.cfg.json",
+                OsgiConfigurationFiles.getConfigurationPath("jcr_root/apps/example/config/my.Service.cfg.json"));
+        // archive entry names use the platform separator, e.g. on Windows
+        assertEquals("jcr_root/apps/example/config.author/my.Service.config",
+                OsgiConfigurationFiles.getConfigurationPath("jcr_root\\apps\\example\\config.author\\my.Service.config"));
+        assertEquals("jcr_root/apps/example/config/my.Service.cfg.json",
+                OsgiConfigurationFiles.getConfigurationPath("jcr_root/apps/example\\config\\my.Service.cfg.json"));
+        // not below jcr_root, or not an OSGi configuration format
+        assertNull(OsgiConfigurationFiles.getConfigurationPath("META-INF/vault/my.Service.cfg.json"));
+        assertNull(OsgiConfigurationFiles.getConfigurationPath("jcr_root_other/my.Service.cfg.json"));
+        assertNull(OsgiConfigurationFiles.getConfigurationPath("jcr_root\\apps\\example\\config\\my.Service.cfg"));
+        assertNull(OsgiConfigurationFiles.getConfigurationPath("jcr_root/apps/example/.content.xml"));
+    }
+
+    @Test
     void testReadJsonWithCommentsAndTypeHints() throws IOException {
         String json = "{\n"
                 + "  // a comment\n"
