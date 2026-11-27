@@ -20,6 +20,7 @@ import static org.codehaus.plexus.archiver.util.DefaultFileSet.fileSet;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,7 +45,9 @@ import javax.inject.Named;
 import org.apache.jackrabbit.filevault.maven.packaging.CompositeInterpolatorCustomizer;
 import org.apache.jackrabbit.filevault.maven.packaging.Filters;
 import org.apache.jackrabbit.filevault.maven.packaging.InterpolatorCustomizerFactory;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.AnonymousUserCheck;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.ContentPackageArchiver;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.OsgiConfigurationFiles;
 import org.apache.jackrabbit.filevault.maven.packaging.impl.PlexusIoNonExistingDirectoryResource;
 import org.apache.jackrabbit.vault.fs.api.PathFilterSet;
 import org.apache.jackrabbit.vault.fs.config.ConfigurationException;
@@ -66,12 +70,15 @@ import org.apache.maven.project.MavenProjectHelper;
 import org.apache.maven.shared.filtering.MavenFilteringException;
 import org.apache.maven.shared.filtering.MavenResourcesExecution;
 import org.apache.maven.shared.filtering.MavenResourcesFiltering;
+import org.codehaus.plexus.archiver.ArchiveEntry;
 import org.codehaus.plexus.archiver.FileSet;
+import org.codehaus.plexus.archiver.ResourceIterator;
 import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
 import org.codehaus.plexus.interpolation.Interpolator;
 import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.FileUtils;
+import org.codehaus.plexus.util.IOUtil;
 import org.codehaus.plexus.util.MatchPatterns;
 import org.codehaus.plexus.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -207,6 +214,15 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
      * @since 1.1.0 */
     @Parameter(property="vault.supportMultiLineFiltering", defaultValue = "false")
     private boolean supportMultiLineFiltering;
+
+    /** If {@code true}, the build fails with an error if the package contains an Apache Sling authenticator
+     * configuration ({@code org.apache.sling.engine.impl.auth.SlingAuthenticator}) whose property
+     * {@code sling.auth.anonymous.user} is {@code admin} (ignoring case and surrounding spaces), because every request
+     * without credentials would then get administrator privileges. The password is never logged.
+     * Only {@code .cfg.json} and {@code .config} files below {@code jcr_root} are checked.
+     * @since 1.4.1 */
+    @Parameter(property = "vault.failOnAdminAnonymousUser", defaultValue = "false")
+    boolean failOnAdminAnonymousUser;
 
     @Parameter(defaultValue = "${session}", readonly = true, required = false)
     protected MavenSession session;
@@ -576,6 +592,8 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             if (!contentPackageArchiver.getFiles().containsKey(Constants.ROOT_DIR + "/")) {
                 contentPackageArchiver.addResource(new PlexusIoNonExistingDirectoryResource(Constants.ROOT_DIR), Constants.ROOT_DIR, 0);
             }
+            checkAnonymousUser(contentPackageArchiver);
+
             MavenArchiver mavenArchiver = new MavenArchiver();
             mavenArchiver.setArchiver(contentPackageArchiver);
             mavenArchiver.setOutputFile(finalFile);
@@ -594,6 +612,40 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
             }
         } catch (IllegalStateException | ManifestException | IOException | DependencyResolutionRequiredException | ConfigurationException | MavenFilteringException e) {
             throw new MojoExecutionException(e.toString(), e);
+        }
+    }
+
+    /** Fails the build if an OSGi configuration in the package runs requests without credentials as {@code admin}
+     * (see {@link #failOnAdminAnonymousUser}).
+     * Reads the files from the archiver, so exactly the (possibly filtered) content of the package is checked.
+     * @param archiver the archiver with all package files added
+     * @throws IOException if a file cannot be read
+     * @throws MojoFailureException if {@code admin} is configured as anonymous user */
+    void checkAnonymousUser(@NotNull ContentPackageArchiver archiver) throws IOException, MojoFailureException {
+        if (!failOnAdminAnonymousUser) {
+            return;
+        }
+        // collect the OSGi configuration files below jcr_root, sorted by path so the messages have a stable order
+        Map<String, byte[]> configurationFiles = new TreeMap<>();
+        ResourceIterator resources = archiver.getResources();
+        while (resources.hasNext()) {
+            ArchiveEntry entry = resources.next();
+            // entry names use '\' on Windows; the helper normalizes them to '/'
+            String path = OsgiConfigurationFiles.getConfigurationPath(entry.getName());
+            if (entry.getType() == ArchiveEntry.FILE && path != null) {
+                try (InputStream input = entry.getInputStream()) {
+                    configurationFiles.put(path, IOUtil.toByteArray(input));
+                }
+            }
+        }
+        List<String> errors = AnonymousUserCheck.check(configurationFiles);
+        if (!errors.isEmpty()) {
+            for (String error : errors) {
+                getLog().error(error);
+            }
+            // the details are only in the log above, so they are not repeated in Maven's build summary
+            throw new MojoFailureException(errors.size() + " OSGi configuration(s) use 'admin' as Sling anonymous user, "
+                    + "see the errors above.");
         }
     }
 

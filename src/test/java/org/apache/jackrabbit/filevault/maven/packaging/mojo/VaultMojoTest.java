@@ -16,20 +16,30 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.mojo;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.ContentPackageArchiver;
 import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
+import org.apache.maven.plugin.MojoFailureException;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
+import org.codehaus.plexus.components.io.resources.ResourceFactory;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 class VaultMojoTest {
 
@@ -59,5 +69,38 @@ class VaultMojoTest {
         fileSet.setIncludingEmptyDirectories(true);
         DefaultFileSet clonedFileSet = VaultMojo.cloneFileSet(fileSet);
         assertTrue( EqualsBuilder.reflectionEquals(fileSet, clonedFileSet), "Expected " + ToStringBuilder.reflectionToString(fileSet) + " but got " + ToStringBuilder.reflectionToString(clonedFileSet));
+    }
+
+    /** Creates an archiver containing one Sling authenticator configuration under the given entry name. */
+    private static ContentPackageArchiver archiverWithAuthenticatorConfiguration(Path folder, String entryName) throws IOException {
+        Path configuration = folder.resolve("configuration.cfg.json");
+        Files.write(configuration, "{ \"sling.auth.anonymous.user\": \"admin\" }".getBytes(StandardCharsets.UTF_8));
+        ContentPackageArchiver archiver = new ContentPackageArchiver();
+        // addResource keeps the name as it is (addFile would replace '\' with '/'), like the file sets of VaultMojo on Windows
+        archiver.addResource(ResourceFactory.createResource(configuration.toFile()), entryName, -1);
+        return archiver;
+    }
+
+    @Test
+    void testCheckAnonymousUserFailsForUnixAndWindowsEntryNames(@TempDir Path folder) throws IOException {
+        VaultMojo mojo = new VaultMojo(null, null, null, Collections.emptySet());
+        mojo.failOnAdminAnonymousUser = true;
+        // archive entry names use the platform separator, so on Windows they contain backslashes
+        String[] entryNames = {
+            "jcr_root/apps/example/config/org.apache.sling.engine.impl.auth.SlingAuthenticator.cfg.json",
+            "jcr_root\\apps\\example\\config\\org.apache.sling.engine.impl.auth.SlingAuthenticator.cfg.json"
+        };
+        for (String entryName : entryNames) {
+            ContentPackageArchiver archiver = archiverWithAuthenticatorConfiguration(folder, entryName);
+            assertThrows(MojoFailureException.class, () -> mojo.checkAnonymousUser(archiver), entryName);
+        }
+    }
+
+    @Test
+    void testCheckAnonymousUserIsDisabledByDefault(@TempDir Path folder) throws IOException {
+        VaultMojo mojo = new VaultMojo(null, null, null, Collections.emptySet());
+        ContentPackageArchiver archiver = archiverWithAuthenticatorConfiguration(folder,
+                "jcr_root/apps/example/config/org.apache.sling.engine.impl.auth.SlingAuthenticator.cfg.json");
+        assertDoesNotThrow(() -> mojo.checkAnonymousUser(archiver));
     }
 }

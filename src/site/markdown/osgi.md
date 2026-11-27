@@ -39,3 +39,35 @@ By default the Sling JCR Installer Provider and Sling Content-Package to Feature
 
 The FileVault Package Maven plugin supports automatically embedding OSGi bundles or packages in the right location in the generated package which are filtered from the project's Maven dependencies through its [`embeddeds` parameter](generate-metadata-mojo.html#embeddeds).
 It needs to be ensured that the embedded target path is set accordingly for the Sling JCR Installer Provider to pick it up.
+
+## Checking Unsafe OSGi Configurations
+
+The [`package` goal](package-mojo.html) can fail the build if the package contains OSGi configurations which would make an Apache Sling instance unsafe. The checks are disabled by default. They read OSGi configurations in the formats `<pid>.cfg.json` and `<pid>.config` below `jcr_root`; other formats (`.cfg` files and `sling:OsgiConfig` nodes) are not checked. Every problem is logged as an error naming the file, then the build fails. The package files are never changed.
+
+| Parameter | What fails the build |
+| --- | --- |
+| [`failOnAdminAnonymousUser`](package-mojo.html#failOnAdminAnonymousUser) | In `org.apache.sling.engine.impl.auth.SlingAuthenticator`: `sling.auth.anonymous.user` set to `admin`, ignoring case and surrounding spaces. Otherwise every request without credentials would run with administrator privileges. The value of `sling.auth.anonymous.password` is never logged. |
+
+Example:
+
+```
+<plugin>
+    <groupId>org.apache.jackrabbit</groupId>
+    <artifactId>filevault-package-maven-plugin</artifactId>
+    <configuration>
+        <failOnAdminAnonymousUser>true</failOnAdminAnonymousUser>
+    </configuration>
+</plugin>
+```
+
+A configuration like
+
+```
+{
+    "sling.auth.anonymous.user": "admin",
+    "sling.auth.anonymous.password": "...",
+    "auth.annonymous": false
+}
+```
+
+then fails the build with an error naming the file.
