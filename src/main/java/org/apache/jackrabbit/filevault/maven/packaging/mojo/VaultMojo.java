@@ -630,11 +630,11 @@ public class VaultMojo extends AbstractSourceAndMetadataPackageMojo {
         ResourceIterator resources = archiver.getResources();
         while (resources.hasNext()) {
             ArchiveEntry entry = resources.next();
-            String name = entry.getName();
-            if (entry.getType() == ArchiveEntry.FILE && name.startsWith(Constants.ROOT_DIR + "/")
-                    && OsgiConfigurationFiles.getPid(name) != null) {
+            // entry names use '\' on Windows; the helper normalizes them to '/'
+            String path = OsgiConfigurationFiles.getConfigurationPath(entry.getName());
+            if (entry.getType() == ArchiveEntry.FILE && path != null) {
                 try (InputStream input = entry.getInputStream()) {
-                    configurationFiles.put(name, IOUtil.toByteArray(input));
+                    configurationFiles.put(path, IOUtil.toByteArray(input));
                 }
             }
         }

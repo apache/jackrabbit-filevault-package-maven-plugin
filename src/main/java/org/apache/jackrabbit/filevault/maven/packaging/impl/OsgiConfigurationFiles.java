@@ -27,6 +27,7 @@ import java.util.Hashtable;
 
 import org.apache.felix.cm.file.ConfigurationHandler;
 import org.apache.felix.cm.json.Configurations;
+import org.apache.jackrabbit.vault.util.Constants;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,6 +52,25 @@ public final class OsgiConfigurationFiles {
 
     private OsgiConfigurationFiles() {
         // only static methods
+    }
+
+    /**
+     * Returns the path of a package entry if it is an OSGi configuration below {@code jcr_root}, with {@code /} as
+     * separator on every operating system.
+     * <p>
+     * Archive entry names use the platform's file separator, e.g. {@code jcr_root\apps\example\config\my.Service.cfg.json}
+     * on Windows, so the name is normalized before it is checked.
+     *
+     * @param entryName the name of the entry in the archiver
+     * @return the normalized path, e.g. {@code jcr_root/apps/example/config/my.Service.cfg.json}, or {@code null} if the
+     *         entry is not below {@code jcr_root} or does not have a supported OSGi configuration extension
+     */
+    public static @Nullable String getConfigurationPath(@NotNull String entryName) {
+        String path = entryName.replace('\\', '/');
+        if (!path.startsWith(Constants.ROOT_DIR + "/") || getPid(path) == null) {
+            return null;
+        }
+        return path;
     }
 
     /**
