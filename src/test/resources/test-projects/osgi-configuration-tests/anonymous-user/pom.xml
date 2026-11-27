@@ -23,7 +23,7 @@
     <packaging>content-package</packaging>
 
     <description>Test project with OSGi configurations of the Sling authenticator.</description>
-    <name>OSGi configuration adjustment test</name>
+    <name>Anonymous user check test</name>
     <build>
         <plugins>
             <plugin>

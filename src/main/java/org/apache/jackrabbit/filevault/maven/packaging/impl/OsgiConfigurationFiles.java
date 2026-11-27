@@ -17,12 +17,9 @@
 package org.apache.jackrabbit.filevault.maven.packaging.impl;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.Dictionary;
 import java.util.Enumeration;
@@ -34,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Reads and writes OSGi configuration files as they are stored in content packages.
+ * Reads OSGi configuration files as they are stored in content packages.
  * <p>
  * Two serialization formats are supported (see
  * <a href="https://sling.apache.org/documentation/bundles/configuration-installer-factory.html#configuration-serialization-formats">Configuration Serialization Formats</a>):
@@ -98,29 +95,6 @@ public final class OsgiConfigurationFiles {
             return toStringKeys(ConfigurationHandler.read(new ByteArrayInputStream(content)));
         }
         throw new IllegalArgumentException("Unsupported OSGi configuration file name " + fileName);
-    }
-
-    /**
-     * Serializes configuration properties in the format given by the file name.
-     *
-     * @param fileName the file name, used to pick the format
-     * @param properties the configuration properties
-     * @return the new file content
-     * @throws IOException if the properties cannot be serialized
-     * @throws IllegalArgumentException if the file name does not have a supported extension
-     */
-    public static @NotNull byte[] write(@NotNull String fileName, @NotNull Dictionary<String, Object> properties) throws IOException {
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
-        if (isJson(fileName)) {
-            try (Writer writer = new OutputStreamWriter(output, StandardCharsets.UTF_8)) {
-                Configurations.buildWriter().build(writer).writeConfiguration(properties);
-            }
-        } else if (isConfig(fileName)) {
-            ConfigurationHandler.write(output, properties);
-        } else {
-            throw new IllegalArgumentException("Unsupported OSGi configuration file name " + fileName);
-        }
-        return output.toByteArray();
     }
 
     private static boolean isJson(String fileName) {

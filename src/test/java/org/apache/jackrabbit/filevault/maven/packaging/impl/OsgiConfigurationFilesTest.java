@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Dictionary;
-import java.util.Hashtable;
 
 import org.junit.jupiter.api.Test;
 
@@ -67,26 +66,6 @@ class OsgiConfigurationFilesTest {
     }
 
     @Test
-    void testWriteAndReadAgainKeepsValuesAndTypes() throws IOException {
-        for (String fileName : new String[] {"my.Service.cfg.json", "my.Service.config"}) {
-            Dictionary<String, Object> properties = new Hashtable<>();
-            properties.put("text", "value");
-            properties.put("list", new String[] {"a", "b"});
-            properties.put("number", 5);
-            properties.put("flag", Boolean.FALSE);
-
-            byte[] content = OsgiConfigurationFiles.write(fileName, properties);
-            Dictionary<String, Object> readAgain = OsgiConfigurationFiles.read(fileName, content);
-
-            assertEquals("value", readAgain.get("text"), fileName);
-            assertArrayEquals(new String[] {"a", "b"}, (String[]) readAgain.get("list"), fileName);
-            assertEquals(5, readAgain.get("number"), fileName);
-            assertEquals(Boolean.FALSE, readAgain.get("flag"), fileName);
-            assertEquals(4, readAgain.size(), fileName);
-        }
-    }
-
-    @Test
     void testInvalidJsonThrowsIOException() {
         assertThrows(IOException.class,
                 () -> OsgiConfigurationFiles.read("my.Service.cfg.json", "{ not json".getBytes(StandardCharsets.UTF_8)));
@@ -96,6 +75,5 @@ class OsgiConfigurationFilesTest {
     void testUnsupportedFileNameThrowsIllegalArgumentException() {
         byte[] content = "a=b".getBytes(StandardCharsets.UTF_8);
         assertThrows(IllegalArgumentException.class, () -> OsgiConfigurationFiles.read("my.Service.cfg", content));
-        assertThrows(IllegalArgumentException.class, () -> OsgiConfigurationFiles.write("my.Service.cfg", new Hashtable<>()));
     }
 }
