@@ -39,3 +39,34 @@ By default the Sling JCR Installer Provider and Sling Content-Package to Feature
 
 The FileVault Package Maven plugin supports automatically embedding OSGi bundles or packages in the right location in the generated package which are filtered from the project's Maven dependencies through its [`embeddeds` parameter](generate-metadata-mojo.html#embeddeds).
 It needs to be ensured that the embedded target path is set accordingly for the Sling JCR Installer Provider to pick it up.
+
+## Checking Unsafe OSGi Configurations
+
+The [`package` goal](package-mojo.html) can fail the build if the package contains OSGi configurations which would make an Apache Sling instance unsafe. The checks are disabled by default. They read OSGi configurations in the formats `<pid>.cfg.json` and `<pid>.config` below `jcr_root`; other formats (`.cfg` files and `sling:OsgiConfig` nodes) are not checked. Every problem is logged as an error naming the file, then the build fails. The package files are never changed.
+
+| Parameter | What fails the build |
+| --- | --- |
+| [`failOnUnsafeAdministrativePrincipals`](package-mojo.html#failOnUnsafeAdministrativePrincipals) | In `org.apache.jackrabbit.oak.security.authorization.AuthorizationConfigurationImpl`: the principal `everyone` or the anonymous principal in `administrativePrincipals`. Otherwise every request without credentials would get full permissions on the repository. The name of the anonymous principal is the property `anonymousId` of `org.apache.jackrabbit.oak.security.user.UserConfigurationImpl` in the package, or `anonymous` (Oak's default) if it is not set there. If the package contains several user configurations (e.g. for different run modes), the anonymous ID of each of them is checked. Names must match exactly, like in Oak's own check. |
+
+Example:
+
+```
+<plugin>
+    <groupId>org.apache.jackrabbit</groupId>
+    <artifactId>filevault-package-maven-plugin</artifactId>
+    <configuration>
+        <failOnUnsafeAdministrativePrincipals>true</failOnUnsafeAdministrativePrincipals>
+    </configuration>
+</plugin>
+```
+
+A configuration like
+
+```
+{
+    "administrativePrincipals": ["administrators", "anonymous"],
+    "importBehavior": "besteffort"
+}
+```
+
+then fails the build with an error naming the file and the principal `anonymous`.

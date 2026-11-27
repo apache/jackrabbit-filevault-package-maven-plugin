@@ -449,6 +449,14 @@
             <artifactId>jackrabbit-spi-commons</artifactId>
             <scope>compile</scope>
         </dependency>
+        <!-- only String constants (e.g. UserConstants.DEFAULT_ANONYMOUS_ID) are used, which the compiler inlines,
+             so this is not needed at runtime -->
+        <dependency>
+            <groupId>org.apache.jackrabbit</groupId>
+            <artifactId>oak-security-spi</artifactId>
+            <version>${oak.min.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
             <artifactId>org.osgi.framework</artifactId>
