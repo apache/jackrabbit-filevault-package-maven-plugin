@@ -16,17 +16,27 @@
  */
 package org.apache.jackrabbit.filevault.maven.packaging.mojo;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.jackrabbit.filevault.maven.packaging.impl.AdministrativePrincipalsConfigurationTransformer;
 import org.apache.jackrabbit.filevault.maven.packaging.it.util.ProjectBuilder;
 import org.codehaus.plexus.archiver.util.DefaultFileSet;
+import org.codehaus.plexus.components.io.functions.InputStreamTransformer;
+import org.codehaus.plexus.util.IOUtil;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
@@ -59,5 +69,43 @@ class VaultMojoTest {
         fileSet.setIncludingEmptyDirectories(true);
         DefaultFileSet clonedFileSet = VaultMojo.cloneFileSet(fileSet);
         assertTrue( EqualsBuilder.reflectionEquals(fileSet, clonedFileSet), "Expected " + ToStringBuilder.reflectionToString(fileSet) + " but got " + ToStringBuilder.reflectionToString(clonedFileSet));
+    }
+
+    @Test
+    void testChainStreamTransformersRunsFirstThenSecond() throws IOException {
+        InputStreamTransformer appendA = (resource, in) -> append(in, "A");
+        InputStreamTransformer appendB = (resource, in) -> append(in, "B");
+
+        assertSame(appendB, VaultMojo.chainStreamTransformers(null, appendB));
+        InputStreamTransformer chained = VaultMojo.chainStreamTransformers(appendA, appendB);
+        try (InputStream result = chained.transform(null, new ByteArrayInputStream("x".getBytes(StandardCharsets.UTF_8)))) {
+            assertEquals("xAB", new String(IOUtil.toByteArray(result), StandardCharsets.UTF_8));
+        }
+    }
+
+    private static InputStream append(InputStream in, String suffix) throws IOException {
+        String text = new String(IOUtil.toByteArray(in), StandardCharsets.UTF_8) + suffix;
+        return new ByteArrayInputStream(text.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void testNoOsgiConfigurationTransformerByDefault() {
+        VaultMojo mojo = new VaultMojo(null, null, null, Collections.emptySet());
+        DefaultFileSet fileSet = new DefaultFileSet();
+
+        mojo.addOsgiConfigurationTransformers(fileSet);
+
+        assertNull(fileSet.getStreamTransformer());
+    }
+
+    @Test
+    void testAdministrativePrincipalsTransformerAddedWhenEnabled() {
+        VaultMojo mojo = new VaultMojo(null, null, null, Collections.emptySet());
+        mojo.removeAnonymousFromAdministrativePrincipals = true;
+        DefaultFileSet fileSet = new DefaultFileSet();
+
+        mojo.addOsgiConfigurationTransformers(fileSet);
+
+        assertTrue(fileSet.getStreamTransformer() instanceof AdministrativePrincipalsConfigurationTransformer);
     }
 }

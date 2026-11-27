@@ -39,3 +39,34 @@ By default the Sling JCR Installer Provider and Sling Content-Package to Feature
 
 The FileVault Package Maven plugin supports automatically embedding OSGi bundles or packages in the right location in the generated package which are filtered from the project's Maven dependencies through its [`embeddeds` parameter](generate-metadata-mojo.html#embeddeds).
 It needs to be ensured that the embedded target path is set accordingly for the Sling JCR Installer Provider to pick it up.
+
+## Adjusting Unsafe OSGi Configurations
+
+The [`package` goal](package-mojo.html) can remove some configuration values which would make an Apache Sling instance unsafe. The adjustments are disabled by default and only change the copy in the generated package, never the source files. They apply to OSGi configurations in the formats `<pid>.cfg.json` and `<pid>.config` below `jcr_root`; other formats (`.cfg` files and `sling:OsgiConfig` nodes) are not adjusted. Every adjustment is logged as a warning. A changed file is written again in the same format, so comments and the original formatting of that file are not kept.
+
+| Parameter | What it removes |
+| --- | --- |
+| [`removeAnonymousFromAdministrativePrincipals`](package-mojo.html#removeAnonymousFromAdministrativePrincipals) | In `org.apache.jackrabbit.oak.security.authorization.AuthorizationConfigurationImpl`: the principal `anonymous` from `administrativePrincipals`; the other principals are kept in their order. The name must match exactly, like in Oak's own check. Otherwise every request without credentials would get full permissions on the repository. |
+
+Example:
+
+```
+<plugin>
+    <groupId>org.apache.jackrabbit</groupId>
+    <artifactId>filevault-package-maven-plugin</artifactId>
+    <configuration>
+        <removeAnonymousFromAdministrativePrincipals>true</removeAnonymousFromAdministrativePrincipals>
+    </configuration>
+</plugin>
+```
+
+For a configuration like
+
+```
+{
+    "administrativePrincipals": ["administrators", "anonymous"],
+    "importBehavior": "besteffort"
+}
+```
+
+the package then contains `"administrativePrincipals": ["administrators"]` and the build logs a warning naming the file.
