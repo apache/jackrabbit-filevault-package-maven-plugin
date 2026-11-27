@@ -40,13 +40,13 @@ By default the Sling JCR Installer Provider and Sling Content-Package to Feature
 The FileVault Package Maven plugin supports automatically embedding OSGi bundles or packages in the right location in the generated package which are filtered from the project's Maven dependencies through its [`embeddeds` parameter](generate-metadata-mojo.html#embeddeds).
 It needs to be ensured that the embedded target path is set accordingly for the Sling JCR Installer Provider to pick it up.
 
-## Adjusting Unsafe OSGi Configurations
+## Checking Unsafe OSGi Configurations
 
-The [`package` goal](package-mojo.html) can remove some configuration values which would make an Apache Sling instance unsafe. The adjustments are disabled by default and only change the copy in the generated package, never the source files. They apply to OSGi configurations in the formats `<pid>.cfg.json` and `<pid>.config` below `jcr_root`; other formats (`.cfg` files and `sling:OsgiConfig` nodes) are not adjusted. Every adjustment is logged as a warning. A changed file is written again in the same format, so comments and the original formatting of that file are not kept.
+The [`package` goal](package-mojo.html) can fail the build if the package contains OSGi configurations which would make an Apache Sling instance unsafe. The checks are disabled by default. They read OSGi configurations in the formats `<pid>.cfg.json` and `<pid>.config` below `jcr_root`; other formats (`.cfg` files and `sling:OsgiConfig` nodes) are not checked. Every problem is logged as an error naming the file, then the build fails. The package files are never changed.
 
-| Parameter | What it removes |
+| Parameter | What fails the build |
 | --- | --- |
-| [`removeAnonymousFromAdministrativePrincipals`](package-mojo.html#removeAnonymousFromAdministrativePrincipals) | In `org.apache.jackrabbit.oak.security.authorization.AuthorizationConfigurationImpl`: the principal `anonymous` from `administrativePrincipals`; the other principals are kept in their order. The name must match exactly, like in Oak's own check. Otherwise every request without credentials would get full permissions on the repository. |
+| [`failOnUnsafeAdministrativePrincipals`](package-mojo.html#failOnUnsafeAdministrativePrincipals) | In `org.apache.jackrabbit.oak.security.authorization.AuthorizationConfigurationImpl`: the principal `everyone` or the anonymous principal in `administrativePrincipals`. Otherwise every request without credentials would get full permissions on the repository. The name of the anonymous principal is the property `anonymousId` of `org.apache.jackrabbit.oak.security.user.UserConfigurationImpl` in the package, or `anonymous` (Oak's default) if it is not set there. If the package contains several user configurations (e.g. for different run modes), the anonymous ID of each of them is checked. Names must match exactly, like in Oak's own check. |
 
 Example:
 
@@ -55,12 +55,12 @@ Example:
     <groupId>org.apache.jackrabbit</groupId>
     <artifactId>filevault-package-maven-plugin</artifactId>
     <configuration>
-        <removeAnonymousFromAdministrativePrincipals>true</removeAnonymousFromAdministrativePrincipals>
+        <failOnUnsafeAdministrativePrincipals>true</failOnUnsafeAdministrativePrincipals>
     </configuration>
 </plugin>
 ```
 
-For a configuration like
+A configuration like
 
 ```
 {
@@ -69,4 +69,4 @@ For a configuration like
 }
 ```
 
-the package then contains `"administrativePrincipals": ["administrators"]` and the build logs a warning naming the file.
+then fails the build with an error naming the file and the principal `anonymous`.
