@@ -39,3 +39,35 @@ By default the Sling JCR Installer Provider and Sling Content-Package to Feature
 
 The FileVault Package Maven plugin supports automatically embedding OSGi bundles or packages in the right location in the generated package which are filtered from the project's Maven dependencies through its [`embeddeds` parameter](generate-metadata-mojo.html#embeddeds).
 It needs to be ensured that the embedded target path is set accordingly for the Sling JCR Installer Provider to pick it up.
+
+## Adjusting Unsafe OSGi Configurations
+
+The [`package` goal](package-mojo.html) can remove some configuration values which would make an Apache Sling instance unsafe. The adjustments are disabled by default and only change the copy in the generated package, never the source files. They apply to OSGi configurations in the formats `<pid>.cfg.json` and `<pid>.config` below `jcr_root`; other formats (`.cfg` files and `sling:OsgiConfig` nodes) are not adjusted. Every adjustment is logged as a warning. A changed file is written again in the same format, so comments and the original formatting of that file are not kept.
+
+| Parameter | What it removes |
+| --- | --- |
+| [`removeAdminAsAnonymousUser`](package-mojo.html#removeAdminAsAnonymousUser) | In `org.apache.sling.engine.impl.auth.SlingAuthenticator`: `sling.auth.anonymous.user` (and `sling.auth.anonymous.password`) when the user is `admin`, ignoring case and surrounding spaces. Otherwise every anonymous request would run with administrator privileges. |
+
+Example:
+
+```
+<plugin>
+    <groupId>org.apache.jackrabbit</groupId>
+    <artifactId>filevault-package-maven-plugin</artifactId>
+    <configuration>
+        <removeAdminAsAnonymousUser>true</removeAdminAsAnonymousUser>
+    </configuration>
+</plugin>
+```
+
+For a configuration like
+
+```
+{
+    "sling.auth.anonymous.user": "admin",
+    "sling.auth.anonymous.password": "...",
+    "auth.annonymous": false
+}
+```
+
+the package then contains `{ "auth.annonymous": false }` and the build logs a warning naming the file.
